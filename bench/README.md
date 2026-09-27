@@ -50,7 +50,9 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
   processing (`timings.prompt_per_second`, cross-checked against
   `prompt_n / prompt_ms`).
 - **output tok/s** — decode throughput: generated tokens per second
-  (`timings.predicted_per_second`).
+  (`timings.predicted_per_second`). Requests set `ignore_eos`, so every context
+  decodes the full `--max-tokens` and throughput is comparable even when the
+  model would otherwise stop early on a short prompt.
 - **TTFT ms** — time to first token, measured client side on a streaming
   request: from sending the request to the first non-empty content chunk. The
   same streaming request also returns the server's final `timings`, so prefill
@@ -68,7 +70,9 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
   `VmHWM` is recorded too.
 - **needle** — a passphrase is planted at ~50% depth of a full-length prompt and
   the model must echo it. `pass` proves the context window is real and usable,
-  not merely accepted.
+  not merely accepted. When the needle context is also a measured context, the
+  check is folded into that run (one ~128K prefill both measures throughput and
+  proves recall); otherwise it runs as its own request.
 - **cv** — coefficient of variation (stdev / median) across repeats. Reported
   wherever `repeats >= 2`.
 

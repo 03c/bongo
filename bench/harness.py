@@ -237,6 +237,7 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
         "temperature": 0.0,
         "stream": True,
         "cache_prompt": False,
+        "ignore_eos": True,
         "stream_options": {"include_usage": True},
     }
     if extra:
@@ -262,7 +263,7 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
     }
     # Safety net for OpenAI-compatible servers that do not emit stream timings.
     if out["status"] == 200 and out["prompt_tps"] is None and out["stream_error"] is None:
-        fallback = completion_call(base_url, model, prompt, max_tokens, timeout)
+        fallback = completion_call(base_url, model, prompt, max_tokens, timeout, extra={"ignore_eos": True})
         for key in (
             "prompt_tokens",
             "prompt_ms",
@@ -279,6 +280,17 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
             out["status"] = fallback.get("status")
             out["error"] = fallback.get("error")
     return out
+
+
+def build_needle_document(filler):
+    """Plant the passphrase at ~50% depth and append the recall question."""
+    depth = len(filler) // 2
+    return (
+        f"{filler[:depth]}\nThe secret access code for the vault is {NEEDLE}.\n"
+        f"{filler[depth:]}"
+        "\n\nQuestion: What is the secret access code for the vault? "
+        "Answer with only the code.\nAnswer:"
+    )
 
 
 def run_error_cases(base_url, model, context_limit, args):
@@ -430,16 +442,28 @@ def benchmark(args):
     failures = []
     highest_working = None
 
+    # The 128K recall check proves the long context is real.  When the needle
+    # context is one of the measured contexts, fold it into that run instead of
+    # paying for a second full prefill (a 128K prefill is ~15 minutes here).
+    needle_ctx = args.needle_context
+    needle = {"context": needle_ctx, "needle": NEEDLE, "status": "skipped"}
+    folded_needle_ctx = needle_ctx if needle_ctx in (args.contexts or []) else None
+    needle_recorded = False
+
     contexts = args.contexts
     for idx, ctx in enumerate(contexts):
         entry = {"target_context": ctx, "status": "ok", "runs": [], "summary": {}}
         # reserve room for the generated tokens when the target is the whole
         # context, and guarantee the prompt itself can never overflow n_ctx
         reserve = max(args.max_tokens, 64)
+        if ctx == folded_needle_ctx:
+            reserve += 128  # room for the planted needle and the question
         hard_max = max(1, context_limit - reserve)
         target = min(ctx, hard_max)
         entry["planned_prompt_tokens"] = target
         prompt = tokenizer.size_to(target, CORPUS, hard_max=hard_max)
+        if ctx == folded_needle_ctx:
+            prompt = build_needle_document(prompt)
         entry["builder_uses_server_tokenizer"] = bool(tokenizer.available)
         # Deep contexts pay for a full prefill per repeat (seconds to minutes),
         # so allow fewer repeats at and above --deep-threshold.
@@ -482,6 +506,31 @@ def benchmark(args):
         }
         if entry["summary"].get("prompt_tokens"):
             entry["actual_prompt_tokens_median"] = entry["summary"]["prompt_tokens"]["median"]
+        if ctx == folded_needle_ctx:
+            runs = entry.get("runs") or []
+            if runs:
+                last = runs[-1]
+                answer = last.get("text") or last.get("stream_text") or ""
+                needle.update(
+                    {
+                        "status": "pass" if NEEDLE.lower() in answer.lower() else "fail",
+                        "prompt_tokens": last.get("prompt_tokens"),
+                        "answer": answer[:400],
+                        "http_status": last.get("status"),
+                        "error": last.get("stream_error") or last.get("error"),
+                        "folded_into_context": ctx,
+                    }
+                )
+            else:
+                needle.update(
+                    {
+                        "status": "fail",
+                        "folded_into_context": ctx,
+                        "error": entry.get("error") or "context run produced no response",
+                    }
+                )
+            needle_recorded = True
+            (raw_dir / "needle.json").write_text(json.dumps(needle, indent=2))
         if entry["status"] == "ok":
             highest_working = ctx
         results.append(entry)
@@ -498,10 +547,8 @@ def benchmark(args):
                 )
             break
 
-    # ---- needle ----------------------------------------------------------
-    needle_ctx = args.needle_context
-    needle = {"context": needle_ctx, "needle": NEEDLE, "status": "skipped"}
-    if needle_ctx:
+    # ---- needle (standalone only when it was not folded into a context) ---
+    if needle_ctx and not needle_recorded:
         if needle_ctx > context_limit:
             needle["reason"] = f"requested needle context {needle_ctx} > server n_ctx {context_limit}"
         else:
@@ -510,14 +557,9 @@ def benchmark(args):
             hard_max = max(1, context_limit - reserve)
             target = min(needle_ctx, hard_max)
             filler = tokenizer.size_to(target, CORPUS, hard_max=hard_max)
-            depth = len(filler) // 2
-            document = f"{filler[:depth]}\nThe secret access code for the vault is {NEEDLE}.\n{filler[depth:]}"
-            question = (
-                "\n\nQuestion: What is the secret access code for the vault? "
-                "Answer with only the code.\nAnswer:"
-            )
+            document = build_needle_document(filler)
             res = completion_call(
-                base_url, model_id, document + question, args.needle_tokens, args.timeout
+                base_url, model_id, document, args.needle_tokens, args.timeout
             )
             answer = res.get("text") or ""
             needle = {
