@@ -566,6 +566,21 @@ probe_vulkan() {
   return 1
 }
 
+# Pick the llama.cpp Vulkan device index for the Intel GPU from
+# `llama-server --list-devices`.  A host with a second Vulkan device (for
+# example a CPU iGPU from another vendor) would otherwise default to
+# Vulkan0, which fails to hold the model.  Prints e.g. "Vulkan1"; prints
+# nothing (and returns non-zero) when no Intel device is listed.
+detect_vulkan_device() {
+  local bin="$1"
+  [[ -x "$bin" ]] || return 1
+  local out tok
+  out="$("$bin" --list-devices 2>/dev/null || true)"
+  tok="$(awk '/Vulkan[0-9]+:/ && /Intel/ {print $1; exit}' <<<"$out" | tr -d ':')"
+  [[ -n "$tok" ]] || return 1
+  printf '%s' "$tok"
+}
+
 select_backend() {
   local bin_dir="$1"
   local want="$BACKEND"
@@ -813,6 +828,16 @@ build_server_flags() {
   if [[ -n "$THREADS" ]]; then SERVER_FLAGS+=(--threads "$THREADS"); fi
   if (( NO_MMAP )); then SERVER_FLAGS+=(--no-mmap); fi
   if (( KEEP_ALIVE == 0 )); then SERVER_FLAGS+=(--no-keep-alive); fi
+  # Pin the Intel GPU when the Vulkan build and another Vulkan device are both
+  # present; otherwise llama.cpp selects device 0 (which may not be the Arc).
+  if [[ "$SELECTED_BACKEND" == "Vulkan" && -x "$SERVER_BIN" ]]; then
+    local vkdev
+    vkdev="$(detect_vulkan_device "$SERVER_BIN" || true)"
+    if [[ -n "$vkdev" ]]; then
+      SERVER_FLAGS+=(--device "$vkdev")
+      log "Pinned Vulkan device: $vkdev"
+    fi
+  fi
 }
 
 json_escape() { local s="$1"; s="${s//\\/\\\\}"; s="${s//\"/\\\"}"; printf '%s' "$s"; }
