@@ -62,7 +62,6 @@ CACHE_TYPE_K="q8_0"
 CACHE_TYPE_V="q8_0"
 PARALLEL=1
 NO_MMAP=0
-MTP=0
 DRY_RUN=0
 DETACH=0
 FORCE=0
@@ -177,7 +176,6 @@ Serving:
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
   --no-mmap              Pass --no-mmap (only if measurement shows thrashing)
-  --mtp                  Enable the model's MTP draft head (experimental)
   --detach               Start the server in the background and exit
   --no-keep-alive        Let llama-server exit when idle
 
@@ -227,7 +225,9 @@ parse_args() {
       --n-gpu-layers) N_GPU_LAYERS="${2:?--n-gpu-layers needs a value}"; shift 2;;
       --threads) THREADS="${2:?--threads needs a value}"; shift 2;;
       --no-mmap) NO_MMAP=1; shift;;
-      --mtp) MTP=1; shift;;
+      # The published GGUF has no MTP/NextN head and llama.cpp qwen4exp cannot convert or run one;
+      # speculation is the n-gram/PLE table. Refuse the flag with an actionable message.
+      --mtp) die "--mtp is not supported for this model: the published GGUF has no MTP head and llama.cpp qwen4exp cannot run one. Speculation uses the lazy-read n-gram/PLE table. See docs/research/intel-arc-b70.md section 2.1.";;
       --detach) DETACH=1; shift;;
       --no-keep-alive) KEEP_ALIVE=0; shift;;
       --runtime) RUNTIME_MODE="${2:?--runtime needs a value}"; shift 2;;
@@ -798,7 +798,6 @@ build_server_flags() {
   )
   if [[ -n "$THREADS" ]]; then SERVER_FLAGS+=(--threads "$THREADS"); fi
   if (( NO_MMAP )); then SERVER_FLAGS+=(--no-mmap); fi
-  if (( MTP )); then SERVER_FLAGS+=(--spec-type draft-mtp); fi
   if (( KEEP_ALIVE == 0 )); then SERVER_FLAGS+=(--no-keep-alive); fi
 }
 
