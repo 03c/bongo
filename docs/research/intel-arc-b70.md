@@ -42,26 +42,36 @@ Implications:
 | MoE | **512 experts/layer**, 10 active, `moe_intermediate_size` 640 |
 | Total experts | 512 x 48 = **24,576** (matches Strata's figure) |
 | Params/expert | 3 x 2560 x 640 = **4.92 M** |
-| MTP | 1 NextN layer, hybrid |
-| N-gram | `ngram_vocab_size_base` 20,000,000, `heads_per_ngram` 8, `ngram_size` 3 |
+| MTP | 1 NextN layer in the base config — **not present as tensors in these GGUFs** ([gguf-inventory.md](gguf-inventory.md) §4) |
+| N-gram | 16 heads over `ngram_vocab_size_base`-scale vocab, `heads_per_ngram` 8, `ngram_size` 3; `per_layer_token_embd.weight` = 26.82 GiB in shard 1 ([gguf-inventory.md](gguf-inventory.md) §3) |
 | Vision | 27-layer ViT, 0.91 GB `mmproj` BF16 projector (optional) |
 | Tensors | 1,224 |
 
 ### Quant tiers (verified file sizes, decimal GB)
 
-| Tier | Combined GGUF | Shard 1 | Shard 2 | Expert bytes (approx) | Dev KLD |
+| Tier | Combined GGUF | Shard 1 | Shard 2 | Expert bytes (measured) | Dev KLD |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Q2_0 (experimental) | 66.55 GB | 39.80 | 26.75 | ~34 GB | 0.424 |
-| IQ2_XS (recommended) | 68.15 GB | 39.79 | 28.36 | ~36 GB | 0.341 |
-| IQ3_XXS | 75.97 GB | 39.79 | 36.18 | ~43 GB | 0.240 |
+| Q2_0 (experimental) | 66.55 GB | 39.80 | 26.75 | 33.97 GB | 0.424 |
+| IQ2_XS (recommended) | 68.15 GB | 39.79 | 28.36 | 35.45 GB | 0.341 |
+| IQ3_XXS | 75.97 GB | 39.79 | 36.18 | 42.91 GB | 0.240 |
 
 Notes:
 
-- Shard 1 is almost identical across tiers (~39.8 GB); the tier difference lands in shard 2. The exact
-  tensor-to-shard mapping is an **open question** to resolve from the GGUF tensor inventory before we finalise
-  buffer placement (cheap: HTTP range reads of the GGUF header, no full download).
-- The model is gated behind the Swift Open License 1.0; check access before scripting the download.
-- The model is licensed for the weights only; redistribution of the runtime is separate.
+- Shard 1 is almost identical across tiers (~39.8 GB) because it holds the **n-gram table** plus layers
+  0..12 and all global tensors; the tier difference lands in shard 2. The tensor-to-shard mapping is now
+  **resolved** — see [gguf-inventory.md](gguf-inventory.md) §2. In short, the split lands *inside* layer 13
+  (IQ2_XS, Q2_0) or layer 12 (IQ3_XXS), and no tensor crosses a shard boundary.
+- The **n-gram table is 28,800,138,240 B (26.82 GiB / 28.80 GB)** in every tier, is named
+  `per_layer_token_embd.weight`, is `IQ4_NL`, and lives in shard 1. [gguf-inventory.md](gguf-inventory.md)
+  §3 has the details; use that figure, not the earlier ~29 GB estimate.
+- Expert bytes above are measured from the GGUF tensor table, not estimated. The earlier column said
+  `~34/36/43 GB`; the real values are `33.97/35.45/42.91 GB`.
+- **No MTP / NextN tensor is present in any of the three GGUFs.** All 1,224 tensors are `blk.0`-`blk.47`
+  plus globals, and no name matches `nextn|mtp|draft|eagle`. The MTP row in the property table above and
+  the MTP entries in §3/§5 should be treated as aspirational: speculation must come from the n-gram/PLE
+  path unless a later release ships the draft tensors. See [gguf-inventory.md](gguf-inventory.md) §4/§7.
+- The model is gated behind the Swift Open License 1.0 on the Hub page, but the repo currently answers
+  anonymous range reads; access conditions for scripted download still need checking.
 
 ## 3. Memory budget (estimate, to be replaced by measurements)
 
@@ -75,25 +85,27 @@ constant-size recurrent state.
 | 128K | 3.1 GB | ~1.6 GB | +0.4 GB | ~0.15 GB f32 |
 | 262K | 6.3 GB | ~3.2 GB | +0.8 GB | ~0.15 GB |
 
-**Working budget for 32 GB VRAM + 30 GiB RAM (estimate):**
+**Working budget for 32 GB VRAM + 30 GiB RAM (non-expert weight figures are now measured):**
 
 | Bucket | VRAM | System RAM |
 | --- | ---: | ---: |
-| OS / agent stack / process overhead | ~0.5 GB | ~3-4 GB |
-| Non-expert weights (attn, linear attn, embed/head, routers, shared experts, MTP) | ~3-5 GB | - |
-| N-gram table (~29 GB) | - | disk-resident (OS page cache only) |
-| KV cache + linear state @128K, q8 | ~2 GB | ~0.2 GB |
-| Compute / graph buffers | ~1-2 GB | - |
-| **Available for experts** | **~24 GB** | **~26 GB** |
+| OS / agent stack / process overhead | ~0.5 GiB | ~3-4 GiB |
+| Driver + graph/compute buffers | ~2.0 GiB | - |
+| Non-expert weights (attn, linear attn, embed/head, routers, shared experts, hyper-connections) | 3.62 GiB (IQ2_XS) | - |
+| N-gram table (26.82 GiB) | - | disk-resident (OS page cache only) |
+| KV cache + linear state @128K, q8 | ~1.8 GiB | ~0.2 GiB |
+| **Available for experts** | **~22.4 GiB** | **~24 GiB** |
 
-So the combined expert capacity is roughly **50 GB**, which is *more* than IQ3_XXS's ~43 GB of experts. The
-constraint is not total capacity but **placement**: VRAM must hold the hot experts, RAM the rest, and the CPU
-must compute whatever is not resident on the GPU. That is exactly the problem Strata solves with an adaptive
-expert cache, and it is bongo's core engineering problem.
+So the combined expert capacity is roughly **46 GiB**, which is *more* than IQ3_XXS's 39.97 GiB of experts.
+The constraint is not total capacity but **placement**: VRAM must hold the hot experts, RAM the rest, and the
+CPU must compute whatever is not resident on the GPU, *while the n-gram table keeps working out of a page
+cache that has to share the same 30 GiB*. The full `-ot` / `--n-cpu-moe` rule and the resulting VRAM/RAM
+split are in [gguf-inventory.md](gguf-inventory.md) §6.
 
 Unknowns that matter and must be measured:
-- Real non-expert weight bytes (from the GGUF inventory).
-- Whether the ~29 GB n-gram table can be mmap'd from SSD and read a few rows/token without wrecking latency.
+- Driver/graph buffer use and the real KV/indexer/state footprint (decides `--n-cpu-moe N`).
+- Whether the 26.82 GiB n-gram table can be mmap'd from SSD and read 8-16 rows/token without wrecking
+  latency; a random 90-byte row costs a whole 4 KiB page, so page traffic is the metric to watch.
 - Whether `xe` + Level Zero exposes enough VRAM for a 4 GB+ single allocation (llama.cpp SYCL note: "Support
   malloc memory on device more than 4GB" landed 2025.11).
 
@@ -130,6 +142,12 @@ KV streaming, SSD-resident lookup tables. What it cannot reuse: the CUDA kernels
 
 - llama.cpp master has `LLM_ARCH_QWEN4EXP` (`"qwen4exp"`) in `src/llama-arch.cpp`, a `llama_model_qwen4exp`
   constructor, and MTP/NextN support (`n_layer_nextn`, `LLAMA_CONTEXT_TYPE_MTP`). (checked 2026-09-27)
+- **`qwen4exp` already solves the n-gram-table placement**: `src/models/qwen4exp.cpp` creates
+  `per_layer_token_embd.weight` with `TENSOR_READ_LAZY`, and `llama-model-loader.cpp` resolves lazy tensors
+  to the CPU buffer type and reads their rows from the file on demand. `--lazy-mode` (`auto` by default,
+  only for tensors > 4 GiB) needs **mmap**; `--no-mmap` or `--lazy-mode off` forces the 28.80 GB table
+  resident. `auto` degrades to `off` if any device reports no mmap support. See
+  [gguf-inventory.md](gguf-inventory.md) §3.
 - SYCL backend docs list Arc B-Series as supported (B580 verified) and Fedora among tested Linux distros.
 - llama.cpp `llama-server` supports `--cache-type-k/-v` (q8_0, q4_0, ...), `-ot/--override-tensor`,
   `--cpu-moe`, `--n-cpu-moe N`, `--n-cpu-ffn N`, and `--spec-draft-*` flags for a draft/MTP model.
@@ -143,10 +161,16 @@ consider a custom engine. Rationale and alternatives are in
 
 ## 7. Open questions
 
-1. Exact tensor inventory / per-tensor byte sizes (resolve with GGUF header range reads).
+1. ~~Exact tensor inventory / per-tensor byte sizes~~ — **resolved** in
+   [gguf-inventory.md](gguf-inventory.md) (1,224 tensors, all three tiers, verified against the authors'
+   allocation file and recovery capsules).
 2. Arc Pro B70 memory bandwidth and Xe-core count (product page not retrievable from this host; read from
    `xpu-smi`/Level Zero once installed).
-3. Does the published IQ3_XXS fit the ~50 GB expert pool with 128K KV on this box? (measure)
+3. Does the published IQ3_XXS fit the expert pool with 128K KV on this box? (measure: it fits in the
+   combined buffer, but leaves only ~3.5-6 GiB of RAM for the n-gram page cache —
+   [gguf-inventory.md](gguf-inventory.md) §6.2/§7)
 4. SYCL vs Vulkan on Battlemage for this arch and these quant types (measure both on a small model first).
 5. N-gram table: mmap vs explicit SSD streaming; does the OS page cache keep up at token rate? (measure)
-6. Model license / access conditions for scripted download.
+6. Model license / access conditions for scripted download (the repo answers anonymous range reads today).
+7. Is the MTP/NextN head really absent from the GGUF, and does a later release add it?
+   ([gguf-inventory.md](gguf-inventory.md) §4)

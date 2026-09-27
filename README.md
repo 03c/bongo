@@ -27,6 +27,8 @@ The one-command setup is being built under [BAS-48](/BAS/issues/BAS-48).
 ## Documentation
 
 - [`docs/research/intel-arc-b70.md`](docs/research/intel-arc-b70.md) — hardware, model, memory budget, runtime options.
+- [`docs/research/gguf-inventory.md`](docs/research/gguf-inventory.md) — exact tensor inventory (1,224 tensors, all three tiers) and the 32 GB VRAM / 30 GiB RAM buffer-placement plan.
+- [`tools/gguf-inventory.py`](tools/gguf-inventory.py) — the header-range-read inventory tool (no weight download).
 - [`docs/adr/0001-runtime-architecture.md`](docs/adr/0001-runtime-architecture.md) — the staged runtime decision.
 - [`docs/adr/0002-baseline-engine.md`](docs/adr/0002-baseline-engine.md) — why llama.cpp SYCL is the baseline.
 - [`docs/roadmap.md`](docs/roadmap.md) — milestones and the task graph.

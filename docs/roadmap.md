@@ -10,7 +10,8 @@ Research, architecture, and the task graph.
 - [x] Target hardware confirmed on the reference box (Arc Pro B70, 32 GB; 30 GiB RAM; Fedora 44; `xe`).
 - [x] Model identified and sized (`Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF`, three tiers).
 - [x] Runtime options compared; baseline chosen ([ADR-0002](adr/0002-baseline-engine.md)).
-- [ ] [BAS-51](/BAS/issues/BAS-51) GGUF tensor inventory + buffer-placement plan — Coder, **ready**.
+- [x] [BAS-51](/BAS/issues/BAS-51) GGUF tensor inventory + buffer-placement plan — Coder, **done**
+  ([doc](research/gguf-inventory.md), [tool](../tools/gguf-inventory.py)).
 - [ ] [BAS-50](/BAS/issues/BAS-50) `bongo.sh` one-command setup + OpenAI server — Coder, **ready**.
 
 ## M1 — Baseline runs (Stage 0)
