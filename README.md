@@ -21,8 +21,12 @@ Target model: [`ukisai/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF`](https://huggi
 
 ## Status
 
-Early. This repository currently contains the research, the architecture decision, and the task plan.
-The one-command setup is being built under [BAS-48](/BAS/issues/BAS-48).
+Early. The research, the architecture decisions, the tensor inventory, and the benchmark harness are in place.
+The one-command setup (`bongo.sh`) is implemented under [BAS-48](/BAS/issues/BAS-48) and [BAS-50](/BAS/issues/BAS-50).
+It provisions the runtime, fetches a pinned llama.cpp build, resumes the GGUF download, and serves an
+OpenAI-compatible endpoint. The primary llama.cpp **SYCL** backend currently aborts in the Intel compute
+runtime on the reference box; the script detects this and falls back to **Vulkan**. See
+[`docs/bongo-sh.md`](docs/bongo-sh.md#known-issue-on-the-reference-box-2026-09-27).
 
 ## Documentation
 
@@ -31,21 +35,23 @@ The one-command setup is being built under [BAS-48](/BAS/issues/BAS-48).
 - [`tools/gguf-inventory.py`](tools/gguf-inventory.py) — the header-range-read inventory tool (no weight download).
 - [`docs/adr/0001-runtime-architecture.md`](docs/adr/0001-runtime-architecture.md) — the staged runtime decision.
 - [`docs/adr/0002-baseline-engine.md`](docs/adr/0002-baseline-engine.md) — why llama.cpp SYCL is the baseline.
-- [`docs/roadmap.md`](docs/roadmap.md) — milestones and the task graph.
+- [`docs/bongo-sh.md`](docs/bongo-sh.md) — the one-command setup: options, provisioning, backends, tiers, config.
 - [`CONTEXT.md`](CONTEXT.md) — project vocabulary.
 
 ## Intended one-command UX
 
 ```sh
-git clone https://github.com/03c/bongo && cd bongo && ./bongo.sh
+ git clone https://github.com/03c/bongo && cd bongo && ./bongo.sh
 ```
 
-`bongo.sh` will:
+`bongo.sh`:
 
-1. detect the Arc GPU and OS, and install the Intel compute runtime (Level Zero / oneAPI);
-2. build or fetch a pinned llama.cpp SYCL binary;
-3. download the chosen GGUF tier with resume;
-4. start an OpenAI-compatible server at `http://127.0.0.1:8080/v1` with a >=128K context.
+1. detects the Arc GPU and OS, and installs the Intel compute runtime (Level Zero / oneAPI);
+2. fetches a pinned llama.cpp binary (SYCL, with a Vulkan fallback);
+3. downloads the chosen GGUF tier with resume;
+4. starts an OpenAI-compatible server at `http://127.0.0.1:8080/v1` with a >= 128K context.
+
+See [`docs/bongo-sh.md`](docs/bongo-sh.md) for options and the generated config.
 
 ## License
 
