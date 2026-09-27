@@ -88,7 +88,7 @@ declare -A TIER_BASE=(
 )
 # Tier -> total bytes across both shards (verified from the HF file tree).
 declare -A TIER_BYTES=(
-  [iq2_xs]=68149967616
+  [iq2_xs]=68152167168
   [iq3_xxs]=75966073120
   [q2_0]=66549952800
 )
@@ -375,6 +375,20 @@ setup_runtime_env() {
     mkdir -p "$RUN_DIR/ocl-vendors"
     printf '%s\n' "$base/usr/lib64/intel-opencl/libigdrcl.so" > "$RUN_DIR/ocl-vendors/intel.icd"
     export OCL_ICD_VENDORS="$RUN_DIR/ocl-vendors${OCL_ICD_VENDORS:+:$OCL_ICD_VENDORS}"
+  fi
+  # Vulkan loader needs ICD manifests; rewrite the user-local Mesa manifests so
+  # they point at the runtime prefix instead of /usr/lib64.
+  if [[ -d "$base/usr/share/vulkan/icd.d" ]]; then
+    mkdir -p "$RUN_DIR/vulkan-icds"
+    local j
+    for j in "$base"/usr/share/vulkan/icd.d/*.json; do
+      [[ -f "$j" ]] || continue
+      sed "s#/usr/lib64/#$base/usr/lib64/#g" "$j" > "$RUN_DIR/vulkan-icds/$(basename "$j")"
+    done
+    if [[ -z "${VK_ICD_FILENAMES:-}" ]]; then
+      export VK_ICD_FILENAMES="$RUN_DIR/vulkan-icds"
+      export VK_DRIVER_FILES="$RUN_DIR/vulkan-icds"
+    fi
   fi
 }
 

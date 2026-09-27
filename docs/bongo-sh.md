@@ -146,8 +146,19 @@ Re-running `./bongo.sh` with the same arguments:
 
 ## Verification performed
 
-The Stage 0 verification (target model) is tracked on the issue that owns this script. On
-the reference box the script was exercised end to end with a local GGUF on the Vulkan
-fallback: `/v1/models` returned 200 with `n_ctx = 131072`, and both streaming and
-non-streaming `/v1/chat/completions` returned completions. The SYCL backend failure above
-is the outstanding blocker for the primary path.
+Run on the reference box (Fedora 44, Arc Pro B70, `xe`) on 2026-09-27:
+
+- `./bongo.sh --backend vulkan` served the **target** `ukisai/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF`
+  `IQ2_XS` model (two shards, 68,152,167,168 bytes combined) from `~/.bongo/models`.
+- `GET /v1/models` returned 200 with `n_ctx = 131072` and `n_vocab = 248320`.
+- `POST /v1/chat/completions` returned `BONGO_TARGET_OK` with `finish_reason = stop` (non-stream) and
+  SSE chunks `stream` / `ing` / ` works` terminated by `data: [DONE]` (stream).
+- A second `./bongo.sh` run skipped the download, detected the healthy endpoint, and exited without
+  starting a second server (idempotent).
+- The generated config records llama.cpp `b11223`
+  (`4da6337767f973e2b4d0797e5b323d77d8565e4a`), backend `Vulkan`, the two shards, and every flag
+  (ctx 131072, `--jinja`, flash-attn `on`, KV `q8_0`, `--n-gpu-layers 99`, `--n-cpu-moe 16`).
+- `--check --backend sycl` fails with an actionable message (no SYCL device), and `--backend auto`
+  falls back to Vulkan. See [BAS-57](/BAS/issues/BAS-57) for the driver fix.
+
+The SYCL backend failure above is the outstanding blocker for the primary path.
