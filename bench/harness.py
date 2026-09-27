@@ -77,12 +77,20 @@ def detect_bongo_config(repo_root):
     return None
 
 
-def detect_gguf_dir(repo_root, explicit):
+def detect_gguf_dir(repo_root, explicit, bongo_config=None):
     if explicit:
         return explicit
     env = os.environ.get("BONGO_GGUF_DIR")
     if env and os.path.isdir(env):
         return env
+    if bongo_config and isinstance(bongo_config.get("content"), dict):
+        cfg = bongo_config["content"]
+        for key in ("gguf_dir", "model_dir", "gguf_path", "model_path"):
+            val = cfg.get(key)
+            if val:
+                cand = val if os.path.isdir(val) else os.path.dirname(val)
+                if cand and os.path.isdir(cand):
+                    return cand
     for cand in (
         Path(repo_root) / "models",
         Path.home() / ".cache" / "bongo" / "models",
@@ -315,7 +323,7 @@ def benchmark(args):
 
     machine = collect_machine_spec()
     bongo_config = detect_bongo_config(args.repo_root)
-    gguf_dir = detect_gguf_dir(args.repo_root, args.gguf_dir)
+    gguf_dir = detect_gguf_dir(args.repo_root, args.gguf_dir, bongo_config)
 
     # ---- preflight -------------------------------------------------------
     models_res = get_json(base_url, "/models", args.timeout)
@@ -346,6 +354,8 @@ def benchmark(args):
         llama_build = bi if isinstance(bi, str) else None
     if not context_limit:
         context_limit = max(args.contexts) + 1024
+    if not gguf_dir and isinstance(props, dict) and props.get("model_path"):
+        gguf_dir = os.path.dirname(props["model_path"]) or None
 
     explicit_pids = args.server_pid or []
     discovered = MemorySampler(server_pids=explicit_pids).server_pids()
