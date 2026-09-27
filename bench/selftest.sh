@@ -121,4 +121,32 @@ print("dead-endpoint assertions OK")
 PY
 echo "PASS: unreachable endpoint recorded as fatal"
 
+# ---- 4. tight context: prompt must never overflow n_ctx -------------------
+python3 "${here}/mock_server.py" --port 18082 --ctx 4096 >/dev/null 2>&1 &
+pids+=("$!")
+wait_ready "http://127.0.0.1:18082"
+
+"${here}/run.sh" \
+  --base-url "http://127.0.0.1:18082/v1" \
+  --contexts 4096 --repeats 1 \
+  --needle-context 4096 --hash-mode none \
+  --out-dir "${work}/tight" || fail "tight-context run exited non-zero"
+python3 - "${work}/tight/matrix.json" <<'PY' || fail "tight-context matrix assertions"
+import json, sys
+m = json.load(open(sys.argv[1]))
+ctx = m["config"]["context_limit"]
+max_tokens = m["config"]["max_tokens"]
+assert ctx == 4096, ctx
+assert m["verdict"]["ok"] is True, m["verdict"]
+r = m["results"][0]
+assert r["status"] == "ok", r
+assert r["actual_prompt_tokens_median"] + max_tokens <= ctx, (
+    r["actual_prompt_tokens_median"], max_tokens, ctx)
+assert m["needle"]["status"] == "pass", m["needle"]
+assert m["needle"]["http_status"] == 200, m["needle"]
+assert m["needle"]["prompt_tokens"] <= ctx, m["needle"]
+print("tight-context assertions OK")
+PY
+echo "PASS: prompt fits tight n_ctx (no overflow)"
+
 echo "ALL SELFTESTS PASSED"

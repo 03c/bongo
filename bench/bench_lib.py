@@ -470,16 +470,28 @@ class Tokenizer:
         self.available = False
         return max(1, len(text) // 4)
 
-    def size_to(self, target_tokens, corpus=CORPUS, seed=" "):
+    def size_to(self, target_tokens, corpus=CORPUS, seed=" ", hard_max=None):
+        """Build a deterministic blob of about ``target_tokens`` tokens.
+
+        If ``hard_max`` is given the result is guaranteed to count at most
+        ``hard_max`` tokens (within the tokenizer's own count), so a prompt can
+        never overflow the server's ``n_ctx`` once ``max_tokens`` is added.
+        """
         text = (corpus + seed).strip()
-        for _ in range(8):
+        for _ in range(12):
             n = self.count(text)
             if n <= 0:
                 break
+            if hard_max is not None and n > hard_max:
+                text = self._rebuild(corpus, seed, max(1, int(len(text) * (hard_max / n) * 0.98)))
+                continue
             ratio = target_tokens / n
-            if abs(ratio - 1.0) < 0.01:
+            if abs(ratio - 1.0) < 0.005:
                 break
-            new_len = max(1, int(len(text) * ratio))
-            reps = new_len // max(1, len(corpus)) + 1
-            text = ((corpus + seed) * reps)[:new_len]
+            text = self._rebuild(corpus, seed, max(1, int(len(text) * ratio)))
         return text
+
+    @staticmethod
+    def _rebuild(corpus, seed, length):
+        reps = length // max(1, len(corpus)) + 1
+        return ((corpus + seed) * reps)[:length]

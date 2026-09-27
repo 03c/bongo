@@ -37,7 +37,6 @@ from bench_lib import (  # noqa: E402
     HARNESS_VERSION,
     NEEDLE,
     SCHEMA,
-    HttpResult,
     MemorySampler,
     Tokenizer,
     collect_machine_spec,
@@ -49,7 +48,6 @@ from bench_lib import (  # noqa: E402
     server_root,
     post_raw,
     read_text,
-    run_cmd,
     stream_completion,
 )
 
@@ -376,10 +374,13 @@ def benchmark(args):
     contexts = args.contexts
     for idx, ctx in enumerate(contexts):
         entry = {"target_context": ctx, "status": "ok", "runs": [], "summary": {}}
-        # reserve room for generated tokens when the target is the whole context
-        target = ctx if ctx < context_limit else max(1, context_limit - max(args.max_tokens, 64))
+        # reserve room for the generated tokens when the target is the whole
+        # context, and guarantee the prompt itself can never overflow n_ctx
+        reserve = max(args.max_tokens, 64)
+        hard_max = max(1, context_limit - reserve)
+        target = min(ctx, hard_max)
         entry["planned_prompt_tokens"] = target
-        prompt = tokenizer.size_to(target, CORPUS)
+        prompt = tokenizer.size_to(target, CORPUS, hard_max=hard_max)
         entry["builder_uses_server_tokenizer"] = bool(tokenizer.available)
         t_start = time.time()
         for rep in range(args.repeats):
@@ -456,8 +457,11 @@ def benchmark(args):
         if needle_ctx > context_limit:
             needle["reason"] = f"requested needle context {needle_ctx} > server n_ctx {context_limit}"
         else:
-            target = max(1, min(needle_ctx, context_limit) - max(args.needle_tokens, 64))
-            filler = tokenizer.size_to(target, CORPUS)
+            # leave room for the answer and for the needle/question text itself
+            reserve = max(args.needle_tokens, 64) + 64
+            hard_max = max(1, context_limit - reserve)
+            target = min(needle_ctx, hard_max)
+            filler = tokenizer.size_to(target, CORPUS, hard_max=hard_max)
             depth = len(filler) // 2
             document = f"{filler[:depth]}\nThe secret access code for the vault is {NEEDLE}.\n{filler[depth:]}"
             question = (

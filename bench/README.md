@@ -43,7 +43,7 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
 - **prompt tokens** — the server-reported token count of the prompt actually
   processed (`timings.prompt_n`). Prompts are sized with the server's
   `/tokenize` endpoint, so the target context is honest, not a character-count
-  guess.
+  guess, and are capped so `prompt tokens + max_tokens <= n_ctx`.
 - **prompt tok/s** — prefill throughput: prompt tokens per second of prompt
   processing (`timings.prompt_per_second`, cross-checked against
   `prompt_n / prompt_ms`).
