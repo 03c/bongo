@@ -12,6 +12,9 @@ Research, architecture, and the task graph.
 - [x] Runtime options compared; baseline chosen ([ADR-0002](adr/0002-baseline-engine.md)).
 - [x] [BAS-51](/BAS/issues/BAS-51) GGUF tensor inventory + buffer-placement plan — Coder, **done**
   ([doc](research/gguf-inventory.md), [tool](../tools/gguf-inventory.py)).
+- [x] [BAS-56](/BAS/issues/BAS-56) speculation story settled: **no usable MTP head** (base weights have one,
+  the published GGUF drops it and llama.cpp `qwen4exp` cannot convert or run it). Speculation is re-scoped to
+  the n-gram/PLE path. See [research §2.1](research/intel-arc-b70.md) — Coder, **done**.
 - [ ] [BAS-50](/BAS/issues/BAS-50) `bongo.sh` one-command setup + OpenAI server — Coder, **ready**.
 
 ## M1 — Baseline runs (Stage 0)
@@ -28,14 +31,18 @@ A working, reproducible, benchmarked one-command setup.
 Close the gap between static llama.cpp placement and Strata's adaptive expert cache.
 
 - [BAS-53](/BAS/issues/BAS-53) expert-placement spike + Stage 1 go/no-go — Coder, blocked by BAS-52.
-- Follow-ups created from BAS-53's recommendation: adaptive VRAM expert cache, SSD expert streaming, MTP
-  tuning, n-gram table handling.
+- Follow-ups created from BAS-53's recommendation: adaptive VRAM expert cache, SSD expert streaming,
+  n-gram/PLE speculation tuning, n-gram table handling. **MTP tuning is not a follow-up**: the published
+  GGUF has no MTP head and llama.cpp `qwen4exp` cannot convert or run one ([research §2.1](research/intel-arc-b70.md)).
 - Exit: >= IQ3_XXS fits and runs at 128K; a written Stage 1 gate decision.
 
 ## M3 — Optimised engine (Stage 2, gated)
 
 Only if M2 shows llama.cpp cannot reach target throughput. Port Strata's MoE dispatch, i-quant GEMV, fused
-attention, linear-attention mixers, and MTP to SYCL. Requires a written gap analysis and a new ADR.
+attention, and linear-attention mixers to SYCL. **MTP is not on this list**: the base model's head is not in
+the published GGUF and llama.cpp `qwen4exp` cannot convert or run it ([research §2.1](research/intel-arc-b70.md));
+adding it would be a separate converter + runtime feature, not a SYCL port. Requires a written gap analysis
+and a new ADR.
 
 ## Cross-cutting
 

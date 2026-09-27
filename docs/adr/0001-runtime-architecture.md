@@ -69,3 +69,12 @@ Adopt a **three-stage architecture**, and do not start from a blank custom kerne
 Stages are additive and independently shippable. If Stage 1 regresses, `bongo.sh` can pin back to the Stage 0
 llama.cpp revision and flags; the model download and API surface are unchanged. If Stage 2 is abandoned, the
 Stage 1 layer remains the product. No schema or data migration is involved, so rollback is a config pin.
+
+## Amendment (2026-09-27, [BAS-56](/BAS/issues/BAS-56))
+
+MTP is **not** an available capability for this model. The base model and the Swift checkpoint both carry a
+1-layer MTP head, but the published GGUF drops it and llama.cpp `qwen4exp` is not wired into the generic MTP
+machinery, so it cannot convert or run one. The MTP items in the Decision above (Stage 1 "MTP speculation",
+Stage 2 "MTP") are therefore **void** for the current weights; Stage 1 speculation is re-scoped to the
+n-gram/PLE path. Everything else in the decision stands. See
+[`docs/research/intel-arc-b70.md`](../research/intel-arc-b70.md) §2.1.

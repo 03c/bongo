@@ -6,7 +6,8 @@ Project vocabulary. Keep this short; add a term when it first appears in code or
 
 - **bongo** — the project: an Intel Arc runtime + one-command setup for large MoE models.
 - **Strata** — the sibling NVIDIA runtime (`github.com/Niko1221/Strata`). Reference implementation for the
-  tiered-memory design and the MTP/speculation work. bongo reuses its *ideas*, not its CUDA code.
+  tiered-memory design and the speculation work. bongo reuses its *ideas*, not its CUDA code. Strata keeps
+  the model's MTP head because it owns its conversion and engine; bongo cannot (see **MTP** below).
 - **fringeplan.com** — Bassett's unrelated first product. Out of scope here.
 
 ## Hardware
@@ -30,7 +31,10 @@ Project vocabulary. Keep this short; add a term when it first appears in code or
   `10` active per token per layer. Experts are ~4.9 M parameters each and dominate model size.
 - **Expert cache** — the VRAM region that holds the most-used experts; the rest live in RAM (and, if needed,
   stream from SSD). Strata's key trick and bongo's central optimisation.
-- **MTP** — multi-token prediction / speculative decoding. The model ships a draft head; bongo should use it.
+- **MTP** — multi-token prediction / speculative decoding. The base model and the Swift checkpoint both ship
+  a 1-layer MTP head, **but the published GGUF drops it and llama.cpp `qwen4exp` cannot convert or run it**.
+  bongo's speculation path is therefore the n-gram/PLE table, not an MTP head
+  ([research §2.1](docs/research/intel-arc-b70.md)).
 - **KV cache** — attention key/value state. Only 12 of 48 layers are full attention; the other 36 are linear
   attention with a constant-size state, so 128K context is cheap (~2-4 GB), not the bottleneck.
 - **N-gram table** — a very large lookup table in the model (~29 GB) that is read a few rows per token and can
@@ -44,6 +48,7 @@ Project vocabulary. Keep this short; add a term when it first appears in code or
 - **Vulkan (ANV)** — the simpler alternative GPU backend via Mesa; weaker MoE/i-quant coverage than SYCL.
 - **IPEX-LLM** — Intel's prebuilt llama.cpp/SYCL distribution. Considered as a zero-build fallback, not the
   long-term engine.
-- **llama.cpp** — the baseline engine. Already knows `qwen4exp`, i-quants, MTP, and MoE CPU offload.
+- **llama.cpp** — the baseline engine. Already knows `qwen4exp`, i-quants, generic MTP (not wired for
+  `qwen4exp`), and MoE CPU offload.
 - **Baseline vs engine** — *baseline* = pinned llama.cpp SYCL configuration that works and is benchmarked;
   *engine* = the bongo-owned optimisation layer (adaptive expert cache, SSD streaming, tuned kernels).

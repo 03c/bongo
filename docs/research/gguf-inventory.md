@@ -260,10 +260,10 @@ Full per-tensor JSON (1224 rows) for each tier is reproducible with `--json`.
   must stay on the GPU — it is read once per token per layer.
 - **No MTP / NextN tensors exist in this GGUF.** A scan of all 1224 names for `nextn|mtp|draft|eagle`
   returns nothing, `qwen4exp.block_count` is 48, and the only blocks are `blk.0`–`blk.47`. The base model
-  has a NextN layer; this release does not ship it as a separate draft tensor. **Speculation on bongo must
-  therefore come from the n-gram/PLE path, not from an MTP head, unless a later release adds one.**
-  This contradicts intel-arc-b70.md §2 ("MTP | 1 NextN layer, hybrid") and §3 ("MTP draft layer" in the
-  GPU bucket, `--spec-draft-*` in §5). Flagged in §7.
+  *and* the Swift checkpoint both carry a 1-layer MTP head (31 `mtp.*` tensors), but llama.cpp's `qwen4exp`
+  conversion drops it and the `qwen4exp` runtime has no MTP path. **Speculation on bongo must therefore come
+  from the n-gram/PLE path, not from an MTP head.** The full evidence is in
+  [intel-arc-b70.md](intel-arc-b70.md) §2.1; the old assumption in that doc's §2/§5 is corrected there.
 
 ## 5. Tier totals
 
@@ -418,9 +418,10 @@ owns the numbers.
    leaves only ~3.5–6 GiB of RAM for the n-gram cache at `N = 27`. Either accept more VRAM pressure
    (`N = 27`) and measure the cache, or treat IQ3_XXS as needing SSD expert streaming. Do not assume it
    fits because the totals add up.
-4. **No MTP head in the GGUF.** Confirmed absent here. intel-arc-b70.md §2/§3/§5 assume one. If a future
-   release ships the NextN tensors, the GPU budget grows and the speculation plan changes. Verify against
-   `Qwen/Qwen3.8-Flash-Next`'s config before building any `--spec-draft-*` work.
+4. **No MTP head in the GGUF — resolved, not just absent.** The base model and the Swift checkpoint do
+   have a 1-layer MTP head, but the published GGUF drops it and llama.cpp `qwen4exp` cannot convert or run
+   one, so `--spec-draft-*` / MTP work is invalid for this model (not merely deferred). See
+   [intel-arc-b70.md](intel-arc-b70.md) §2.1.
 5. **`--no-mmap` must not be used** with this model: it would try to make all 68 GB resident, including
    the 26.82 GiB n-gram table, and it also switches the PLE table out of lazy-read mode
    (`lazy_read::add` returns false without mmap). Keep the default mmap so the n-gram table stays

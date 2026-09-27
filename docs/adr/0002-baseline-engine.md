@@ -58,3 +58,11 @@ Configuration defaults to be established by measurement, not guessed:
 restores the previous working state; the model files and API surface do not change. If SYCL cannot be made to
 work on the target, the same wrapper can invoke the Vulkan build with no change to the download or server
 contract.
+
+## Amendment (2026-09-27, [BAS-56](/BAS/issues/BAS-56))
+
+The default "MTP draft layer enabled via the server's speculative flags" is **withdrawn**. The published GGUF
+has no MTP head and llama.cpp `qwen4exp` has no MTP path, so `--spec-draft-*` / `draft-mtp` cannot be used with
+this model; speculation, when measured, uses the n-gram/PLE table. The "support MTP" capability requirement is
+satisfied by llama.cpp in general but is inactive for `qwen4exp`. The rest of the decision stands. See
+[`docs/research/intel-arc-b70.md`](../research/intel-arc-b70.md) §2.1.
