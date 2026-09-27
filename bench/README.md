@@ -28,6 +28,8 @@ Nothing needs editing between runs. Useful overrides:
 | `--tier NAME` | label recorded in results, default `iq2_xs` (`BONGO_TIER`) |
 | `--contexts 1024,4096,32768,131072` | context targets (`BONGO_CONTEXTS`) |
 | `--repeats N` | repeats per context, default 3 (`BONGO_REPEATS`) |
+| `--repeats-deep N` | repeats for contexts at/above `--deep-threshold`, default same as `--repeats` (`BONGO_REPEATS_DEEP`) |
+| `--deep-threshold N` | context length at/above which `--repeats-deep` applies, default disabled (`BONGO_DEEP_THRESHOLD`) |
 | `--max-tokens N` | decode length used for output tok/s, default 128 |
 | `--needle-context N` | context of the recall check, default 131072 |
 | `--gguf-dir DIR` | where to hash the model shards (`BONGO_GGUF_DIR`) |
@@ -51,7 +53,10 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
   (`timings.predicted_per_second`).
 - **TTFT ms** — time to first token, measured client side on a streaming
   request: from sending the request to the first non-empty content chunk. The
-  non-stream `prompt_ms` is recorded alongside as a server-side cross-check.
+  same streaming request also returns the server's final `timings`, so prefill
+  and decode throughput are measured on that request and a second prefill is not
+  paid for. Servers that do not emit stream timings fall back to a non-stream
+  request for throughput.
 - **prefill ms** — server-reported prompt-processing time for the non-stream
   request.
 - **peak VRAM** — highest GPU memory attributable to the server process during
@@ -73,6 +78,17 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
 `n`, `median`, `mean`, `min`, `max`, `stdev` and `cv` per metric. The default is
 `--repeats 3`; a metric with high `cv` (> 0.1) should be treated as noisy and
 re-measured on an idle machine.
+
+A full prefill at 128K takes minutes on the reference box, so a single command
+can spend a different repeat budget at depth:
+
+```sh
+./bench/run.sh --tier iq2_xs --repeats 3 --repeats-deep 1 --deep-threshold 131072
+```
+
+This keeps 3 repeats for 1K/4K/32K and uses 1 repeat at 128K. `matrix.md` and
+`matrix.json.config` record both budgets, so the variance that was actually
+measured is always visible.
 
 ## Negative results
 

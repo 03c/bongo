@@ -176,11 +176,12 @@ def stream_completion(base_url, payload, timeout):
     )
     t0 = time.perf_counter()
     parts = []
-    meta = {"error": None, "chunks": 0, "usage": None}
+    meta = {"error": None, "chunks": 0, "usage": None, "timings": None, "status": None}
     ttft_ms = None
     ttfb_ms = None
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
+            meta["status"] = resp.status
             for raw_line in resp:
                 line = raw_line.decode("utf-8", "replace").strip()
                 if ttfb_ms is None and line:
@@ -197,6 +198,11 @@ def stream_completion(base_url, payload, timeout):
                     continue
                 if isinstance(obj.get("usage"), dict):
                     meta["usage"] = obj["usage"]
+                # llama.cpp sends final request timings in the last streamed
+                # chunk when stream_options.include_usage is set.  Keeping them
+                # lets one streaming request measure both TTFT and throughput.
+                if isinstance(obj.get("timings"), dict):
+                    meta["timings"] = obj["timings"]
                 for choice in obj.get("choices") or []:
                     piece = choice.get("text")
                     if piece is None and isinstance(choice.get("delta"), dict):
@@ -206,6 +212,7 @@ def stream_completion(base_url, payload, timeout):
                             ttft_ms = (time.perf_counter() - t0) * 1000.0
                         parts.append(piece)
     except urllib.error.HTTPError as exc:
+        meta["status"] = exc.code
         meta["error"] = f"HTTP {exc.code}: {exc.read().decode('utf-8', 'replace')[:2000]}"
     except Exception as exc:  # noqa: BLE001
         meta["error"] = f"{type(exc).__name__}: {exc}"

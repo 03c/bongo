@@ -149,4 +149,29 @@ print("tight-context assertions OK")
 PY
 echo "PASS: prompt fits tight n_ctx (no overflow)"
 
+# ---- 5. per-context repeat budget -----------------------------------------
+python3 "${here}/mock_server.py" --port 18083 --ctx 262144 >/dev/null 2>&1 &
+pids+=("$!")
+wait_ready "http://127.0.0.1:18083"
+
+"${here}/run.sh" \
+  --base-url "http://127.0.0.1:18083/v1" \
+  --contexts 1024,4096 --repeats 3 --repeats-deep 1 --deep-threshold 4096 \
+  --needle-context 4096 --hash-mode none \
+  --out-dir "${work}/deep" || fail "deep-repeat run exited non-zero"
+python3 - "${work}/deep/matrix.json" <<'PY' || fail "deep-repeat matrix assertions"
+import json, sys
+m = json.load(open(sys.argv[1]))
+by = {r["target_context"]: r for r in m["results"]}
+assert m["config"]["repeats"] == 3, m["config"]
+assert m["config"]["repeats_deep"] == 1, m["config"]
+assert m["config"]["deep_threshold"] == 4096, m["config"]
+assert len(by[1024]["runs"]) == 3, len(by[1024]["runs"])
+assert len(by[4096]["runs"]) == 1, len(by[4096]["runs"])
+for r in by.values():
+    assert r["summary"]["prompt_tps"]["n"] == len(r["runs"]), r["target_context"]
+print("deep-repeat assertions OK")
+PY
+echo "PASS: per-context repeat budget (deep contexts repeat less)"
+
 echo "ALL SELFTESTS PASSED"

@@ -157,6 +157,7 @@ class Handler(BaseHTTPRequestHandler):
             "object": "text_completion",
             "choices": [{"index": 0, "text": "", "finish_reason": "length"}],
             "usage": {"prompt_tokens": prompt_n, "completion_tokens": max_tokens, "total_tokens": prompt_n + max_tokens},
+            "timings": timings,
         }
         self.wfile.write(f"data: {json.dumps(final)}\n\n".encode())
         self.wfile.write(b"data: [DONE]\n\n")

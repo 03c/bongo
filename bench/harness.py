@@ -222,6 +222,65 @@ def completion_call(base_url, model, prompt, max_tokens, timeout, extra=None):
     return out
 
 
+def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
+    """One streaming request that yields TTFT and server-reported throughput.
+
+    Returns a record shaped like ``completion_call``'s, plus ``ttft_ms`` and
+    ``ttfb_ms``.  llama.cpp reports final ``timings`` in the last streamed
+    chunk (``stream_options.include_usage``), so prefill/decode throughput and
+    TTFT are measured on the same request instead of paying for two prefills.
+    """
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "max_tokens": max_tokens,
+        "temperature": 0.0,
+        "stream": True,
+        "cache_prompt": False,
+        "stream_options": {"include_usage": True},
+    }
+    if extra:
+        payload.update(extra)
+    ttft_ms, ttfb_ms, total_ms, text, meta = stream_completion(base_url, payload, timeout)
+    timings = meta.get("timings") or {}
+    out = {
+        "status": meta.get("status"),
+        "wall_ms": round(total_ms, 2),
+        "prompt_tokens": timings.get("prompt_n"),
+        "prompt_ms": timings.get("prompt_ms"),
+        "prompt_tps": timings.get("prompt_per_second"),
+        "output_tokens": timings.get("predicted_n"),
+        "output_ms": timings.get("predicted_ms"),
+        "output_tps": timings.get("predicted_per_second"),
+        "usage": meta.get("usage"),
+        "text": text[:200],
+        "ttft_ms": round(ttft_ms, 2) if ttft_ms is not None else None,
+        "ttfb_ms": round(ttfb_ms, 2) if ttfb_ms is not None else None,
+        "stream_total_ms": round(total_ms, 2),
+        "stream_error": meta.get("error"),
+        "stream_text": text[:120],
+    }
+    # Safety net for OpenAI-compatible servers that do not emit stream timings.
+    if out["status"] == 200 and out["prompt_tps"] is None and out["stream_error"] is None:
+        fallback = completion_call(base_url, model, prompt, max_tokens, timeout)
+        for key in (
+            "prompt_tokens",
+            "prompt_ms",
+            "prompt_tps",
+            "output_tokens",
+            "output_ms",
+            "output_tps",
+            "usage",
+            "text",
+        ):
+            if fallback.get(key) is not None:
+                out[key] = fallback[key]
+        if fallback.get("status") != 200:
+            out["status"] = fallback.get("status")
+            out["error"] = fallback.get("error")
+    return out
+
+
 def run_error_cases(base_url, model, context_limit, args):
     """Send malformed / boundary requests and record how the server handled them.
 
@@ -382,39 +441,28 @@ def benchmark(args):
         entry["planned_prompt_tokens"] = target
         prompt = tokenizer.size_to(target, CORPUS, hard_max=hard_max)
         entry["builder_uses_server_tokenizer"] = bool(tokenizer.available)
+        # Deep contexts pay for a full prefill per repeat (seconds to minutes),
+        # so allow fewer repeats at and above --deep-threshold.
+        reps = args.repeats
+        if args.repeats_deep and args.deep_threshold and ctx >= args.deep_threshold:
+            reps = args.repeats_deep
+        entry["repeats_planned"] = reps
         t_start = time.time()
-        for rep in range(args.repeats):
+        for rep in range(reps):
             run_start = time.time()
-            rec = completion_call(base_url, model_id, prompt, args.max_tokens, args.timeout)
+            # One streaming request per repeat measures client-side TTFT and,
+            # from the final chunk's timings, prefill and decode throughput.
+            # This avoids a second full prefill for the same prompt.
+            rec = streaming_measure(base_url, model_id, prompt, args.max_tokens, args.timeout)
             run_end = time.time()
             rec["repeat"] = rep + 1
             rec["memory"] = sampler.window_peak(run_start, run_end)
-
-            s_payload = {
-                "model": model_id,
-                "prompt": prompt,
-                "max_tokens": args.ttft_tokens,
-                "temperature": 0.0,
-                "stream": True,
-                "cache_prompt": False,
-            }
-            st_start = time.time()
-            ttft_ms, ttfb_ms, total_ms, stream_text, stream_meta = stream_completion(
-                base_url, s_payload, args.timeout
-            )
-            st_end = time.time()
-            rec["ttft_ms"] = round(ttft_ms, 2) if ttft_ms is not None else None
-            rec["ttfb_ms"] = round(ttfb_ms, 2) if ttfb_ms is not None else None
-            rec["stream_total_ms"] = round(total_ms, 2)
-            rec["stream_error"] = stream_meta.get("error")
-            rec["stream_text"] = stream_text[:120]
-            rec["stream_memory"] = sampler.window_peak(st_start, st_end)
             entry["runs"].append(rec)
             (raw_dir / f"{args.tier}-ctx{ctx}-r{rep + 1}.json").write_text(json.dumps(rec, indent=2))
 
-            if rec["status"] != 200 or stream_meta.get("error"):
+            if rec["status"] != 200 or rec.get("stream_error"):
                 entry["status"] = "error"
-                entry["error"] = rec.get("error") or stream_meta.get("error")
+                entry["error"] = rec.get("error") or rec.get("stream_error")
                 failures.append(
                     {
                         "context": ctx,
@@ -497,6 +545,8 @@ def benchmark(args):
         "config": {
             "contexts": contexts,
             "repeats": args.repeats,
+            "repeats_deep": args.repeats_deep,
+            "deep_threshold": args.deep_threshold,
             "max_tokens": args.max_tokens,
             "ttft_tokens": args.ttft_tokens,
             "needle_context": needle_ctx,
@@ -599,6 +649,10 @@ def render_markdown(m):
     lines.append("")
     lines.append(f"- contexts: `{cfg.get('contexts')}`  ")
     lines.append(f"- repeats: `{cfg.get('repeats')}`  ")
+    if cfg.get("repeats_deep") and cfg.get("deep_threshold"):
+        lines.append(
+            f"- repeats at >= {cfg.get('deep_threshold')} tokens: `{cfg.get('repeats_deep')}`  "
+        )
     lines.append(f"- max_tokens: `{cfg.get('max_tokens')}`  ")
     lines.append(f"- TTFT stream tokens: `{cfg.get('ttft_tokens')}`  ")
     lines.append(f"- server n_ctx: `{cfg.get('context_limit')}`  ")
@@ -737,6 +791,18 @@ def parse_args(argv=None):
         help="comma-separated context targets",
     )
     p.add_argument("--repeats", type=int, default=int(os.environ.get("BONGO_REPEATS", "3")))
+    p.add_argument(
+        "--repeats-deep",
+        type=int,
+        default=int(os.environ.get("BONGO_REPEATS_DEEP", "0")),
+        help="repeat count for contexts >= --deep-threshold (0 = use --repeats)",
+    )
+    p.add_argument(
+        "--deep-threshold",
+        type=int,
+        default=int(os.environ.get("BONGO_DEEP_THRESHOLD", "0")),
+        help="context length at/above which --repeats-deep applies (0 = disabled)",
+    )
     p.add_argument("--max-tokens", type=int, default=int(os.environ.get("BONGO_MAX_TOKENS", "128")))
     p.add_argument("--ttft-tokens", type=int, default=int(os.environ.get("BONGO_TTFT_TOKENS", "8")))
     p.add_argument("--needle-context", type=int, default=int(os.environ.get("BONGO_NEEDLE_CONTEXT", "131072")))
