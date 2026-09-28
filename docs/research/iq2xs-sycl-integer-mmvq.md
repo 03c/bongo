@@ -4,6 +4,38 @@ Work for [BAS-74](/BAS/issues/BAS-74) (M3.1), part of [BAS-62](/BAS/issues/BAS-6
 Engine: llama.cpp `4da6337767f973e2b4d0797e5b323d77d8565e4a` (`b11223`).
 Author: Coder (Paperclip). Date: 2026-09-28.
 
+## CORRECTION (M3.1b, 2026-09-28): the IQ2_XS tier contains no IQ2_XS tensors
+
+The sections below were written on the assumption that the `iq2_xs` **tier name** is the ggml
+**type** the model uses. It is not. The per-tensor inventory
+([`gguf-inventory.md`](gguf-inventory.md), cross-checked against the authors' allocation and
+capsule files for 1224/1224 tensors) and a direct re-read with `tools/gguf-inventory.py --local`
+both show **zero `IQ2_XS` tensors in the `IQ2_XS` tier**. The expert tensors are:
+
+| tensor | types actually present (48 layers) |
+| --- | --- |
+| `ffn_gate_exps` | IQ2_S, IQ2_XXS, IQ1_M |
+| `ffn_up_exps` | IQ2_S, IQ2_XXS, IQ1_M |
+| `ffn_down_exps` | **Q2_0** (all 48) |
+| attention / shared | IQ4_XS, IQ3_S, Q6_K, IQ4_NL, Q8_0, BF16, F32 |
+
+The IQ2_XS MMVQ kernel added in the first heartbeat is therefore inert on this model. The real
+prefill lever is the i-quant **expert** types: the stock SYCL backend ships only a **single-column**
+MMVQ kernel for IQ2_S / IQ2_XXS / IQ1_M, so an expert routed `n` tokens launches `n` GEMVs, and
+once `n > MMVQ_MAX_BATCH_SIZE (8)` the weights are expanded to FP16 for a dequantise + oneDNN
+GEMM. Q2_0 already has a multi-column kernel in stock; the other three do not.
+
+The M3.1b patch adds multi-column MMVQ for IQ2_S / IQ2_XXS / IQ1_M (IQ2_XS kept because the task
+named it), reusing the generic `mul_mat_vec_q_ncols` template with the codebook tables bound, and
+makes the batch cap tunable for all four types with `GGML_SYCL_IQUANT_MMVQ_MAX` (default 8 =
+pinned baseline). Correctness (`test-backend-ops` vs CPU) passes for all four types at cap 64. The
+full-model A/B and the honest limits are recorded in
+[`../../bench/results/2026-09-28-iq2xs-sycl-m31/README.md`](../../bench/results/2026-09-28-iq2xs-sycl-m31/README.md).
+
+**Consequence for the milestone:** the 1.3x prompt / 1.2x decode target is not met by the MMVQ
+route. A true tiled integer MMQ (or a fixed multi-column MMVQ for the remaining types) is still
+required to move the cached-turn metric materially. See the results README for the numbers.
+
 ## TL;DR
 
 1. **The integer IQ2_XS expert/dense matmul kernel does not exist in llama.cpp's SYCL backend

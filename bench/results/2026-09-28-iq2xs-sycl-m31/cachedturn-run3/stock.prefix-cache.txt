@@ -1,0 +1,9 @@
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=19313.27 prompt_tps=13.203357070035265 ttft_ms=19317.43 out_tps=0.0 wall_ms=19317.77
+
+== prefix target 4096 (actual 4097); with delta actual 4607 ==
+cold_p4096                 status=200 prompt_n=4097 cache_n=0 prompt_ms=16421.692 prompt_tps=249.48708086840261 ttft_ms=16472.02 out_tps=5.615727030740489 wall_ms=17006.31
+hit_p4096                  status=200 prompt_n=4 cache_n=4093 prompt_ms=148.478 prompt_tps=26.940018049812092 ttft_ms=155.21 out_tps=22.584239212261735 wall_ms=288.1
+grow_p4096_d512            status=200 prompt_n=514 cache_n=4093 prompt_ms=3482.189 prompt_tps=147.60830041103455 ttft_ms=3488.69 out_tps=19.30887113903031 wall_ms=3644.09
+grow_p4096_repeat          status=200 prompt_n=4 cache_n=4603 prompt_ms=132.03 prompt_tps=30.29614481557222 ttft_ms=137.52 out_tps=24.043470594835462 wall_ms=262.34
+
+wrote /tmp/paperclip-run-bas-74-65a105b1-3c0-OnJi9q/m31-cachedturn-3/stock/prefix-cache.json
