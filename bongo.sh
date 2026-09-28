@@ -66,6 +66,7 @@ DRY_RUN=0
 DETACH=0
 FORCE=0
 CHECK_ONLY=0
+UNINSTALL=0
 SKIP_DOWNLOAD=0
 VERIFY_SHA=0
 ASSUME_YES=0
@@ -190,7 +191,7 @@ Other:
   --dry-run              Print the plan and generated flags; change nothing
   --force                Re-download / re-fetch even if files look complete
   --yes                  Do not prompt for confirmation
-  --uninstall            Print how to remove downloaded artifacts
+  --uninstall            Print how to remove downloaded artifacts (add --yes to remove them)
   -h, --help             Show this help
 
 Environment:
@@ -238,7 +239,7 @@ parse_args() {
       --dry-run) DRY_RUN=1; shift;;
       --force) FORCE=1; shift;;
       --yes) ASSUME_YES=1; shift;;
-      --uninstall) do_uninstall; exit 0;;
+      --uninstall) UNINSTALL=1; shift;;
       -h|--help) usage; exit 0;;
       *) die "Unknown option '$1'.";;
     esac
@@ -393,11 +394,19 @@ setup_runtime_env() {
 }
 
 sycl_runtime_present() {
-  [[ -n "${LD_LIBRARY_PATH:-}" ]] || return 1
-  local d
-  while IFS= read -r d; do
-    [[ -e "$d/libsycl.so" || -e "$d/libsycl.so.8" ]] && return 0
-  done < <(printf '%s' "${LD_LIBRARY_PATH:-}" | tr ':' '\n')
+  # A user-local prefix provisioned by install_runtime_user() can legitimately
+  # contain no libsycl.so (the oneAPI set need not carry the DPC++ SYCL core),
+  # so trust its sentinel and the Level Zero / OpenCL loaders. Without this a
+  # second run re-downloads/re-extracts ~1.9 GB (BAS-58 F1).
+  [[ -e "$RUNTIME_DIR/.bongo-provisioned" ]] && return 0
+  if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
+    local d
+    while IFS= read -r d; do
+      [[ -e "$d/libsycl.so" || -e "$d/libsycl.so.8" ]] && return 0
+      [[ -e "$d/libze_loader.so" || -e "$d/libze_loader.so.1" ]] && return 0
+      [[ -e "$d/libOpenCL.so" || -e "$d/libOpenCL.so.1" ]] && return 0
+    done < <(printf '%s\n' "${LD_LIBRARY_PATH:-}" | tr ':' '\n')
+  fi
   have_cmd sycl-ls && return 0
   [[ -e /opt/intel/oneapi/setvars.sh ]] && return 0
   return 1
@@ -467,15 +476,28 @@ EOF
   if [[ -d /etc/yum.repos.d ]]; then
     cp /etc/yum.repos.d/*.repo "$repo_dir/" 2>/dev/null || true
   fi
+  # --resolve is required: without it dnf fetches only the named meta-packages
+  # and never the dependency that ships libsycl.so
+  # (intel-oneapi-runtime-dpcpp-sycl-core), so the prefix has no SYCL library and
+  # every run re-provisions (BAS-58 F1).
   local oneapi_pkgs=(
-    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl
-    intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
+    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-dpcpp-sycl-core
+    intel-oneapi-runtime-mkl intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
     intel-oneapi-runtime-opencl
   )
   log "  downloading oneAPI runtime packages..."
-  ( cd "$tmp" && dnf -q --setopt=reposdir="$repo_dir" download "${oneapi_pkgs[@]}" ) \
-    || die "Failed to download the oneAPI runtime packages. Check network access to $ONEAPI_REPO_URL."
+  if ! ( cd "$tmp" && dnf -q --setopt=reposdir="$repo_dir" download --resolve "${oneapi_pkgs[@]}" ); then
+    warn "SYCL core runtime package unavailable from $ONEAPI_REPO_URL; retrying without it."
+    oneapi_pkgs=(
+      intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl
+      intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
+      intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
+      intel-oneapi-runtime-opencl
+    )
+    ( cd "$tmp" && dnf -q --setopt=reposdir="$repo_dir" download --resolve "${oneapi_pkgs[@]}" ) \
+      || die "Failed to download the oneAPI runtime packages. Check network access to $ONEAPI_REPO_URL."
+  fi
   log "  downloading Level Zero / OpenCL / IGC packages..."
   ( cd "$tmp" && dnf -q download --resolve intel-level-zero oneapi-level-zero intel-opencl intel-igc-libs intel-gmmlib clinfo ) \
     || die "Failed to download the Intel GPU runtime packages."
@@ -485,6 +507,17 @@ EOF
       rpm2cpio "$r" | cpio -idmu --quiet --no-absolute-filenames 2>/dev/null || true
     done )
   rm -rf "$tmp"
+  # Fail loudly instead of writing the sentinel on an empty/failed extraction.
+  if ! compgen -G "$RUNTIME_DIR/usr/lib64/*.so*" >/dev/null \
+     && ! compgen -G "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/*.so*" >/dev/null; then
+    die "Runtime extraction produced no shared libraries under $RUNTIME_DIR."
+  fi
+  # Sentinel for sycl_runtime_present(): the user-local set can legitimately
+  # lack libsycl.so, so the prefix itself is the reliable idempotency signal.
+  {
+    echo "bongo-runtime $BONGO_VERSION"
+    printf 'packages %s\n' "${oneapi_pkgs[*]}"
+  } > "$RUNTIME_DIR/.bongo-provisioned"
   ok "User-local runtime ready at $RUNTIME_DIR."
 }
 
@@ -1045,6 +1078,15 @@ run_checks() {
 }
 
 do_uninstall() {
+  detect_os
+  local remove_cmd
+  if is_fedora; then
+    remove_cmd="sudo dnf remove intel-level-zero oneapi-level-zero intel-opencl clinfo 'intel-oneapi-runtime-*'"
+  elif is_debian; then
+    remove_cmd="sudo apt-get remove intel-level-zero-gpu level-zero intel-opencl-icd 'intel-oneapi-runtime-*'"
+  else
+    remove_cmd="remove the Intel Level Zero / OpenCL / oneAPI runtime packages with your package manager"
+  fi
   cat <<EOF
 bongo uninstall
 
@@ -1053,14 +1095,35 @@ Downloaded artifacts live under: ${BONGO_HOME}
   llama   : ${LLAMA_DIR}
   models  : ${MODEL_BASE_DIR}
   logs    : ${RUN_DIR}
-
-Remove everything:
-  rm -rf "${BONGO_HOME}"
-
-System packages installed by '--runtime system' (remove manually if desired):
-  Fedora : intel-level-zero oneapi-level-zero intel-opencl clinch intel-oneapi-runtime-*
-  Ubuntu : intel-level-zero-gpu level-zero intel-opencl-icd intel-oneapi-runtime-*
 EOF
+  if (( ASSUME_YES )); then
+    # Guard against an accidental BONGO_HOME=/ or empty override.
+    if [[ -z "$BONGO_HOME" || "$BONGO_HOME" == "/" ]]; then
+      die "Refusing to remove BONGO_HOME='${BONGO_HOME}'."
+    fi
+    if [[ -e "$BONGO_HOME" ]]; then
+      rm -rf "$BONGO_HOME"
+      ok "Removed ${BONGO_HOME}."
+    else
+      log "Nothing to remove: ${BONGO_HOME} does not exist."
+    fi
+    cat <<EOF
+
+System packages are not removed automatically. Remove them with:
+  ${remove_cmd}
+EOF
+  else
+    cat <<EOF
+
+Remove the downloaded artifacts:
+  rm -rf "${BONGO_HOME}"
+(add --yes to do it now: './bongo.sh --uninstall --yes')
+
+System packages installed by '--runtime system' are not removed automatically.
+Remove them with:
+  ${remove_cmd}
+EOF
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -1068,6 +1131,13 @@ EOF
 # ---------------------------------------------------------------------------
 main() {
   parse_args "$@"
+  if (( UNINSTALL )); then
+    do_uninstall
+    exit 0
+  fi
+  # Fail fast with an actionable install message for the external commands the
+  # script cannot run without, instead of an ERR-trap line number (BAS-58 F5).
+  need_cmd curl curl; need_cmd tar tar; need_cmd df coreutils
   validate_args
   mkdir -p "$BONGO_HOME" "$RUN_DIR"
 

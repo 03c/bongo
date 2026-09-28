@@ -134,7 +134,9 @@ server settings.
 
 Re-running `./bongo.sh` with the same arguments:
 
-- skips the runtime install if it is already present;
+- skips the runtime install if it is already present. User-local runtimes write the
+  sentinel `$BONGO_HOME/runtime/.bongo-provisioned`, so a second `--runtime auto` run
+  prints `Existing SYCL runtime detected.` and does not re-download the runtime;
 - reuses the downloaded GGUF shards (size-checked against the published total);
 - if the endpoint is already healthy, prints the status and exits without starting a second
   server (use `--force` to restart).
@@ -142,7 +144,9 @@ Re-running `./bongo.sh` with the same arguments:
 ## Cleanup
 
 `./bongo.sh --uninstall` prints the exact paths to remove and the system packages that
-`--runtime system` would have installed.
+`--runtime system` would have installed. `./bongo.sh --uninstall --yes` deletes
+`$BONGO_HOME` and prints the exact system package removal command; it never removes system
+packages on its own.
 
 ## Verification performed
 
