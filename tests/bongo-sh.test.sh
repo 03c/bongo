@@ -169,5 +169,59 @@ t_check "M3.0a emits --no-cache-idle-slots" flags_have --no-cache-idle-slots
 t_check "M3.0a emits --ctx-checkpoints" flags_have --ctx-checkpoints
 t_check "M3.0a emits --cache-prompt with idle/checkpoint overrides" flags_have --cache-prompt
 
+# --- M3.0: setup_runtime_env puts the IGC/LLVM libs on the link path -------
+# Without usr/lib64/llvm15/lib the Level Zero probe aborts in gmm_helper and
+# --backend sycl reports "no SYCL device was found" (BAS-72).
+home="$TMP/home-llvm15"
+RUNTIME_DIR="$home/runtime"
+mkdir -p "$RUNTIME_DIR/opt/intel/oneapi/redist/lib" "$RUNTIME_DIR/usr/lib64/llvm15/lib"
+LD_LIBRARY_PATH=""
+setup_runtime_env >/dev/null 2>&1
+if [[ ":$LD_LIBRARY_PATH:" == *":$RUNTIME_DIR/usr/lib64/llvm15/lib:"* ]]; then
+  t_ok "M3.0 llvm15/lib is on LD_LIBRARY_PATH"
+else
+  t_bad "M3.0 llvm15/lib is on LD_LIBRARY_PATH"
+fi
+if [[ ":$LD_LIBRARY_PATH:" == *":$RUNTIME_DIR/opt/intel/oneapi/redist/lib:"* ]]; then
+  t_ok "M3.0 oneAPI redist is still on LD_LIBRARY_PATH"
+else
+  t_bad "M3.0 oneAPI redist is still on LD_LIBRARY_PATH"
+fi
+# A prefix without the LLVM dir (older oneAPI set) must still work.
+home="$TMP/home-no-llvm15"
+RUNTIME_DIR="$home/runtime"
+mkdir -p "$RUNTIME_DIR/usr/lib64"
+LD_LIBRARY_PATH=""
+setup_runtime_env >/dev/null 2>&1
+if [[ -n "$LD_LIBRARY_PATH" ]]; then
+  t_ok "M3.0 prefix without llvm15/lib still gets a library path"
+else
+  t_bad "M3.0 prefix without llvm15/lib still gets a library path"
+fi
+
+# --- M3.0: ZEL_LIBRARY_PATH stays a single directory -----------------------
+# A colon-separated ZEL_LIBRARY_PATH makes the Level Zero driver enumerate zero
+# devices, and setup_runtime_env() runs twice per bongo.sh invocation, so the
+# old prepend produced "<prefix>/usr/lib64:<prefix>/usr/lib64" and the SYCL
+# backend reported "no SYCL device was found" on a healthy Arc B70 (BAS-72).
+RUNTIME_DIR="$TMP/home-zel/runtime"
+mkdir -p "$RUNTIME_DIR/opt/intel/oneapi/redist/lib" "$RUNTIME_DIR/usr/lib64/llvm15/lib"
+ZEL_LIBRARY_PATH=""
+setup_runtime_env >/dev/null 2>&1
+first="$ZEL_LIBRARY_PATH"
+setup_runtime_env >/dev/null 2>&1   # second call, same invocation
+if [[ "$ZEL_LIBRARY_PATH" == "$first" ]] && [[ "$ZEL_LIBRARY_PATH" != *:* ]]; then
+  t_ok "M3.0 ZEL_LIBRARY_PATH is one dir and idempotent"
+else
+  t_bad "M3.0 ZEL_LIBRARY_PATH is one dir and idempotent (got '$ZEL_LIBRARY_PATH')"
+fi
+ZEL_LIBRARY_PATH="$RUNTIME_DIR/usr/lib64:$RUNTIME_DIR/usr/lib64"  # the old broken value
+setup_runtime_env >/dev/null 2>&1
+if [[ "$ZEL_LIBRARY_PATH" == "$RUNTIME_DIR/usr/lib64" ]]; then
+  t_ok "M3.0 a multi-entry ZEL_LIBRARY_PATH is repaired"
+else
+  t_bad "M3.0 a multi-entry ZEL_LIBRARY_PATH is repaired (got '$ZEL_LIBRARY_PATH')"
+fi
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 (( FAIL == 0 ))

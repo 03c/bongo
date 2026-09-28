@@ -399,12 +399,26 @@ setup_runtime_env() {
   local -a libdirs=()
   [[ -d "$base/opt/intel/oneapi/redist/lib" ]] && libdirs+=("$base/opt/intel/oneapi/redist/lib")
   [[ -d "$base/usr/lib64" ]] && libdirs+=("$base/usr/lib64")
+  # NEO only keeps the IGC/LLVM backend loaded when llvm15/lib is on the link
+  # path. Without it the Level Zero probe dies in gmm_helper/resource_info.cpp
+  # (SIGABRT, no device) and --backend sycl reports "no SYCL device was found"
+  # even though the GPU is healthy. See bench/micro/levelzero_probe.py.
+  [[ -d "$base/usr/lib64/llvm15/lib" ]] && libdirs+=("$base/usr/lib64/llvm15/lib")
   [[ -d "$base/lib" ]] && libdirs+=("$base/lib")
   if (( ${#libdirs[@]} )); then
     local joined
     joined="$(IFS=:; echo "${libdirs[*]}")"
     export LD_LIBRARY_PATH="${joined}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    export ZEL_LIBRARY_PATH="$base/usr/lib64${ZEL_LIBRARY_PATH:+:$ZEL_LIBRARY_PATH}"
+    # ZEL_LIBRARY_PATH must name exactly one directory. The Level Zero driver
+    # treats a colon-separated list as a single (invalid) path, enumerates zero
+    # devices and every SYCL call fails with "No device of requested type
+    # available". setup_runtime_env() can run twice in one invocation
+    # (provision_runtime + select_backend), so a naive prepend produced
+    # "<prefix>/usr/lib64:<prefix>/usr/lib64" and --backend sycl reported
+    # "no SYCL device was found" on a healthy Arc B70 (BAS-72).
+    if [[ "${ZEL_LIBRARY_PATH:-}" != "$base/usr/lib64" ]]; then
+      export ZEL_LIBRARY_PATH="$base/usr/lib64"
+    fi
     log "Runtime library path: $joined"
   fi
   # Expose runtime-provided tools (vulkaninfo, clinfo, sycl-ls, xpu-smi) when
@@ -621,12 +635,14 @@ probe_sycl() {
   [[ -x "$helper" ]] || return 1
   local out
   if ! out="$("$helper" 2>&1)"; then
+    PROBE_SYCL_OUTPUT="$out"
     return 1
   fi
   # The helper lists "Found N SYCL devices" and a device table.
   if grep -qiE 'Found [1-9][0-9]* SYCL devices|Device 0' <<<"$out"; then
     return 0
   fi
+  PROBE_SYCL_OUTPUT="$out"
   return 1
 }
 
@@ -663,6 +679,9 @@ select_backend() {
       SERVER_BIN="$bin_dir/llama-server"
       setup_runtime_env
       if ! probe_sycl "$SERVER_BIN"; then
+        if [[ -n "${PROBE_SYCL_OUTPUT:-}" ]]; then
+          warn "Last probe output: $(tail -n 3 <<<"$PROBE_SYCL_OUTPUT")"
+        fi
         die "Backend 'sycl' requested but no SYCL device was found.
   - Is the Intel compute runtime installed? Try: ./bongo.sh --check --runtime system
   - Is the GPU usable? Check 'lspci -nn | grep -i intel' and 'ls /dev/dri'.
