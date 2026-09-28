@@ -538,29 +538,46 @@ ONEAPI_SYCL_SONAME="8"
 setup_runtime_env() {
   local base="$RUNTIME_DIR"
   local -a libdirs=()
-  [[ -d "$base/opt/intel/oneapi/redist/lib" ]] && libdirs+=("$base/opt/intel/oneapi/redist/lib")
-  [[ -d "$base/usr/lib64" ]] && libdirs+=("$base/usr/lib64")
+  local dir
   # NEO only keeps the IGC/LLVM backend loaded when llvm15/lib is on the link
   # path. Without it the Level Zero probe dies in gmm_helper/resource_info.cpp
   # (SIGABRT, no device) and --backend sycl reports "no SYCL device was found"
   # even though the GPU is healthy. See bench/micro/levelzero_probe.py.
-  [[ -d "$base/usr/lib64/llvm15/lib" ]] && libdirs+=("$base/usr/lib64/llvm15/lib")
-  [[ -d "$base/lib" ]] && libdirs+=("$base/lib")
+  # The oneAPI 2025.3 SYCL runtime also keeps its Level Zero Unified Runtime
+  # adapter (libur_adapter_level_zero.so) dependent on libumf.so.1, shipped in
+  # intel-oneapi-umf-1.0; that lives outside opt/intel/oneapi/redist/lib, so it
+  # is added explicitly. The absolute paths (and /usr/lib64/llvm15/lib) cover a
+  # system-wide '--runtime system' install (BAS-57 F1).
+  for dir in \
+    "$base/opt/intel/oneapi/redist/lib" \
+    "$base/opt/intel/oneapi/umf/1.0/lib" \
+    "$base/opt/intel/oneapi/umf/1.1/lib" \
+    "$base/usr/lib64/llvm15/lib" \
+    "$base/usr/lib64" \
+    "$base/lib" \
+    /opt/intel/oneapi/redist/lib \
+    /opt/intel/oneapi/umf/1.0/lib \
+    /opt/intel/oneapi/umf/1.1/lib \
+    /usr/lib64/llvm15/lib; do
+    [[ -d "$dir" ]] || continue
+    case ":${LD_LIBRARY_PATH:-}:" in *":$dir:"*) continue;; esac
+    libdirs+=("$dir")
+  done
   if (( ${#libdirs[@]} )); then
     local joined
     joined="$(IFS=:; echo "${libdirs[*]}")"
     export LD_LIBRARY_PATH="${joined}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    # ZEL_LIBRARY_PATH must name exactly one directory. The Level Zero driver
-    # treats a colon-separated list as a single (invalid) path, enumerates zero
-    # devices and every SYCL call fails with "No device of requested type
-    # available". setup_runtime_env() can run twice in one invocation
-    # (provision_runtime + select_backend), so a naive prepend produced
-    # "<prefix>/usr/lib64:<prefix>/usr/lib64" and --backend sycl reported
-    # "no SYCL device was found" on a healthy Arc B70 (BAS-72).
-    if [[ "${ZEL_LIBRARY_PATH:-}" != "$base/usr/lib64" ]]; then
-      export ZEL_LIBRARY_PATH="$base/usr/lib64"
-    fi
     log "Runtime library path: $joined"
+  fi
+  # ZEL_LIBRARY_PATH must name exactly one directory. The Level Zero driver
+  # treats a colon-separated list as a single (invalid) path, enumerates zero
+  # devices and every SYCL call fails with "No device of requested type
+  # available". setup_runtime_env() can run twice in one invocation
+  # (provision_runtime + select_backend), so a naive prepend produced
+  # "<prefix>/usr/lib64:<prefix>/usr/lib64" and --backend sycl reported
+  # "no SYCL device was found" on a healthy Arc B70 (BAS-72).
+  if [[ -d "$base/usr/lib64" && "${ZEL_LIBRARY_PATH:-}" != "$base/usr/lib64" ]]; then
+    export ZEL_LIBRARY_PATH="$base/usr/lib64"
   fi
   # Expose runtime-provided tools (vulkaninfo, clinfo, sycl-ls, xpu-smi) when
   # the runtime was provisioned user-locally.
@@ -622,8 +639,12 @@ install_runtime_fedora() {
   fi
   # Pin the ABI-bearing runtime packages to the SYCL 8 ABI the prebuilt needs
   # (BAS-57 F1); the unpinned meta-packages may otherwise resolve to 2026.1.
+  # intel-oneapi-umf-1.0 provides libumf.so.1, which the Level Zero Unified
+  # Runtime adapter loads; intel-igc-libs provides the IGC compiler NEO needs
+  # to build its built-in kernels during device init.
   $SUDO dnf install -y \
     "$ONEAPI_SYCL_CORE_PKG" "$ONEAPI_MKL_PKG" "$ONEAPI_DNNL_PKG" \
+    intel-oneapi-umf-1.0 intel-igc-libs \
     intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-tbb \
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp \
     intel-oneapi-runtime-opencl \
@@ -680,6 +701,7 @@ EOF
   # every run re-provisions (BAS-58 F1).
   local oneapi_pkgs=(
     "$ONEAPI_SYCL_CORE_PKG" "$ONEAPI_MKL_PKG" "$ONEAPI_DNNL_PKG"
+    intel-oneapi-umf-1.0
     intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-tbb
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
     intel-oneapi-runtime-opencl
@@ -689,7 +711,7 @@ EOF
     warn "Pinned oneAPI runtime packages unavailable from $ONEAPI_REPO_URL; retrying unpinned."
     oneapi_pkgs=(
       intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl
-      intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
+      intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb intel-oneapi-umf-1.0
       intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
       intel-oneapi-runtime-opencl
     )
@@ -719,6 +741,19 @@ EOF
       rpm2cpio "$r" | cpio -idmu --quiet --no-absolute-filenames 2>/dev/null || true
     done )
   rm -rf "$tmp"
+  # The Fedora intel-igc-libs RPM ships libigc.so.2.36.3+0 with SONAME
+  # libigc.so.2 but no matching symlink; a normal RPM install relies on
+  # ldconfig to create it, but a plain cpio extraction does not. NEO then
+  # cannot load the IGC compiler during device init and aborts in
+  # gmm_helper/resource_info.cpp. Recreate the SONAME symlinks for the prefix
+  # (BAS-57 F1).
+  if [[ -x "$RUNTIME_DIR/usr/bin/ldconfig" ]]; then
+    local libdir
+    for libdir in "$RUNTIME_DIR/usr/lib64" "$RUNTIME_DIR/usr/lib64/intel-opencl"; do
+      [[ -d "$libdir" ]] || continue
+      "$RUNTIME_DIR/usr/bin/ldconfig" -n "$libdir" >/dev/null 2>&1 || true
+    done
+  fi
   # Fail loudly instead of writing the sentinel on an empty/failed extraction.
   if ! compgen -G "$RUNTIME_DIR/usr/lib64/*.so*" >/dev/null \
      && ! compgen -G "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/*.so*" >/dev/null; then

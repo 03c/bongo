@@ -127,6 +127,19 @@ abort came from two bugs in `bongo.sh`'s own `setup_runtime_env()`.
 `1.15.38646+6`, oneAPI 2025.3.3) from a clean environment, and `./bongo.sh --check --backend sycl`
 passes. Fixed in `5cc7df4`.
 
+Three further provisioning gaps in the same path were fixed in [BAS-57](/BAS/issues/BAS-57):
+
+- The pinned llama.cpp SYCL asset links the oneAPI **2025.3** ABI (`libsycl.so.8`, MKL `.so.5`), but
+  the oneAPI repository also serves 2026.1 (`libsycl.so.9`, MKL `.so.6`). `bongo.sh` now pins
+  `intel-oneapi-runtime-dpcpp-sycl-core-2025.3.3-30`, `intel-oneapi-runtime-mkl-2025.3.1-8` and
+  `intel-oneapi-runtime-dnnl-2025.3.0-409`, extracts them after any newer transitive copy, and warns
+  when the prefix lacks `libsycl.so.8`.
+- `libur_adapter_level_zero.so` needs `libumf.so.1` from `intel-oneapi-umf-1.0`; that prefix and the
+  system-absolute counterparts are now on `LD_LIBRARY_PATH`.
+- A plain `cpio` extraction of the Fedora `intel-igc-libs` RPM leaves no SONAME symlinks (a normal
+  install relies on `ldconfig`), so NEO cannot load IGC during device init. The prefix's own
+  `ldconfig -n` now recreates them after extraction.
+
 ## The M4.2 host-expert upload (the shipped default)
 
 M4.2 ([BAS-155](/BAS/issues/BAS-155)) located the dominant remaining term of the cached

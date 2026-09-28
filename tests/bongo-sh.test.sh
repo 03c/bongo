@@ -102,6 +102,7 @@ BONGO_HOME="$home"; RUNTIME_DIR="$home/runtime"
 mkdir -p "$home"
 PIN_DNF_LOG="$TMP/dnf-pin.log"
 RPM_LOG="$TMP/rpm-pin.log"
+LDCONF_LOG="$TMP/ldconfig-pin.log"
 dnf() {
   printf 'dnf %s\n' "$*" >> "$PIN_DNF_LOG"
   # Simulate the download dir: finer pinned packages plus newer transitive
@@ -115,8 +116,11 @@ dnf() {
 }
 rpm2cpio() { printf '%s\n' "$1" >> "$RPM_LOG"; cat >/dev/null; return 0; }
 cpio() {
-  mkdir -p "$RUNTIME_DIR/usr/lib64" "$RUNTIME_DIR/opt/intel/oneapi/redist/lib"
+  mkdir -p "$RUNTIME_DIR/usr/lib64" "$RUNTIME_DIR/usr/bin" "$RUNTIME_DIR/opt/intel/oneapi/redist/lib"
   : > "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/libsycl.so.8"
+  # The prefix's ldconfig recreates SONAME symlinks for extracted libs.
+  printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\n' "$LDCONF_LOG" > "$RUNTIME_DIR/usr/bin/ldconfig"
+  chmod +x "$RUNTIME_DIR/usr/bin/ldconfig"
   cat >/dev/null 2>/dev/null || true
   return 0
 }
@@ -146,7 +150,34 @@ if [[ -e "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/libsycl.so.8" ]]; then
 else
   t_bad "BAS-57 pinned prefix carries libsycl.so.8"
 fi
+if grep -q 'intel-oneapi-umf-1.0' "$PIN_DNF_LOG"; then
+  t_ok "BAS-57 requests libumf (intel-oneapi-umf-1.0)"
+else
+  t_bad "BAS-57 requests libumf (intel-oneapi-umf-1.0)"
+fi
+if grep -q -- '-n' "$LDCONF_LOG" 2>/dev/null; then
+  t_ok "BAS-57 repairs SONAME symlinks with prefix ldconfig"
+else
+  t_bad "BAS-57 repairs SONAME symlinks with prefix ldconfig"
+fi
 unset -f dnf rpm2cpio cpio
+
+# --- BAS-57: setup_runtime_env exposes UMF and IGC's LLVM libraries ---------
+home="$TMP/home-env"
+BONGO_HOME="$home"; RUNTIME_DIR="$home/runtime"
+mkdir -p "$RUNTIME_DIR/opt/intel/oneapi/redist/lib" \
+         "$RUNTIME_DIR/opt/intel/oneapi/umf/1.0/lib" \
+         "$RUNTIME_DIR/usr/lib64/llvm15/lib" \
+         "$RUNTIME_DIR/usr/lib64"
+LD_LIBRARY_PATH=""
+setup_runtime_env >/dev/null 2>&1
+for probe_dir in "opt/intel/oneapi/umf/1.0/lib" "usr/lib64/llvm15/lib"; do
+  case ":$LD_LIBRARY_PATH:" in
+    *":$RUNTIME_DIR/$probe_dir:"*) t_ok "BAS-57 LD_LIBRARY_PATH includes $probe_dir" ;;
+    *) t_bad "BAS-57 LD_LIBRARY_PATH includes $probe_dir" ;;
+  esac
+done
+LD_LIBRARY_PATH=""
 
 # --- F3/F4: --uninstall output is correct and --yes performs removal --------
 out="$(BONGO_HOME="$TMP/does-not-exist" bash "$SRC" --uninstall 2>&1)"
