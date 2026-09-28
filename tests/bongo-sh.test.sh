@@ -143,5 +143,31 @@ else
   printf '%s\n' "$out" | sed 's/^/     /'
 fi
 
+# --- M3.0a: prefix-cache serving flags -------------------------------------
+reset_cache_state() {
+  CACHE_PROMPT=1; CACHE_IDLE_SLOTS=""; CTX_CHECKPOINTS=""; SLOT_SAVE_PATH=""; SLOT_SAVE_PATH_SET=0; WARMUP=1
+  TIER=iq2_xs; MODEL_SHARDS=(/m/model.gguf); N_GPU_LAYERS=99; N_CPU_MOE=16; CTX=131072
+  HOST=127.0.0.1; PORT=8080; PARALLEL=1; SELECTED_BACKEND=Vulkan; SERVER_BIN=""
+  FLASH_ATTN=on; CACHE_TYPE_K=q8_0; CACHE_TYPE_V=q8_0; THREADS=""; NO_MMAP=0; KEEP_ALIVE=1
+}
+flags_have() { local needle="$1" f; for f in "${SERVER_FLAGS[@]}"; do [[ "$f" == "$needle" ]] && return 0; done; return 1; }
+
+reset_cache_state
+validate_args; build_server_flags
+t_check "M3.0a default emits --cache-prompt" flags_have --cache-prompt
+t_check "M3.0a default slot path lives under RUN_DIR" test "$SLOT_SAVE_PATH" = "$RUN_DIR/slots"
+
+reset_cache_state; CACHE_PROMPT=0; SLOT_SAVE_PATH_SET=1; SLOT_SAVE_PATH=""
+validate_args; build_server_flags
+t_check "M3.0a --no-cache-prompt emits --no-cache-prompt" flags_have --no-cache-prompt
+if flags_have --cache-prompt; then t_bad "M3.0a cold mode omits --cache-prompt"; else t_ok "M3.0a cold mode omits --cache-prompt"; fi
+t_check "M3.0a --no-slot-save-path omits the flag" test -z "$SLOT_SAVE_PATH"
+
+reset_cache_state; CACHE_IDLE_SLOTS=0; CTX_CHECKPOINTS=8
+validate_args; build_server_flags
+t_check "M3.0a emits --no-cache-idle-slots" flags_have --no-cache-idle-slots
+t_check "M3.0a emits --ctx-checkpoints" flags_have --ctx-checkpoints
+t_check "M3.0a emits --cache-prompt with idle/checkpoint overrides" flags_have --cache-prompt
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 (( FAIL == 0 ))

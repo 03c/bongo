@@ -71,6 +71,13 @@ SKIP_DOWNLOAD=0
 VERIFY_SHA=0
 ASSUME_YES=0
 KEEP_ALIVE=1
+# Prefix-cache serving (agentic turns: a small prompt that grows).
+CACHE_PROMPT=1            # llama.cpp --cache-prompt is on by default; keep it explicit
+CACHE_IDLE_SLOTS=""       # "" = engine default (on); 1/0 force --[no-]cache-idle-slots
+CTX_CHECKPOINTS=""        # "" = engine default (32); N = --ctx-checkpoints N
+SLOT_SAVE_PATH=""         # "" = disabled; set by --slot-save-path or the run-dir default
+SLOT_SAVE_PATH_SET=0       # 1 once --slot-save-path/--no-slot-save-path was given
+WARMUP=1                   # warm the server after load (pays shader/kernel compile once)
 
 SERVER_PID=""
 SERVER_BIN=""
@@ -180,6 +187,16 @@ Serving:
   --detach               Start the server in the background and exit
   --no-keep-alive        Let llama-server exit when idle
 
+Prefix cache / agentic turns:
+  --cache-prompt         Force llama.cpp --cache-prompt on (default: on)
+  --no-cache-prompt      Pass --no-cache-prompt (cold prefill; baseline A/B)
+  --slot-save-path DIR   Save/restore slot KV under DIR (default: $RUN_DIR/slots)
+  --no-slot-save-path    Disable the slot save/restore endpoint (engine default)
+  --cache-idle-slots     Force --cache-idle-slots on (engine default: on)
+  --no-cache-idle-slots  Pass --no-cache-idle-slots
+  --ctx-checkpoints N    Pass --ctx-checkpoints N (engine default: 32)
+  --no-warmup            Do not send the post-load warmup request
+
 Runtime / engine provisioning:
   --runtime MODE         auto (default) | system | user | dir
   --runtime-dir DIR      Use a pre-provisioned runtime prefix (implies --runtime dir)
@@ -231,6 +248,14 @@ parse_args() {
       --mtp) die "--mtp is not supported for this model: the published GGUF has no MTP head and llama.cpp qwen4exp cannot run one. Speculation uses the lazy-read n-gram/PLE table. See docs/research/intel-arc-b70.md section 2.1.";;
       --detach) DETACH=1; shift;;
       --no-keep-alive) KEEP_ALIVE=0; shift;;
+      --cache-prompt) CACHE_PROMPT=1; shift;;
+      --no-cache-prompt) CACHE_PROMPT=0; shift;;
+      --slot-save-path) SLOT_SAVE_PATH="${2:?--slot-save-path needs a value}"; SLOT_SAVE_PATH_SET=1; shift 2;;
+      --no-slot-save-path) SLOT_SAVE_PATH=""; SLOT_SAVE_PATH_SET=1; shift;;
+      --cache-idle-slots) CACHE_IDLE_SLOTS=1; shift;;
+      --no-cache-idle-slots) CACHE_IDLE_SLOTS=0; shift;;
+      --ctx-checkpoints) CTX_CHECKPOINTS="${2:?--ctx-checkpoints needs a value}"; shift 2;;
+      --no-warmup) WARMUP=0; shift;;
       --runtime) RUNTIME_MODE="${2:?--runtime needs a value}"; shift 2;;
       --runtime-dir) RUNTIME_DIR="${2:?--runtime-dir needs a value}"; RUNTIME_MODE="dir"; shift 2;;
       --llama-rev) LLAMA_REV="${2:?--llama-rev needs a value}"; shift 2;;
@@ -260,6 +285,13 @@ validate_args() {
   (( CTX >= 131072 )) || die "Context $CTX is below the 131072 acceptance minimum. Use --ctx 131072 or higher."
   [[ "$PORT" =~ ^[0-9]+$ ]] || die "--port must be an integer."
   [[ "$N_GPU_LAYERS" =~ ^[0-9]+$ ]] || die "--n-gpu-layers must be an integer."
+  if [[ -n "$CTX_CHECKPOINTS" ]]; then
+    [[ "$CTX_CHECKPOINTS" =~ ^[0-9]+$ ]] || die "--ctx-checkpoints must be an integer (got '$CTX_CHECKPOINTS')."
+  fi
+  # The slot save/restore endpoint is on the product path by default so a long
+  # agentic session can persist its KV across idle/restart. It only writes when a
+  # client calls /slots/{id}?action=save; --no-slot-save-path restores the engine default.
+  if (( SLOT_SAVE_PATH_SET == 0 )); then SLOT_SAVE_PATH="$RUN_DIR/slots"; fi
   if [[ -n "$N_CPU_MOE" ]]; then
     [[ "$N_CPU_MOE" =~ ^[0-9]+$ ]] || die "--n-cpu-moe must be an integer."
   else
@@ -861,6 +893,14 @@ build_server_flags() {
   if [[ -n "$THREADS" ]]; then SERVER_FLAGS+=(--threads "$THREADS"); fi
   if (( NO_MMAP )); then SERVER_FLAGS+=(--no-mmap); fi
   if (( KEEP_ALIVE == 0 )); then SERVER_FLAGS+=(--no-keep-alive); fi
+  # Prefix-cache serving: explicit in the config so the cached path is the
+  # reproducible product path (not the engine default that a reader has to know).
+  if (( CACHE_PROMPT )); then SERVER_FLAGS+=(--cache-prompt); else SERVER_FLAGS+=(--no-cache-prompt); fi
+  if [[ -n "$SLOT_SAVE_PATH" ]]; then SERVER_FLAGS+=(--slot-save-path "$SLOT_SAVE_PATH"); fi
+  if [[ -n "$CACHE_IDLE_SLOTS" ]]; then
+    if (( CACHE_IDLE_SLOTS )); then SERVER_FLAGS+=(--cache-idle-slots); else SERVER_FLAGS+=(--no-cache-idle-slots); fi
+  fi
+  if [[ -n "$CTX_CHECKPOINTS" ]]; then SERVER_FLAGS+=(--ctx-checkpoints "$CTX_CHECKPOINTS"); fi
   # Pin the Intel GPU when the Vulkan build and another Vulkan device are both
   # present; otherwise llama.cpp selects device 0 (which may not be the Arc).
   if [[ "$SELECTED_BACKEND" == "Vulkan" && -x "$SERVER_BIN" ]]; then
@@ -879,6 +919,9 @@ write_config() {
   mkdir -p "$RUN_DIR"
   local json="$RUN_DIR/bongo-config.json"
   local envf="$RUN_DIR/bongo-config.env"
+  local cp_json warmup_json
+  if (( CACHE_PROMPT )); then cp_json=true; else cp_json=false; fi
+  if (( WARMUP )); then warmup_json=true; else warmup_json=false; fi
   local flags_json="[" first=1 f
   for f in "${SERVER_FLAGS[@]}"; do
     [[ $first -eq 0 ]] && flags_json+=", "
@@ -930,6 +973,13 @@ write_config() {
     "cache_type_k": "$(json_escape "$CACHE_TYPE_K")",
     "cache_type_v": "$(json_escape "$CACHE_TYPE_V")",
     "flash_attn": "$(json_escape "$FLASH_ATTN")"
+  },
+  "serving": {
+    "cache_prompt": $cp_json,
+    "slot_save_path": "$(json_escape "$SLOT_SAVE_PATH")",
+    "cache_idle_slots": $(if [[ -z "$CACHE_IDLE_SLOTS" ]]; then echo 'null'; elif (( CACHE_IDLE_SLOTS )); then echo true; else echo false; fi),
+    "ctx_checkpoints": $(if [[ -z "$CTX_CHECKPOINTS" ]]; then echo 'null'; else echo "$CTX_CHECKPOINTS"; fi),
+    "warmup": $warmup_json
   }
 }
 EOF
@@ -941,6 +991,8 @@ EOF
     echo "BONGO_TIER=$(printf '%q' "$TIER")"
     echo "BONGO_CTX=$(printf '%q' "$CTX")"
     echo "BONGO_N_CPU_MOE=$(printf '%q' "$N_CPU_MOE")"
+    echo "BONGO_CACHE_PROMPT=$(printf '%q' "$CACHE_PROMPT")"
+    echo "BONGO_SLOT_SAVE_PATH=$(printf '%q' "$SLOT_SAVE_PATH")"
     printf 'BONGO_SERVER_FLAGS=('
     printf '%q ' "${SERVER_FLAGS[@]}"
     printf ')\n'
@@ -959,6 +1011,7 @@ print_plan() {
   echo "  Model          : $MODEL_REPO [$TIER]"
   echo "  Context        : $CTX"
   echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE"
+  echo "  Prefix cache   : cache_prompt=$CACHE_PROMPT slot_save_path=${SLOT_SAVE_PATH:-disabled} warmup=$WARMUP"
   echo "  Endpoint       : http://$HOST:$PORT/v1"
   echo "  Exact flags    : ${SERVER_FLAGS[*]:-<not built>}"
   echo
@@ -1015,6 +1068,10 @@ start_server() {
   fi
   stop_existing
 
+  if [[ -n "$SLOT_SAVE_PATH" ]]; then
+    mkdir -p "$SLOT_SAVE_PATH" || die "Could not create --slot-save-path '$SLOT_SAVE_PATH'."
+  fi
+
   log "Starting llama-server:"
   log "  $SERVER_BIN ${SERVER_FLAGS[*]}"
   : > "$LOG_FILE"
@@ -1033,6 +1090,7 @@ start_server() {
     fi
     if server_healthy; then
       ok "Server ready: http://$HOST:$PORT/v1"
+      warm_server
       return 0
     fi
     sleep 3; waited=$(( waited + 3 ))
@@ -1044,6 +1102,30 @@ start_server() {
   return 1
 }
 
+# Warm the loaded server so shader/kernel compilation is paid once, at start,
+# instead of on the user's first turn. The first request after load cost ~27 s on
+# the reference box (docs/research/agentic-prefix-cache.md).
+warm_server() {
+  if (( WARMUP == 0 )); then
+    log "Skipping warmup (--no-warmup)."
+    return 0
+  fi
+  log "Warming the server (compiles the shader/kernel set)..."
+  local body='{"prompt":"warmup","max_tokens":1,"temperature":0.0,"cache_prompt":false}'
+  local t0 t1 code ms
+  t0="$(date +%s%N)"
+  code="$(curl -s -o /dev/null -w '%{http_code}' -m 600 \
+    -H 'Content-Type: application/json' -d "$body" \
+    "http://$HOST:$PORT/v1/completions" 2>/dev/null || true)"
+  t1="$(date +%s%N)"
+  ms=$(( (t1 - t0) / 1000000 ))
+  if [[ "$code" == "200" ]]; then
+    ok "Warmup done in ${ms} ms."
+  else
+    warn "Warmup request returned HTTP ${code:-none} after ${ms} ms; the first turn may pay the compile cost."
+  fi
+}
+
 print_ready() {
   echo
   ok "bongo is serving."
@@ -1051,6 +1133,9 @@ print_ready() {
   echo "  Model name   : bongo-$TIER"
   echo "  Backend      : $SELECTED_BACKEND"
   echo "  Context      : $CTX tokens"
+  if [[ -n "$SLOT_SAVE_PATH" ]]; then
+    echo "  Slot KV      : save/restore enabled at $SLOT_SAVE_PATH"
+  fi
   echo "  llama.cpp    : $LLAMA_REV ($LLAMA_CPP_COMMIT_DEFAULT)"
   echo "  Config       : $RUN_DIR/bongo-config.json"
   echo "  Server log   : $LOG_FILE"

@@ -49,6 +49,12 @@ Run `./bongo.sh --help` for the full list. The most-used options:
 | `--dry-run` | — | Print the plan and flags without changing anything |
 | `--detach` | fore­ground | Start the server in the background |
 | `--force` | — | Re-fetch / re-download even if files look complete |
+| `--cache-prompt` / `--no-cache-prompt` | `--cache-prompt` | Prompt (prefix) caching. `--no-cache-prompt` forces cold prefill for A/B |
+| `--slot-save-path DIR` | `$BONGO_HOME/run/slots` | Enable `POST /slots/{id}?action=save\|restore\|erase` under `DIR` |
+| `--no-slot-save-path` | — | Disable the slot save/restore endpoint (engine default) |
+| `--cache-idle-slots` / `--no-cache-idle-slots` | engine (on) | Save idle slots to the in-RAM prompt cache on a new task |
+| `--ctx-checkpoints N` | engine (32) | Max context checkpoints per slot |
+| `--no-warmup` | — | Do not send the post-load warmup request |
 
 ## Runtime provisioning
 
@@ -101,6 +107,51 @@ deviceName = Intel(R) Graphics (BMG G31)   (DRIVER_ID_INTEL_OPEN_SOURCE_MESA)
 
 Until the NEO/GMM issue is resolved, run with `--backend vulkan` (or leave `--backend auto`
 to fall back automatically). Track the driver fix separately from this script.
+
+## Prefix-cache serving (the agentic path)
+
+The product workload is an agentic session: a small first prompt that grows, where each turn
+re-sends the whole history and only the new suffix is new. That path is **prefix reuse**, not
+the cold prefill the Stage 0 baseline measured.
+
+`llama.cpp` enables `--cache-prompt` by default. `bongo.sh` passes it explicitly (and records it),
+because a reader should not have to know the engine default to reproduce a run:
+
+- **`--cache-prompt`** (default) — an agentic turn that appends a suffix prefills only the delta.
+  A turn that re-sends an unchanged prompt is a **full KV hit**.
+- **`--no-cache-prompt`** — cold prefill every time. This reproduces the historical Stage 0
+  baseline and is the A/B control.
+
+### Slot KV persistence
+
+The server is started with a slot-save directory by default (`$BONGO_HOME/run/slots`), so the
+KV of a slot can be written to disk and read back:
+
+```sh
+# Save slot 0's KV, then restore it later (e.g. after an idle or a restart)
+curl -s http://127.0.0.1:8080/slots/0?action=save    -H 'Content-Type: application/json' -d '{"filename":"session.bin"}'
+curl -s http://127.0.0.1:8080/slots/0?action=restore -H 'Content-Type: application/json' -d '{"filename":"session.bin"}'
+curl -s http://127.0.0.1:8080/slots/0?action=erase   -H 'Content-Type: application/json' -d '{"filename":"session.bin"}'
+```
+
+The endpoint is only available when a slot-save path is set; `--no-slot-save-path` restores the
+engine default (disabled). The file lives *inside* the directory given to `--slot-save-path`.
+Saving is explicit: `bongo.sh` never writes a KV file on its own.
+
+`--cache-idle-slots` (engine default: on) saves an idle slot to the **in-RAM** prompt cache when a
+new task starts, so a second slot can reuse it without touching the disk. It needs the engine's
+prompt-cache RAM budget (`--cache-ram`, default 8192 MiB). `--ctx-checkpoints N` bounds the number
+of context checkpoints a slot may keep. Both are exposed for tuning and recorded when set; both
+default to the engine value when omitted, so the shipped baseline is unchanged.
+
+### Warmup
+
+After the server reports healthy, `bongo.sh` sends one tiny request. The first request after a
+model load pays the shader/kernel compile (measured at ~27 s on the reference box), so warming at
+startup keeps that cost off the user's first turn. `--no-warmup` skips it for a cold-start A/B.
+
+See [`docs/research/agentic-prefix-cache.md`](research/agentic-prefix-cache.md) for the measured
+turn latency and the slot save/restore timings.
 
 ## Tiers and MoE placement
 
