@@ -387,10 +387,10 @@ index a806126ef..bdaeb1074 100644
      }
 diff --git a/src/llama-moecache.cpp b/src/llama-moecache.cpp
 new file mode 100644
-index 000000000..ffc2cdfe0
+index 000000000..427ecf7ab
 --- /dev/null
 +++ b/src/llama-moecache.cpp
-@@ -0,0 +1,557 @@
+@@ -0,0 +1,551 @@
 +#include "llama-moecache.h"
 +
 +#include "llama-impl.h"
@@ -663,8 +663,6 @@ index 000000000..ffc2cdfe0
 +            all.insert(all.end(), g.second.begin(), g.second.end());
 +        }
 +
-+        std::vector<int32_t> host_dummy_init;
-+
 +        auto alloc_group = [&](ggml_backend_buffer_type_t buft, const std::vector<cand> & cands, bool tables_only) -> bool {
 +            ggml_init_params ip = {
 +                /*.mem_size  =*/ ggml_tensor_overhead()*(cands.size()*4 + 8)*3,
@@ -862,10 +860,6 @@ index 000000000..ffc2cdfe0
 +        std::lock_guard<std::mutex> lk(mc->mtx);
 +        for (const auto & j : mc->done) {
 +            auto & ls = mc->layers[j.layer_idx];
-+            if (ls.slot_in_flight[j.slot] && ls.slot_expert[j.slot] != j.expert) {
-+                // the eviction already published a dummy for the previous
-+                // occupant; nothing else to undo here
-+            }
 +            ls.slot_expert[j.slot]     = j.expert;
 +            ls.expert_slot[j.expert]   = j.slot;
 +            ls.slot_last_use[j.slot]   = ++mc->clock;

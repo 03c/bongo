@@ -10,7 +10,7 @@ inputs for the on-GPU A/B.
 | --- | --- |
 | Engine | llama.cpp `b11223` (`4da6337767f973e2b4d0797e5b323d77d8565e4a`), Vulkan |
 | Patch | [`tools/patches/moe-expert-cache.patch`](../../../tools/patches/moe-expert-cache.patch) |
-| Patch sha256 | `cc6032fdfee668fc4df5800757f405f256772495815b69190033ab9cb341dfe0` |
+| Patch sha256 | `196025b51ad0b37a423a1e642f078f6d32f45775d5f0278faa443addf22691e5` |
 | Build | `tools/build-llama-vulkan-lru.sh ~/.bongo/engine/llama.cpp-lru llama-server` |
 | Provenance | port of upstream draft ggml-org/llama.cpp#27861 (MIT) plus bongo profile-init + counters |
 | Model | Swift-1.5-Qwen3.8-Flash-Next IQ2_XS (`qwen4exp`), 48 layers x 512 experts, 10 active |
