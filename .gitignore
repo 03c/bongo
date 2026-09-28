@@ -1,0 +1,16 @@
+# Models and large binaries
+models/
+*.gguf
+*.gguf.part
+
+# Runtime / build outputs
+build/
+engine/
+.venv/
+__pycache__/
+*.pyc
+
+# Local state
+*.log
+bongo.local.json
+.paperclip/
