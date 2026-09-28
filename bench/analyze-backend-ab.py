@@ -389,38 +389,38 @@ def build_summary(args, rows, v, s, gates, decided):
     L.append("| metric | Vulkan | SYCL | SYCL / Vulkan |")
     L.append("| --- | ---: | ---: | ---: |")
 
-    def row(label, getter, spec="{:.2f}", better="lower"):
+    # Every ratio is SYCL / Vulkan, so a reader never has to know which rows are
+    # "bigger is better".  The label states the direction instead.
+    def row(label, getter, spec="{:.2f}"):
         vv, sv = getter(v), getter(s)
         ratio = (sv / vv) if (vv and sv) else None
-        if better == "lower":
-            cell = fmt(ratio, "{:.2f}x") if ratio else "n/a"
-        else:
-            cell = fmt((vv / sv), "{:.2f}x") if ratio else "n/a"
-        L.append(f"| {label} | {fmt(vv, spec)} | {fmt(sv, spec)} | {cell} |")
+        L.append(f"| {label} | {fmt(vv, spec)} | {fmt(sv, spec)} | "
+                 f"{fmt(ratio, '{:.2f}x') if ratio else 'n/a'} |")
 
-    row(f"{args.small} prefill tok/s", lambda r: (r or {}).get(f"ctx{args.small}_prompt_tps"),
-        better="higher")
-    row(f"{args.deep} prefill tok/s", lambda r: (r or {}).get(f"ctx{args.deep}_prompt_tps"),
-        better="higher")
-    row(f"{args.deep} decode tok/s", lambda r: (r or {}).get(f"ctx{args.deep}_output_tps"),
-        better="higher")
-    row(f"{args.deep} cold TTFT ms", lambda r: (r or {}).get(f"ctx{args.deep}_ttft_ms"), "{:.0f}")
+    row(f"{args.small} prefill tok/s (higher better)",
+        lambda r: (r or {}).get(f"ctx{args.small}_prompt_tps"))
+    row(f"{args.deep} prefill tok/s (higher better)",
+        lambda r: (r or {}).get(f"ctx{args.deep}_prompt_tps"))
+    row(f"{args.deep} decode tok/s (higher better)",
+        lambda r: (r or {}).get(f"ctx{args.deep}_output_tps"))
+    row(f"{args.deep} cold TTFT ms (lower better)",
+        lambda r: (r or {}).get(f"ctx{args.deep}_ttft_ms"), "{:.0f}")
 
     keys = {p for r in (v, s) if r for p in (r.get("cached_turns") or {})}
     grows = sorted((k for k in keys if not k.endswith("_repeat")), key=prefix_len)
     steadies = sorted((k for k in keys if k.endswith("_repeat")), key=prefix_len)
     for prefix in grows:
-        row(f"512-token cached-turn TTFT ms (prefix {prefix_tokens(prefix)})",
+        row(f"512-token cached-turn TTFT ms, prefix {prefix_tokens(prefix)} (lower better)",
             lambda r, p=prefix: ((r or {}).get("cached_turns") or {}).get(p), "{:.0f}")
     for prefix in steadies:
-        row(f"512-token steady cached turn TTFT ms (prefix {prefix_tokens(prefix)})",
+        row(f"512-token steady cached turn TTFT ms, prefix {prefix_tokens(prefix)} (lower better)",
             lambda r, p=prefix: ((r or {}).get("cached_turns") or {}).get(p), "{:.0f}")
     row(f"peak VRAM GiB at {args.deep}",
         lambda r: (r or {}).get(f"ctx{args.deep}_peak_vram_gib"))
 
     L.append("")
-    L.append("TTFT ratio is `Vulkan / SYCL` (> 1 means SYCL is faster); tok/s ratios are "
-             "`SYCL / Vulkan` (> 1 means SYCL is faster).")
+    L.append("Every ratio is `SYCL / Vulkan`. Above 1 favours SYCL on the tok/s rows and "
+             "against it on the ms and GiB rows.")
     L.append("")
 
     L.append("## Decision rule")
@@ -485,23 +485,20 @@ def build_adr_block(args, rows, v, s, gates, decided):
     L.append("| metric | Vulkan1 | SYCL0 | SYCL / Vulkan |")
     L.append("| --- | ---: | ---: | ---: |")
 
-    def row(label, getter, spec="{:.2f}", invert=False):
+    # SYCL / Vulkan for every row; above 1 favours SYCL on tok/s, against it on ms/GiB.
+    def row(label, getter, spec="{:.2f}"):
         vv, sv = getter(v), getter(s)
-        if not (vv and sv):
-            L.append(f"| {label} | {fmt(vv, spec)} | {fmt(sv, spec)} | n/a |")
-            return
         L.append(f"| {label} | {fmt(vv, spec)} | {fmt(sv, spec)} | "
-                 f"{fmt((vv / sv) if invert else (sv / vv), '{:.2f}x')} |")
+                 f"{fmt(sv / vv, '{:.2f}x') if (vv and sv) else 'n/a'} |")
 
     row(f"{args.small} prefill tok/s", lambda r: (r or {}).get(f"ctx{args.small}_prompt_tps"))
     row(f"{args.deep} prefill tok/s", lambda r: (r or {}).get(f"ctx{args.deep}_prompt_tps"))
     row(f"{args.deep} decode tok/s", lambda r: (r or {}).get(f"ctx{args.deep}_output_tps"))
-    row(f"{args.deep} cold TTFT ms", lambda r: (r or {}).get(f"ctx{args.deep}_ttft_ms"),
-        "{:.0f}", invert=True)
+    row(f"{args.deep} cold TTFT ms", lambda r: (r or {}).get(f"ctx{args.deep}_ttft_ms"), "{:.0f}")
     turn = "cached_turn_ttft_ms"
     row(f"512-token cached-turn TTFT ms (prefix "
         f"{prefix_tokens((v or s or {}).get('cached_turn_prefix') or '')})",
-        lambda r: (r or {}).get(turn), "{:.0f}", invert=True)
+        lambda r: (r or {}).get(turn), "{:.0f}")
     row(f"peak VRAM GiB at {args.deep}",
         lambda r: (r or {}).get(f"ctx{args.deep}_peak_vram_gib"))
     L.append("")
@@ -519,6 +516,17 @@ def build_adr_block(args, rows, v, s, gates, decided):
     for g in gates:
         verdict = "pass" if g["ok"] else ("**fail**" if g["ok"] is False else "not measured")
         L.append(f"- {g['name']}: {g['detail']} (required {g['need']}) — {verdict}")
+    L.append("")
+    L.append("`bongo.sh`'s default `--backend auto` used to try SYCL first, on the assumption in the "
+             "original ADR-0002 that SYCL was the baseline. It now tries **Vulkan** first and keeps "
+             "SYCL as the fallback when no Vulkan device is reported; `--backend sycl` still selects "
+             "SYCL unconditionally. The Stage-0 `--n-cpu-moe 16` placement baseline is unchanged and "
+             "still pinned.")
+    L.append("")
+    L.append("`docs/bongo-sh.md`'s Backends section still describes the old SYCL-first preference and "
+             "the pre-BAS-72 NEO/GMM abort, both of which this measurement and the `ZEL_LIBRARY_PATH` "
+             "fix supersede. That file carries uncommitted work from another task, so the refresh is "
+             "left to whoever lands it.")
     L.append("")
     return "\n".join(L)
 

@@ -223,5 +223,60 @@ else
   t_bad "M3.0 a multi-entry ZEL_LIBRARY_PATH is repaired (got '$ZEL_LIBRARY_PATH')"
 fi
 
+
+# --- M3.0: --backend auto prefers Vulkan (the measured default) -------------
+# The M3.0 A/B (BAS-72) found SYCL slower at 128K on prefill, decode and the
+# cached-turn TTFT, so `auto` resolves to Vulkan and keeps SYCL reachable both
+# as its fallback and explicitly via --backend sycl.
+mkdir -p "$TMP/bin"
+# select_backend() calls these; stub them so the test needs no GPU.
+setup_runtime_env() { :; }
+DETECT_RESULT=""
+detect_vulkan_device() { [[ -n "$DETECT_RESULT" ]] && printf '%s' "$DETECT_RESULT" || return 1; }
+auto_select() { # <DETECT_RESULT value>
+  DETECT_RESULT="$1"
+  BACKEND="auto"; SERVER_BIN=""; SELECTED_BACKEND=""
+  select_backend "$TMP/bin" >/dev/null 2>&1 || true
+  printf '%s' "$SELECTED_BACKEND"
+}
+probe_sycl() { return 0; }
+got="$(auto_select Vulkan1)"
+if [[ "$got" == "Vulkan" ]]; then
+  t_ok "M3.0 auto prefers Vulkan when the build sees an Intel GPU"
+else
+  t_bad "M3.0 auto prefers Vulkan when the build sees an Intel GPU (got '$got')"
+fi
+got="$(auto_select '')"
+if [[ "$got" == "SYCL0" ]]; then
+  t_ok "M3.0 auto falls back to SYCL when no Vulkan device is reported"
+else
+  t_bad "M3.0 auto falls back to SYCL when no Vulkan device is reported (got '$got')"
+fi
+probe_sycl() { return 1; }
+got="$(auto_select '')"
+if [[ "$got" == "Vulkan" ]]; then
+  t_ok "M3.0 auto keeps Vulkan when neither device can be confirmed"
+else
+  t_bad "M3.0 auto keeps Vulkan when neither device can be confirmed (got '$got')"
+fi
+# --backend sycl must still win over a visible Vulkan device.
+probe_sycl() { return 0; }
+DETECT_RESULT="Vulkan1"
+BACKEND="sycl"; SERVER_BIN=""; SELECTED_BACKEND=""
+select_backend "$TMP/bin" >/dev/null 2>&1 || true
+if [[ "$SELECTED_BACKEND" == "SYCL0" ]]; then
+  t_ok "M3.0 --backend sycl still selects SYCL0 with a Vulkan device present"
+else
+  t_bad "M3.0 --backend sycl still selects SYCL0 with a Vulkan device present (got '$SELECTED_BACKEND')"
+fi
+# --backend vulkan also still wins over SYCL.
+BACKEND="vulkan"; SERVER_BIN=""; SELECTED_BACKEND=""
+select_backend "$TMP/bin" >/dev/null 2>&1 || true
+if [[ "$SELECTED_BACKEND" == "Vulkan" ]]; then
+  t_ok "M3.0 --backend vulkan still selects Vulkan"
+else
+  t_bad "M3.0 --backend vulkan still selects Vulkan (got '$SELECTED_BACKEND')"
+fi
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 (( FAIL == 0 ))

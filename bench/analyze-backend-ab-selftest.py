@@ -130,6 +130,55 @@ def case(name, want_sycl, vk, sy, sycl_build="sycl"):
         shutil.rmtree(root, ignore_errors=True)
 
 
+def ratio_case(name, vk, sy):
+    """The ratio column must be SYCL/Vulkan on every row, with no per-row flipping.
+
+    The first draft inverted the tok/s rows relative to the ms rows, so a table
+    read of the real result showed SYCL "1.71x" on 128K decode when SYCL was in
+    fact 0.59x of Vulkan.  Pin the convention.
+    """
+    root = tempfile.mkdtemp(prefix="ab-selftest-")
+    try:
+        write_leg(root, "vulkan", *vk, fake_build(root, "vulkan", "vulkan"))
+        write_leg(root, "sycl", *sy, fake_build(root, "sycl", "sycl"))
+        proc = subprocess.run(
+            [sys.executable, ANALYZE, "--dir", root,
+             "--out", os.path.join(root, "summary.md")],
+            capture_output=True, text=True,
+        )
+        if proc.returncode != 0:
+            return False, f"analyser failed rc={proc.returncode}: {proc.stderr.strip()}"
+        with open(os.path.join(root, "summary.md")) as fh:
+            summary = fh.read()
+        cells = {}
+        for line in summary.splitlines():
+            if line.startswith("| ") and line.count("|") >= 5 and "Vulkan" not in line:
+                parts = [p.strip() for p in line.strip("|").split("|")]
+                cells[parts[0]] = parts[-1]
+        # decode: 4.00/8.00 -> 0.50x, prefill: 160/133.46 -> 1.20x, TTFT: 1200549/980705 -> 1.22x
+        want = [
+            ("4096 prefill tok/s", None),
+            ("131072 prefill tok/s", 1.20),
+            ("131072 decode tok/s", 0.50),
+            ("131072 cold TTFT ms", 1.22),
+        ]
+        for label, expect in want:
+            for key, cell in cells.items():
+                if key.startswith(label):
+                    if expect is None:
+                        break
+                    got = float(cell.rstrip("x"))
+                    if abs(got - expect) > 0.01:
+                        return False, (f"{label}: ratio {cell} != expected {expect:.2f}x "
+                                       f"(SYCL/Vulkan, never flipped per row)")
+                    break
+            else:
+                return False, f"no table row found for {label!r}"
+        return True, name
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
 def main():
     # The real committed Vulkan run: 133.46 tok/s prefill, 8.00 tok/s decode at
     # 131072, 980705 ms cold TTFT, 4165 ms cached turn over a 31744-token prefix.
@@ -152,6 +201,9 @@ def main():
              (matrix(133.46, 7.90, 653803), prefix_cache(2776)), sycl_build="vulkan"),
         # Missing SYCL data cannot hand the default to SYCL.
         case("no sycl result", False, vk, None),
+        # The ratio column is SYCL/Vulkan on every row, tok/s and ms alike.
+        ratio_case("ratio column is SYCL/Vulkan on every row", vk,
+                   (matrix(133.46 * 1.2, 4.00, 980705 * 1.22), prefix_cache(3400))),
     ]
 
     failures = [(ok, msg) for ok, msg in results if not ok]

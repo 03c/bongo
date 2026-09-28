@@ -188,7 +188,7 @@ Serving:
   --ctx N                Context size (default: $CTX_DEFAULT; minimum 131072)
   --host HOST            Bind address (default: $HOST)
   --port N               Port (default: $PORT)
-  --backend NAME         auto (default) | sycl | vulkan | cpu
+  --backend NAME         auto (default: Vulkan, SYCL fallback) | sycl | vulkan | cpu
   --n-cpu-moe N          MoE layers with experts on CPU (explicit placement)
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
@@ -698,11 +698,20 @@ select_backend() {
       SERVER_BIN="$bin_dir/llama-server"
       SELECTED_BACKEND="CPU";;
     auto)
-      # SYCL first (the baseline), then Vulkan, then CPU.
-      if probe_sycl "$(dirname "$bin_dir/llama-server")/llama-server" 2>/dev/null; then
+      # Vulkan first, then SYCL, then CPU.  Measurement on the reference box
+      # (M3.0 A/B, BAS-72, ADR-0002 amendment) found SYCL slower at 128K on
+      # prefill, decode and the cached-turn TTFT, so Vulkan is the shipped
+      # default; SYCL stays fully selectable with --backend sycl.
+      # detect_vulkan_device() (not probe_vulkan()) is the discriminator: it
+      # asks the llama.cpp build itself whether it can see the Intel GPU, which
+      # is the same evidence build_server_flags() pins the device with.
+      if [[ -n "$(detect_vulkan_device "$bin_dir/llama-server" || true)" ]]; then
+        SERVER_BIN="$bin_dir/llama-server"; SELECTED_BACKEND="Vulkan"
+      elif probe_sycl "$bin_dir/llama-server" 2>/dev/null; then
+        warn "No Vulkan device found; using SYCL instead (ADR-0002 amendment, BAS-72)."
         SERVER_BIN="$bin_dir/llama-server"; SELECTED_BACKEND="SYCL0"
       else
-        warn "SYCL device not available; falling back to Vulkan (documented fallback)."
+        warn "Neither a Vulkan nor a SYCL device could be confirmed; continuing with Vulkan."
         SERVER_BIN="$bin_dir/llama-server"; SELECTED_BACKEND="Vulkan"
       fi
       ;;
@@ -1263,7 +1272,7 @@ main() {
 
   # Fetch/select the llama.cpp build for the requested backend.
   local backend_for_bin="$BACKEND"
-  case "$backend_for_bin" in auto) backend_for_bin="sycl";; esac
+  case "$backend_for_bin" in auto) backend_for_bin="vulkan";; esac
   local bin_dir
   if [[ -n "$LLAMA_BIN_DIR" ]]; then
     bin_dir="$LLAMA_BIN_DIR"
@@ -1273,13 +1282,13 @@ main() {
   fi
   select_backend "$bin_dir"
 
-  # Auto backend: if SYCL was requested by default but is unavailable, fetch the
-  # Vulkan asset instead of failing.
-  if [[ "$BACKEND" == "auto" && "$SELECTED_BACKEND" != "SYCL0" && -z "$LLAMA_BIN_DIR" ]]; then
-    local vk_dir
-    vk_dir="$(fetch_llama vulkan)"
-    SELECTED_BACKEND="Vulkan"
-    SERVER_BIN="$vk_dir/llama-server"
+  # Auto backend: the SYCL fallback needs the SYCL asset, because the Vulkan
+  # asset that was just fetched cannot run on the SYCL backend (BAS-72).
+  if [[ "$BACKEND" == "auto" && "$SELECTED_BACKEND" == "SYCL0" && -z "$LLAMA_BIN_DIR" ]]; then
+    local sycl_dir
+    sycl_dir="$(fetch_llama sycl)"
+    SELECTED_BACKEND="SYCL0"
+    SERVER_BIN="$sycl_dir/llama-server"
   fi
 
   if (( CHECK_ONLY )); then
