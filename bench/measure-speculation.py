@@ -237,12 +237,13 @@ def run_measurement(args):
     props = props_res.json if isinstance(props_res.json, dict) else {}
 
     contexts = [int(x) for x in str(args.contexts).replace(" ", "").split(",") if x]
-    log_offset = 0
-    if args.server_log and os.path.isfile(args.server_log):
-        log_offset = os.path.getsize(args.server_log)
 
     # Warm the server once so the first measured request is not the shader compile.
     warm = stream_measure(base_url, args.model, tk.size_to(args.warmup_tokens), 1, args.timeout)
+    # Start the log window after warmup so warmup drafts do not pollute acceptance.
+    log_offset = 0
+    if args.server_log and os.path.isfile(args.server_log):
+        log_offset = os.path.getsize(args.server_log)
 
     out = {
         "schema": SCHEMA_RUN,
@@ -272,7 +273,8 @@ def run_measurement(args):
     }
 
     for ctx in contexts:
-        entry = {"context": ctx, "equiv": None, "decode": [], "summary": {}, "acceptance": None}
+        entry = {"context": ctx, "equiv": None, "decode": [], "summary": {}, "acceptance": None,
+                 "acceptance_runs": []}
         hard_max = max(1, args.context_limit_guard - args.max_tokens if args.context_limit_guard else ctx)
         prompt = tk.size_to(ctx, CORPUS, hard_max=hard_max)
         actual = tk.count(prompt)
@@ -297,7 +299,20 @@ def run_measurement(args):
             )
             acc = parse_acceptance(lines)
             if acc:
-                entry["acceptance"] = acc
+                entry["acceptance_runs"].append(acc)
+
+        if entry["acceptance_runs"]:
+            gen = sum(a["draft_n"] for a in entry["acceptance_runs"])
+            accepted = sum(a["draft_n_accepted"] for a in entry["acceptance_runs"])
+            steps = sum(a["verif_steps"] for a in entry["acceptance_runs"])
+            entry["acceptance"] = {
+                "draft_n": gen,
+                "draft_n_accepted": accepted,
+                "draft_ratio": (accepted / gen) if gen else None,
+                "mean_acc_len": entry["acceptance_runs"][-1].get("mean_acc_len"),
+                "verif_steps": steps,
+                "tokens_per_round": ((accepted + steps) / steps) if steps else None,
+            }
 
         entry["summary"] = {
             "output_tps": summarize([r.get("output_tps") for r in entry["decode"]]),
