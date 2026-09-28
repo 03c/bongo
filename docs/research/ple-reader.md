@@ -138,7 +138,7 @@ cache) to **44,418** — 32% less SSD traffic.
 ### 4.5 Memory residency
 
 The reader is `O_DIRECT`, so it does not populate the page cache and does not map
-the table. Across the whole benchmark the process RSS went **19.2 MiB -> 34.6 MiB**
+the table. Across the whole benchmark the process RSS went **18.7 MiB -> 33.7 MiB**
 (`meta.rss_kib_start/end` in `raw/ple-reader.json`), and `ru_majflt` was 0 for every
 reader scenario — there is no memory-mapped 26.82 GiB region and no fault path. The
 table is never forced resident.
