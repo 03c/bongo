@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 3097165.03,
+  "prompt_tokens": 261997,
+  "prompt_ms": 3090030.067,
+  "prompt_tps": 84.78784811772513,
+  "output_tokens": 32,
+  "output_ms": 6898.416,
+  "output_tps": 4.49378523997393,
+  "usage": {
+    "completion_tokens": 32,
+    "prompt_tokens": 261997,
+    "total_tokens": 262029,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where",
+  "ttft_ms": 3090275.33,
+  "ttfb_ms": 30234.64,
+  "stream_total_ms": 3097165.03,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 33198047232.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 11435962368.0,
+    "system_ram_process_hwm_bytes": 25930485760.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 10620
+  }
+}
