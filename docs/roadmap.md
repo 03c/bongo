@@ -71,11 +71,17 @@ from-scratch engine. The gate is therefore open for a **patch-based** engine pla
 See [ADR-0003](adr/0003-engine-direction.md). Milestones, in measured expected-value order:
 
 - [ ] M3.0 Backend A/B: warm SYCL vs Vulkan at 4K/128K → pick the default (R6 decision rule).
+- [ ] M3.0a Prefix-cache serving for agentic turns: enable/validate `cache_prompt`, slot save/restore
+  (`--slot-save-path`, `--cache-idle-slots`), add a harness `cache_prompt` mode, and warm the server at
+  start. Measured target: 512-token turn TTFT ≤ 5 s at 31K and a full hit < 1 s. See
+  [agentic-prefix-cache](research/agentic-prefix-cache.md).
 - [ ] M3.1 Quantized-weight (integer MMQ/MMVQ) MoE + dense path for IQ2_XS on SYCL; no FP16 expansion.
 - [ ] M3.2 Suffix/n-gram speculation with the exact verify/commit window and an online acceptance policy.
 - [ ] M3.3 Placement: cheapest-layer-first byte-budget `-ot`, then a dynamic VRAM LRU over RAM-pinned experts
   (R4 profile as initialisation only, held-out A/B required).
 - [ ] M3.4 PLE/n-gram second-shard reader: direct reads, parallel prefetch, bounded row cache.
+- [ ] M3.5 Long context: ≥156K up to 262144 with quantized KV; decide q8-versus-q4 and the expert rebalance
+  (`n≈18`) against the measured VRAM ceiling.
 - Deferred: Level Zero command-list capture (R1c); a from-scratch engine only if M3.1–M3.3 measurably miss the
   target and a new ADR names the unfixable gap.
 

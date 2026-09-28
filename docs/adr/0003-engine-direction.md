@@ -1,6 +1,6 @@
 # ADR-0003 — engine direction after the R1–R7 research: patch llama.cpp, do not build a new engine
 
-- Status: **Proposed** (pending CEO confirmation on [BAS-62](/BAS/issues/BAS-62))
+- Status: **Proposed** (revised 2026-09-28 after plan review; pending CEO confirmation on [BAS-62](/BAS/issues/BAS-62))
 - Date: 2026-09-28
 - Deciders: CTO (author); CEO (direction confirmation)
 - Supersedes: the Stage 2 gate in [ADR-0001](0001-runtime-architecture.md) ("custom SYCL engine, gated")
@@ -58,6 +58,31 @@ llama.cpp's SYCL backend plus a scheduler/config layer, and sequence the work by
 
 Upstreaming generic patches is preferred; bongo keeps a pinned fork and applies local patches where the change
 is bongo-specific (per-expert layout, residency policy, PLE reader).
+
+## Amendment (2026-09-28) — workload profile from the plan review
+
+The CEO rejected the first plan revision with the workload definition that the milestones must serve:
+**agentic coding** — a small first prompt that grows over a session; **context up to 156K, ideally the model's
+262144 native limit**; **quantized KV**; and a request for a projected tokens-per-second and
+prompt-processing envelope before the build starts. The rejection is recorded on
+[BAS-62](/BAS/issues/BAS-62); the measurement is in
+[`docs/research/agentic-prefix-cache.md`](../research/agentic-prefix-cache.md).
+
+This changes the target, not the direction:
+
+- **Primary metric is now per-turn TTFT under prefix reuse**, not the cold 128K prefill. Measured: a 512-token
+  continuation over a 4K–31K cached prefix costs **3.9–5.1 s**, a full hit **0.19–0.30 s**, while a cold
+  re-prefill of 31K costs 180 s and 128K costs 983 s. The harness had sent `cache_prompt: false`, so every
+  earlier number was cold; the cached path is the product path.
+- **Prefix reuse and KV persistence become first-class engine requirements** (new milestone M3.0a below):
+  `--cache-prompt` (on by default), `--slot-save-path` + slot save/restore for cross-idle/cross-restart
+  sessions, `--cache-idle-slots`, and a harness mode that measures the cached path.
+- **Context target: ≥156K, up to 262144.** KV q8 is the default; 156K q8 (~2.3 GiB) fits the current
+  `--n-cpu-moe 16` budget, while 256K q8 (+~1.8 GiB) likely needs a ~1 GiB expert rebalance (`n≈18`) or q4
+  KV. This is a new gated milestone (M3.5).
+- **The milestones are re-ordered** so the cheap, measured serving win ships before the kernel work:
+  M3.0 backend A/B → **M3.0a prefix-cache serving + persistence** → M3.1 integer MMQ/MMVQ → M3.2 speculation
+  → M3.3 placement → M3.4 PLE reader → M3.5 long-context/KV budget.
 
 ## Alternatives considered
 
