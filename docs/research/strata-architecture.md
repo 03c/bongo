@@ -719,8 +719,8 @@ existing equivalent; must be written and validated on the B70.
 | U1 | **What workload built `data/expert-profile.bin` and `pack/profile-decode-8k.bin`** — corpus, length, sampling, and whether the ranking is over the whole trace or per layer. `tools/make_profile.py` is not published. | A bongo profile is only useful if the builder's sampling matches bongo's workload. The shipped file's ~layer-uniform 8,000-pair shape is evidence but not proof. | Write a bongo-side builder (the format is in §2.1), build two profiles from two *different* prompt corpora, and score each on the other (leave-one-out as `routing_kfold.py` does). If cross-corpus `h` collapses toward 0.4864, the ranking is corpus-specific and bongo must build per-workload profiles. |
 | U2 | **Does a profile transfer across *prompt length* and *tier*?** The published measurements are at 4,105 slots with `h_expert` LOO 0.6447, but the shipped file is 8,000 slots, and the cache-parity bench used 5,130. | bongo's reference box has 32 GB RAM + 32 GiB VRAM against Strata's 64 GB RAM, so bongo's hit-rate-vs-slots curve starts from a *smaller* resident fraction — the curve's shape near the low end decides whether the tier is worth building at all. | Sweep slots {512, 1024, 2048, 4096, 8000} × context {4K, 32K, 128K} on a bongo routing trace; report `h_expert` and `h_layer` per cell. This is BAS-64's question; this document only fixes the metric definitions. |
 | U3 | **Whether Strata's per-layer split beats a bongo-specific admission plan** (global-with-eviction, per-layer, or a predictor). The header itself calls eviction *"a measured question (`R4.1`'s LFU-decay vs LRU sweep)"* and the LFU constants (decay 0.7, candidate ≥ 2.0, gain ≥ 1.5, 96 swaps / 4 rounds) are hand-set, not swept. | These constants set the steady-state hit rate, and the adaptive swap runs concurrently with the verify window — a bad constant costs performance without changing correctness, so it will not be caught by any parity test. | A/B the four constants in one session on the reference box (the harness already supports per-run flags). Report drain ms/token, not tok/s, so the comparison is not confounded by speculation. |
-| U4 | **The true cost of a graph launch on the Arc B70 through Level Zero** — and therefore whether per-layer graphs or a whole-token command list is the right unit. | It is the single largest ported mechanism (item 1 in the TL;DR) and its value is entirely set by this number. | Microbenchmark: replay a captured graph with N nodes, 1,000 times, against the same N kernels launched individually. Report µs per submission and the crossover node count. This is the first experiment the port should run. |
-| U5 | **Whether a device-side spin on USM shared memory is observed by the host without a submission** (the CUDA `__threadfence_system` + driver-entry behaviour). | The whole-token-graph overlap design depends on it, and on CUDA it cost three experiments to find out. | Write the two-thread probe (`bench/micro/device_wait.cu`'s analogue) on Level Zero: kernel writes a USM flag, host spins and timestamps; then with an intervening `zeCommandList` submission. Report host-visible latency both ways. |
+| U4 | **The true cost of a graph launch on the Arc B70 through Level Zero** — and therefore whether per-layer graphs or a whole-token command list is the right unit. | It is the single largest ported mechanism (item 1 in the TL;DR) and its value is entirely set by this number. | Microbenchmark: replay a captured graph with N nodes, 1,000 times, against the same N kernels launched individually. Report µs per submission and the crossover node count. This is the first experiment the port should run. **Measured 2026-09-28 — see §9: 1.34 µs per submission, no crossover.** |
+| U5 | **Whether a device-side spin on USM shared memory is observed by the host without a submission** (the CUDA `__threadfence_system` + driver-entry behaviour). | The whole-token-graph overlap design depends on it, and on CUDA it cost three experiments to find out. | Write the two-thread probe (`bench/micro/device_wait.cu`'s analogue) on Level Zero: kernel writes a USM flag, host spins and timestamps; then with an intervening `zeCommandList` submission. Report host-visible latency both ways. **Measured 2026-09-28 — see §9: device→host free, host→device impossible.** |
 | U6 | **The `msg`/`h_layer = 0.0456` grouped-kernel design on Xe**: whether one capacity-sized grid with a device-side count and a device-side `dst_index` vector is as effective in SYCL as in CUDA. | It is what makes the hit path expressible as four launches per layer instead of five per expert. | Port `moe_hit_grouped_s2` for one tier and one layer, and compare against the CPU pool for the same layer at the same hit list, measuring the layer's GPU time and the CPU drain separately. |
 | U7 | **Whether the B70's VRAM behaves like WDDM for the slice-sizing loop** (not resident until touched, `cudaMemGetInfo`-style free readings being optimistic). | The shrink loop exists because a naive sizing filled the card to 0 MiB and hung a request. | Allocate a large VRAM block on the B70, read the free figure before and after touching it, and check whether a subsequent allocation of the reserve succeeds. If the B70 reports honestly, the loop is unnecessary complexity in a bongo port. |
 | U8 | **Whether the n-gram/PLE `issue`/`collect` overlap window (embedding + layer 0) is long enough on the B70** for the Direct-read path. Strata needs 16 rows on 16 different 4 KiB pages; the window is embedding + layer 0. | It decides whether bongo needs the row cache (≈95 MB for 1M rows, ~82% of reads) or can afford raw reads. | BAS-65 measures exactly this on the reference box; this document supplies the design being measured (page dedup, bounded in-flight depth, `issue` before layer 1). |
@@ -758,3 +758,31 @@ Ordered by expected value per unit of bongo engineering, derived from the measur
    (6–11% on code edits, unchanged elsewhere) and its cost model constants are published in
    `spec/controller.hpp`; adopt the *policy* (learn the acceptance online, compare expected tokens per
    millisecond) rather than a fixed window.
+
+---
+
+## 9. U4 and U5 measured on the B70 (2026-09-28, [BAS-70](/BAS/issues/BAS-70))
+
+Raw data: [`bench/results/2026-09-28-levelzero-submission/`](../../bench/results/2026-09-28-levelzero-submission/README.md);
+full write-up: [`levelzero-submission.md`](levelzero-submission.md). Measured through `ze_api.h`
+(ctypes) because the box has no SYCL runtime or DPC++ compiler; the kernels are hand-assembled SPIR-V.
+
+- **U4 — one Level Zero submission costs 1.34 µs** (closed command list, N = 0…200 nodes), flat in N
+  and identical cold and warm. Submitting the same nodes one at a time costs the same 1.4 µs each, so
+  there is **no crossover**; batching only removes *submissions*, `(N-1) × 1.4 µs`. Appending a node
+  into a list (capture) costs 0.88–1.36 µs and is paid once. **96 submissions/token = 0.13 ms/token**
+  against the 29–38 ms/token the WDDM motive in §1.4 assumed: the per-layer-graph rationale is a
+  Windows property and does not transfer. What survives is a much smaller claim — a captured list
+  recovers the ~1 µs/node append cost, ~2.8 ms/token for ~2,000 nodes — and that needs one command
+  list per token, not 96 graph submissions.
+- **U5 — the doorbell is half-usable.** A device store to USM shared memory *is* host-visible with no
+  submission and no driver entry (30/30, median 33.7 µs, observed while the kernel was still spinning
+  for 34 ms). A host store to the same memory is **never** seen by a running kernel: 0/30 with no
+  driver call, 0/30 with a `zeFenceQueryStatus`, 0/30 with an extra queue submission, 0/30 with a
+  `BIAS_UNCACHED` allocation — while a control that presets the flag reads it 30/30. The coherence
+  point is the submission boundary. **`session_capture_token`'s `doorbell_wait_kernel` therefore has
+  no working release path on this stack**, and the whole-token graph should not be ported.
+- Two hazards recorded for any port: a SPIR-V kernel needing a `__global` pointer must use storage
+  class 5 `CrossWorkgroup` (IGC rejects anything else) and `OpMemoryBarrier` makes IGC 2.36.3 abort;
+  and a kernel launched with an unset pointer argument faults the GPU and loses the device
+  (`ZE_RESULT_ERROR_DEVICE_LOST`, with `ccs` engine resets in the journal).
