@@ -16,6 +16,11 @@ verdict** for the three bounds on the issue:
   2. a measured prefill gain where the mmap path was faulting,
   3. RSS must not grow by the table size (the table is never forced resident).
 
+A context served from the prefix cache only processes the uncached tail (e.g.
+``cache_n=4094``, ``prompt_n=3`` at 4K), so its ``prompt_tps`` is a continuation
+rate.  Such a run is marked ``cache-hit`` and is excluded from the prefill
+comparison; it cannot produce a prefill gain or a prefill regression.
+
 Missing runs are reported, not treated as fatal, so a partial A/B can still be
 summarised; the verdict then reads ``incomplete`` rather than ``pass``/``fail``.
 
@@ -112,11 +117,20 @@ def ctx_row(matrix, want):
             # one repeat: take the first completed run
             run = next((r for r in runs if r.get("status") == 200), runs[0])
             summary = result.get("summary", {})
+            prompt_tokens = summary.get("prompt_tokens", {}).get("median")
+            # A prompt served from the prefix cache only processes the uncached
+            # tail (e.g. cache_n=4094, prompt_n=3 at 4K), so its prompt_tps is a
+            # continuation rate, not a prefill rate.  Only a run that processed
+            # at least half of the target context counts as a prefill.
+            is_prefill = bool(prompt_tokens) and prompt_tokens >= 0.5 * want
             return {
                 "prompt_tps": summary.get("prompt_tps", {}).get("median"),
                 "output_tps": summary.get("output_tps", {}).get("median"),
                 "ttft_ms": summary.get("ttft_ms", {}).get("median"),
-                "prompt_tokens": summary.get("prompt_tokens", {}).get("median"),
+                "prompt_tokens": prompt_tokens,
+                "cache_n": summary.get("cache_n", {}).get("median"),
+                "cached_tokens": summary.get("cached_tokens", {}).get("median"),
+                "is_prefill": is_prefill,
                 "vram_peak_bytes": (run.get("memory") or {}).get("vram_peak_bytes"),
                 "rss_peak_bytes": (run.get("memory") or {}).get("system_ram_peak_bytes"),
                 "needle": matrix.get("needle", {}).get("status"),
@@ -173,10 +187,11 @@ def main() -> int:
         "configs": {},
     }
     lines = ["# M3.4b PLE reader engine A/B", ""]
-    lines.append("| config | ctx | prefill tok/s off | prefill tok/s on | delta | decode tok/s off | decode tok/s on | TTFT off (ms) | TTFT on (ms) | VRAM peak (GiB) | RSS peak (GiB) |")
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| config | ctx | prefill? | prompt tok/s off | prompt tok/s on | prefill delta | decode tok/s off | decode tok/s on | TTFT off (ms) | TTFT on (ms) | VRAM peak (GiB) | RSS peak (GiB) |")
+    lines.append("| --- | ---: | :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
 
     regressions, gains, rss_rows, compared, missing = [], [], [], 0, []
+    continuations = []
 
     for name, (off_label, on_label) in configs.items():
         m_off = load(args.root, off_label)
@@ -195,10 +210,17 @@ def main() -> int:
             row = {"off": a, "on": b}
             if a and b:
                 compared += 1
-                row["prefill_delta_pct"] = pct(b.get("prompt_tps"), a.get("prompt_tps"))
+                real_prefill = bool(a.get("is_prefill") and b.get("is_prefill"))
+                row["prefill_measured"] = real_prefill
+                # Only a measured prefill is compared as a prefill; a cache-hit
+                # pair is a continuation and must not be graded as one.
+                row["prefill_delta_pct"] = (
+                    pct(b.get("prompt_tps"), a.get("prompt_tps")) if real_prefill else None)
                 row["decode_delta_pct"] = pct(b.get("output_tps"), a.get("output_tps"))
                 row["ttft_delta_pct"] = pct(b.get("ttft_ms"), a.get("ttft_ms"))
                 for metric in ("prefill", "decode", "ttft"):
+                    if metric == "prefill" and not real_prefill:
+                        continue
                     d = row.get(f"{metric}_delta_pct")
                     if d is None:
                         continue
@@ -210,9 +232,19 @@ def main() -> int:
                     if regressed:
                         regressions.append(
                             {"config": name, "ctx": want, "metric": metric, "delta_pct": d})
-                if (row.get("prefill_delta_pct") or 0) > GAIN_FLOOR_PCT:
+                if real_prefill and (row.get("prefill_delta_pct") or 0) > GAIN_FLOOR_PCT:
                     gains.append({"config": name, "ctx": want,
                                   "delta_pct": row["prefill_delta_pct"]})
+                if not real_prefill:
+                    continuations.append({
+                        "config": name, "ctx": want,
+                        "prompt_tokens": a.get("prompt_tokens"),
+                        "cache_n": a.get("cache_n") or b.get("cache_n"),
+                        "prompt_tps_off": a.get("prompt_tps"),
+                        "prompt_tps_on": b.get("prompt_tps"),
+                        "prompt_ms_off": (a.get("ttft_ms")),
+                        "prompt_ms_on": (b.get("ttft_ms")),
+                    })
                 if a.get("rss_peak_bytes") and b.get("rss_peak_bytes"):
                     rss_rows.append({
                         "config": name, "ctx": want,
@@ -229,12 +261,14 @@ def main() -> int:
                 return d.get(key) if d else None
 
             lines.append(
-                "| {cfg} | {ctx} | {p0} | {p1} | {dp} | {d0} | {d1} | {t0} | {t1} | {v} | {r} |".format(
+                "| {cfg} | {ctx} | {pf} | {p0} | {p1} | {dp} | {d0} | {d1} | {t0} | {t1} | {v} | {r} |".format(
                     cfg=name,
                     ctx=want,
+                    pf="yes" if row.get("prefill_measured") else ("cache-hit" if a and b else "n/a"),
                     p0=fmt(v(a, "prompt_tps")),
                     p1=fmt(v(b, "prompt_tps")),
-                    dp=f"{row['prefill_delta_pct']:+.1f}%" if row.get("prefill_delta_pct") is not None else "n/a",
+                    dp=(f"{row['prefill_delta_pct']:+.1f}%" if row.get("prefill_delta_pct") is not None
+                        else ("n/a (cache-hit)" if a and b else "n/a")),
                     d0=fmt(v(a, "output_tps"), "{:.2f}"),
                     d1=fmt(v(b, "output_tps"), "{:.2f}"),
                     t0=fmt(v(a, "ttft_ms"), "{:.0f}"),
@@ -264,6 +298,7 @@ def main() -> int:
         "prefill_gains": gains,
         "rss_rows": rss_rows,
         "rss_violations": rss_bad,
+        "continuations": continuations,
         "missing": missing,
     }
 
@@ -275,6 +310,15 @@ def main() -> int:
     lines.append(f"- >{args.max_regression}% regressions: "
                  f"{len(regressions)}" + (f" -> {regressions}" if regressions else ""))
     lines.append(f"- prefill gains: {len(gains)}" + (f" -> {gains}" if gains else ""))
+    if continuations:
+        lines.append("- cache-hit rows excluded from the prefill comparison "
+                     "(their prompt tok/s is a continuation rate, not a prefill):")
+        for c in continuations:
+            lines.append(
+                f"  - {c['config']} @{c['ctx']}: prompt_n={fmt(c.get('prompt_tokens'), '{:.0f}')} "
+                f"cache_n={fmt(c.get('cache_n'), '{:.0f}')}, "
+                f"prompt tok/s {fmt(c.get('prompt_tps_off'), '{:.2f}')} -> "
+                f"{fmt(c.get('prompt_tps_on'), '{:.2f}')}")
     for r in rss_rows:
         lines.append(f"- RSS {r['config']} @{r['ctx']}: off {gib(r['rss_off_bytes'])} GiB -> "
                      f"on {gib(r['rss_on_bytes'])} GiB (growth {gib(r['rss_growth_bytes'])} GiB, "

@@ -149,13 +149,13 @@ Nothing in this change touches `bongo.sh`, the pinned engine, or the flags. The
 Stage 0 Vulkan `--n-cpu-moe 16` baseline remains the default and is still
 selectable. The M3.4 reader is additive and read-only.
 
-## 6. Llama.cpp integration (follow-up)
+## 6. Llama.cpp integration (BAS-79)
 
-The reader is not linked into llama.cpp by this issue. The engine does not build on
-the reference box as shipped (no C/C++ toolchain and no `sudo`), and the box was
-running [BAS-78](/BAS/issues/BAS-78)'s 256K prefill and [BAS-74](/BAS/issues/BAS-74)'s
-SYCL build for the whole heartbeat, so a rebuilt-server A/B could not be produced
-without contending with both. The integration has a concrete shape:
+The reader is linked into llama.cpp at `4da633776` (llama.cpp `b11223`) by
+`bench/ple-reader/ple-reader.patch`, built in a container. Under `--lazy-mode auto`
+the PLE tensor is registered with the reader; `--ple-reader on` serves its
+`GET_ROWS` from the O_DIRECT pool, while `off` keeps the mmap + lazy path
+bit-for-bit. The integration shape:
 
 - The PLE tensor is already `TENSOR_READ_LAZY`; under `--lazy-mode auto` it is a
   CPU `buffer_from_host_ptr` over the full mmap, so `GGML_OP_GET_ROWS` on it
@@ -173,11 +173,20 @@ without contending with both. The integration has a concrete shape:
 
 ## 7. Residual risk
 
-- **Engine-level prefill gain is unmeasured.** 6.7x is the PLE read path only. The
-  end-to-end number needs the rebuilt server and the 4K/128K harness.
-- **Baseline/M3.3 regression comparison is unmeasured** for the same reason;
-  [BAS-72](/BAS/issues/BAS-72) (backend A/B) and [BAS-76](/BAS/issues/BAS-76)
-  (placement) define the configs it must be measured against.
+- **No engine-level prefill gain (measured).** The rebuilt-server A/B at 4K/128K
+  against the pinned Stage-0 baseline (`--n-cpu-moe 16`) and the M3.3 byte-budget
+  placement is in `bench/results/2026-09-28-ple-reader-engine/` (`summary.md`).
+  The 128K prefill - the only real prefill in the matrix - moves **+0.5%**
+  (baseline) and **-0.7%** (M3.3) with the reader on, i.e. inside run-to-run noise.
+  No bound is exceeded (no >5% regression), and RSS grows at most +0.39 GiB
+  against the 26.82 GiB table, so the table is not forced resident. The 6.7x
+  standalone result is a PLE **read-path** result; the engine 128K prefill is not
+  PLE-gather-bound, so the reader does not move it. The 4K rows are prefix-cache
+  hits (`cache_n=4094`, `prompt_n=3`); `summarize-ab.py` marks them `cache-hit` and
+  excludes them from the prefill comparison, so they cannot be quoted as a gain.
+- **Baseline/M3.3 regression comparison is measured** against the configs from
+  [BAS-72](/BAS/issues/BAS-72) and [BAS-76](/BAS/issues/BAS-76); both are within
+  the 5% bound with the reader on.
 - **Python overhead.** The test reader is ~25% slower than the R5 I/O floor on
   decode; the C++ port does not carry that.
 - **Shared SSD.** The reader benchmark ran at PSI IO `full_avg10` up to 11%; the

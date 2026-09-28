@@ -122,3 +122,20 @@ gains, and the RSS growth per pair next to the 26.82 GiB PLE table so "the table
 resident" is checkable. A partial A/B always reports `incomplete`; it never reports `pass`.
 The provenance block prints tier, ctx, `--n-cpu-moe`, KV types, flash-attn, device,
 `--ple-reader` and the engine commit for each config, read from that run's `server-flags.json`.
+
+## Result (BAS-79)
+
+The four-config engine A/B is committed under
+`bench/results/2026-09-28-ple-reader-engine/` with `summary.md` / `summary.json`.
+Engine `4da633776`, tier IQ2_XS, Vulkan1, q8_0/q8_0 KV, flash-attn on, 26.82 GiB
+PLE table. `reader-process.json` shows an empty `o_direct_fds` for `off` and the
+O_DIRECT fd on shard 1 for `on`, so the flag reached the engine.
+
+At **128K** - the only real prefill - the reader is neutral: baseline
+132.4 -> 133.1 tok/s (+0.5%), M3.3 136.5 -> 135.6 tok/s (-0.7%). Nothing regresses
+by >5%, the 128K needle still passes, and RSS grows at most +0.39 GiB against the
+26.82 GiB table. The **4K** rows are prefix-cache hits (`cache_n=4094`,
+`prompt_n=3`); `summarize-ab.py` marks them `cache-hit` and does not count them as
+a prefill gain. The verdict is therefore `fail-no-gain`: the reader is safe and
+additive, but the standalone read-path gain does not show up in engine prefill,
+because the 128K prefill is not PLE-gather-bound.
