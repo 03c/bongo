@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 198646.58,
+  "prompt_tokens": 32768,
+  "prompt_ms": 187734.289,
+  "prompt_tps": 174.54456601691982,
+  "output_tokens": 128,
+  "output_ms": 10886.319,
+  "output_tps": 11.666018605554367,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 32768,
+    "total_tokens": 32896,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nThe text provided appears to be a repetitive block of narrative describing a hydroelectric facility, repeated many times. It seems to have been cut off at the end (\"The m\").\n\nHere",
+  "ttft_ms": 187760.1,
+  "ttfb_ms": 30032.59,
+  "stream_total_ms": 198646.58,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nThe text provided appears to be a repetitive block of narrative describing a hydroelectric facility",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 31203921920.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 15025913856.0,
+    "system_ram_process_hwm_bytes": 19903467520.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 792
+  }
+}

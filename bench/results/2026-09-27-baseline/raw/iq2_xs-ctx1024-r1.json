@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 19876.34,
+  "prompt_tokens": 1025,
+  "prompt_ms": 11782.989,
+  "prompt_tps": 86.98981217753831,
+  "output_tokens": 128,
+  "output_ms": 8087.034,
+  "output_tps": 15.704150619374174,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 1025,
+    "total_tokens": 1153,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": " and returned the unit to service.\n\n<think>\n\n</think>\n\nThe text provided consists of a single paragraph repeated eleven times. Here is the unique content extracted from the repetition:\n\n**The mountain",
+  "ttft_ms": 11789.87,
+  "ttfb_ms": 11789.84,
+  "stream_total_ms": 19876.34,
+  "stream_error": null,
+  "stream_text": " and returned the unit to service.\n\n<think>\n\n</think>\n\nThe text provided consists of a single paragraph repeated eleven ",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 31204843520.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 12471033856.0,
+    "system_ram_process_hwm_bytes": 19907444736.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 79
+  }
+}
