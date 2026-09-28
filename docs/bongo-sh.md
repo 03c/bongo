@@ -38,7 +38,7 @@ Run `./bongo.sh --help` for the full list. The most-used options:
 | `--tier NAME` | `iq2_xs` | `iq2_xs`, `iq3_xxs`, or `q2_0` |
 | `--gguf-dir DIR` | — | Use an existing download instead of downloading |
 | `--ctx N` | `131072` | Context size (must be >= 131072) |
-| `--backend NAME` | `auto` | `auto`, `sycl`, `vulkan`, or `cpu` |
+| `--backend NAME` | `auto` | `auto`, `sycl`, `vulkan`, or `cpu` (see [Backends](#backends)) |
 | `--n-cpu-moe N` | per tier | Explicit number of MoE layers kept on the CPU |
 | `--port N` / `--host H` | `8080` / `127.0.0.1` | Bind address |
 | `--runtime MODE` | `auto` | `system`, `user`, `dir`, or `auto` |
@@ -75,38 +75,50 @@ environment.
 
 ## Backends
 
-ADR-0002 makes **llama.cpp SYCL** the baseline. `bongo.sh` selects SYCL when a SYCL device
-is reported, then falls back to **Vulkan** (Mesa ANV), which ADR-0001/0002 name as the
-documented alternative. `--backend cpu` is available for debugging.
+**Vulkan is the default.** ADR-0002 originally made llama.cpp SYCL the baseline on the expectation
+that Intel's own backend would be the fast path; the M3.0 A/B ([BAS-72](/BAS/issues/BAS-72)) measured
+the shipped 128K agentic profile on an idle Arc Pro B70 and found SYCL slower on every gate that
+matters, so the preference was inverted and the ADR amended with the numbers:
 
-The selected backend is printed, written to the generated config, and used to pick the
-pinned prebuilt asset (`llama-<rev>-bin-ubuntu-{sycl-fp16,vulkan,x64}.tar.gz`).
+| 128K, IQ2_XS, `--n-cpu-moe 16` | Vulkan1 | SYCL0 | SYCL / Vulkan |
+| --- | ---: | ---: | ---: |
+| prefill tok/s | 133.46 | 109.01 | 0.82x |
+| decode tok/s | 8.00 | 4.69 | 0.59x |
+| cold TTFT | 980705 ms | 1200549 ms | 1.22x the time |
+| 512-token cached-turn TTFT | 4165 ms | 3925 ms | 0.94x the time |
+| steady cached turn TTFT | 282 ms | 403 ms | 1.43x the time |
 
-### Known issue on the reference box (2026-09-27)
+So `--backend auto` selects **Vulkan** when the llama.cpp build reports an Intel Vulkan device, and
+falls back to **SYCL** (Level Zero) when it does not. `--backend sycl` still selects SYCL
+unconditionally — you do not need an escape hatch to run it, and SYCL is worth choosing for a
+short-context workload, where it is the faster of the two (4K prefill 276.59 vs 231.31 tok/s).
+`--backend cpu` is available for debugging.
 
-The Fedora `intel-level-zero` / `intel-opencl` build (NEO `26.22.38646.6`) aborts during
-GMM initialisation on this host, so no SYCL device is enumerated even though the GPU is
-visible and `xe` is loaded:
+The discriminator is `llama-server --list-devices` (the same evidence used to pin `--device Vulkan1`),
+not `vulkaninfo`, which is not installed on the reference box and cannot confirm a device even when
+one is serving.
 
-```
-$ LD_LIBRARY_PATH=.../prefix/opt/intel/oneapi/redist/lib:.../prefix/usr/lib64 \
-  llama-ls-sycl-device
-Abort was called at 15 line in file:
-/builddir/build/BUILD/intel-compute-runtime-26.22.38646.6-build/.../gmm_helper/resource_info.cpp
-terminate called after throwing an instance of 'sycl::_V1::exception'
-  what():  No device of requested type available.
-```
+The selected backend is printed, written to the generated config, and used to pick the pinned
+prebuilt asset (`llama-<rev>-bin-ubuntu-{sycl-fp16,vulkan,x64}.tar.gz`).
 
-The same abort occurs with the minimal set of Level Zero/NEO libraries and as root, so it
-is not a library-shadowing or permission problem. Vulkan (Mesa `26.2.3`) detects the GPU
-correctly:
+### The 2026-09-27 NEO/GMM abort is resolved
 
-```
-deviceName = Intel(R) Graphics (BMG G31)   (DRIVER_ID_INTEL_OPEN_SOURCE_MESA)
-```
+Earlier revisions of this page reported that the Fedora `intel-level-zero` build aborted in
+`gmm_helper/resource_info.cpp` so no SYCL device was enumerated. The GPU was never the problem: the
+abort came from two bugs in `bongo.sh`'s own `setup_runtime_env()`.
 
-Until the NEO/GMM issue is resolved, run with `--backend vulkan` (or leave `--backend auto`
-to fall back automatically). Track the driver fix separately from this script.
+- `setup_runtime_env()` runs twice per invocation, and each run prepended the prefix's `usr/lib64` to
+  `ZEL_LIBRARY_PATH`, producing `.../usr/lib64:.../usr/lib64`. **`ZEL_LIBRARY_PATH` must name exactly
+  one directory** — a colon list makes the Level Zero driver enumerate zero devices, which surfaces as
+  `sycl::exception: No device of requested type available`. A multi-entry value is now repaired and
+  the assignment is idempotent.
+- The IGC/LLVM libraries were missing from `LD_LIBRARY_PATH`, so the probe aborted in
+  `gmm_helper/resource_info.cpp` *before* enumerating. `usr/lib64/llvm15/lib` is added when the
+  prefix has it.
+
+`llama-ls-sycl-device` now reports `[level_zero:gpu:0] Intel Arc Pro B70 Graphics` (Level Zero NEO
+`1.15.38646+6`, oneAPI 2025.3.3) from a clean environment, and `./bongo.sh --check --backend sycl`
+passes. Fixed in `5cc7df4`.
 
 ## Prefix-cache serving (the agentic path)
 
@@ -236,7 +248,8 @@ Run on the reference box (Fedora 44, Arc Pro B70, `xe`) on 2026-09-27:
 - The generated config records llama.cpp `b11223`
   (`4da6337767f973e2b4d0797e5b323d77d8565e4a`), backend `Vulkan`, the two shards, and every flag
   (ctx 131072, `--jinja`, flash-attn `on`, KV `q8_0`, `--n-gpu-layers 99`, `--n-cpu-moe 16`).
-- `--check --backend sycl` fails with an actionable message (no SYCL device), and `--backend auto`
-  falls back to Vulkan. See [BAS-57](/BAS/issues/BAS-57) for the driver fix.
+- `--check --backend sycl` now passes against a clean environment (it failed before `5cc7df4`), and
+  `--backend auto` selects Vulkan. See the [Backends](#backends) section above.
 
-The SYCL backend failure above is the outstanding blocker for the primary path.
+There is no outstanding backend blocker. SYCL is a supported, selectable backend; it is simply not
+the measured fast path at 128K, so it is no longer the default.
