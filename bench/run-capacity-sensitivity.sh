@@ -28,12 +28,18 @@ set -uo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
 
-mem_gib="${1:?usage: run-capacity-sensitivity.sh <memory-max-GiB> [n-cpu-moe]}"
+mem_gib="${1:?usage: run-capacity-sensitivity.sh <memory-max-GiB|none> [n-cpu-moe]}"
 n_cpu_moe="${2:-16}"
 tier="${BONGO_CAPACITY_TIER:-iq2_xs}"
 contexts="${BONGO_CAPACITY_CONTEXTS:-4096,131072}"
 out_root="${BONGO_CAPACITY_OUT:-bench/results/2026-09-28-capacity-sensitivity}"
-run_dir="$out_root/mem${mem_gib}g-ncmoe${n_cpu_moe}"
+if [[ "$mem_gib" == "none" ]]; then
+  run_dir="$out_root/uncapped-ncmoe${n_cpu_moe}"
+  unit="bongo-cap-uncapped-${n_cpu_moe}"
+else
+  run_dir="$out_root/mem${mem_gib}g-ncmoe${n_cpu_moe}"
+  unit="bongo-cap-${mem_gib}g-${n_cpu_moe}"
+fi
 
 bongo_home="${BONGO_HOME:-$HOME/.bongo}"
 pidfile="$bongo_home/run/llama-server.pid"
@@ -169,21 +175,32 @@ run_one() {
   mkdir -p "$run_dir"
 
   if [[ -f "$run_dir/matrix.json" ]]; then
-    log "mem=${mem_gib}G n-cpu-moe=${n_cpu_moe} already measured; skipping"
+    log "mem=${mem_gib} n-cpu-moe=${n_cpu_moe} already measured; skipping"
     return 0
   fi
 
   stop_server
-  log "starting server under MemoryMax=${mem_gib}G SwapMax=0 (n-cpu-moe=$n_cpu_moe)"
-  systemd-run --user --scope -p "MemoryMax=${mem_gib}G" -p MemorySwapMax=0 \
-    --unit "$unit" -- \
+  if [[ "$mem_gib" == "none" ]]; then
+    log "starting server UNCONSTRAINED (n-cpu-moe=$n_cpu_moe) as the same-protocol control"
     ./bongo.sh \
-      --tier "$tier" \
-      --gguf-dir "$gguf_dir" \
-      --llama-bin "$llama_bin_dir" \
-      --runtime dir --runtime-dir "$runtime_dir" \
-      --backend vulkan --n-cpu-moe "$n_cpu_moe" --yes \
-    > "$run_dir/server-start.log" 2>&1 &
+        --tier "$tier" \
+        --gguf-dir "$gguf_dir" \
+        --llama-bin "$llama_bin_dir" \
+        --runtime dir --runtime-dir "$runtime_dir" \
+        --backend vulkan --n-cpu-moe "$n_cpu_moe" --yes \
+      > "$run_dir/server-start.log" 2>&1 &
+  else
+    log "starting server under MemoryMax=${mem_gib}G SwapMax=0 (n-cpu-moe=$n_cpu_moe)"
+    systemd-run --user --scope -p "MemoryMax=${mem_gib}G" -p MemorySwapMax=0 \
+      --unit "$unit" -- \
+      ./bongo.sh \
+        --tier "$tier" \
+        --gguf-dir "$gguf_dir" \
+        --llama-bin "$llama_bin_dir" \
+        --runtime dir --runtime-dir "$runtime_dir" \
+        --backend vulkan --n-cpu-moe "$n_cpu_moe" --yes \
+      > "$run_dir/server-start.log" 2>&1 &
+  fi
   local scope_pid=$!
 
   local waited=0 started=0
@@ -210,7 +227,7 @@ pathlib.Path(run_dir).mkdir(parents=True, exist_ok=True)
 matrix = {
     "schema": "bongo.capacity-sensitivity.v1",
     "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    "tier": tier, "memory_max_gib": int(mem), "n_cpu_moe": int(n),
+    "tier": tier, "memory_max_gib": (None if mem == "none" else int(mem)), "n_cpu_moe": int(n),
     "fit": False, "fatal_error": "server did not become healthy under the memory cap",
     "results": [],
 }
