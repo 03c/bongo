@@ -1,0 +1,87 @@
+{
+  "schema": "bongo.expert-placement.v1",
+  "generated_at": "2026-09-28T02:32:44.807154+00:00",
+  "tier": "iq2_xs",
+  "n_cpu_moe": 48,
+  "note": "Assembled from the raw 4096/131072 runs. The harness error-case suite (negative_max_tokens) generated unbounded text on the all-CPU config and was interrupted after both measured contexts had completed.",
+  "results": [
+    {
+      "target_context": 4096,
+      "status": "ok",
+      "runs": [
+        {
+          "repeat": 1
+        }
+      ],
+      "summary": {
+        "prompt_tokens": {
+          "median": 4097,
+          "n": 1
+        },
+        "prompt_tps": {
+          "median": 52.92035700690263,
+          "n": 1
+        },
+        "output_tps": {
+          "median": 2.9478996342770722,
+          "n": 1
+        },
+        "ttft_ms": {
+          "median": 77499.06,
+          "n": 1
+        }
+      },
+      "memory": {
+        "vram_peak_bytes": 6874058752.0,
+        "vram_method": "fdinfo",
+        "system_ram_peak_bytes": 26430013440.0,
+        "system_ram_process_hwm_bytes": 26438639616.0,
+        "system_ram_method": "proc_status_sum",
+        "samples": 481
+      }
+    },
+    {
+      "target_context": 131072,
+      "status": "ok",
+      "runs": [
+        {
+          "repeat": 1
+        }
+      ],
+      "summary": {
+        "prompt_tokens": {
+          "median": 130861,
+          "n": 1
+        },
+        "prompt_tps": {
+          "median": 72.3543115546168,
+          "n": 1
+        },
+        "output_tps": {
+          "median": 2.2623930596194013,
+          "n": 1
+        },
+        "ttft_ms": {
+          "median": 1808833.28,
+          "n": 1
+        }
+      },
+      "memory": {
+        "vram_peak_bytes": 7342514176.0,
+        "vram_method": "fdinfo",
+        "system_ram_peak_bytes": 26739433472.0,
+        "system_ram_process_hwm_bytes": 26739433472.0,
+        "system_ram_method": "proc_status_sum",
+        "samples": 7437
+      }
+    }
+  ],
+  "needle": {
+    "status": "pass",
+    "prompt_tokens": 130861
+  },
+  "memory": {
+    "vram_peak_bytes": 7342514176.0,
+    "system_ram_peak_bytes": 26739433472.0
+  }
+}

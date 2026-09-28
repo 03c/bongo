@@ -20,12 +20,13 @@ throughput optimisation at the 128K target.**
 
 The Stage 1 differentiator would move expert residency around to compute fewer experts on
 the CPU. But the measurement below shows that at 128K **decode throughput is essentially
-insensitive to expert placement**: going from 22.4 GiB to 16.8 GiB of GPU-resident experts
-(an extra 5.6 GiB / ~25% of the expert set on the CPU) changes 128K output throughput by
-only **-1.2%** (7.62 → 7.53 tok/s). Prefill is more sensitive (~3.4 prompt-tok/s per GPU
-GiB, ~14% over the same 5.6 GiB), but the static split already sits at the VRAM feasibility
-edge, so a cache cannot add GPU residents — it can only re-label which ones are hot. The
-measured ceiling on that reallocation is a low-single-digit-percent prefill change at 128K.
+insensitive to expert placement** across the whole feasible range: `n=16` (22.4 GiB of
+GPU-resident experts) and `n=24` (16.8 GiB) both decode at ~7.6 tok/s, and only the extreme
+`n=48` (every expert on the CPU, 0 GiB on GPU) collapses to 2.26 tok/s. Prefill is more
+sensitive (~3.4 prompt-tok/s per GPU GiB between `n=16` and `n=24`), but the static split
+already sits at the VRAM feasibility edge, so a cache cannot add GPU residents — it can only
+re-label which ones are hot. The measured ceiling on that reallocation is a low-single-digit
+percent prefill change at 128K.
 
 The performance cost of the target context is dominated by long-context attention/KV, not
 by where the experts live: 4K → 128K drops decode from ~16-18 tok/s to ~7.5-8 tok/s on
@@ -92,7 +93,7 @@ from the exact tensor bytes, not from the layer count. Source:
 | 12 | yes | **no** | 25.02 | 8.00 | 0.242 | 260.44 | 17.71 | 31.45 | *crash* | *crash* | 31.85 | 7.12 |
 | 16 | yes | yes | 22.40 | 10.62 | 0.322 | 231.50 | 16.11 | 28.82 | 133.43 | 7.62 | 29.26 | 10.96 |
 | 24 | yes | yes | 16.83 | 16.19 | 0.490 | 186.50 | 11.25 | 23.25 | 114.46 | 7.53 | 23.68 | 16.53 |
-| 48 | yes | (pending) | 0.00 | 33.02 | 1.000 | see below | see below | see below | see below | see below | see below | see below |
+| 48 | yes | yes | 0.00 | 33.02 | 1.000 | 52.92 | 2.95 | 6.40 | 72.35 | 2.26 | 6.84 | 24.90 |
 
 The Stage 0 baseline (3 repeats at 4K, 1 at 128K) is the same configuration as `n=16` and
 reproduces it: 4K prompt 231.46 / output 17.71, 128K prompt 133.16 / output 7.98, 128K
@@ -110,6 +111,9 @@ needle **pass**, peak VRAM 29.27 GiB. The sweep's single-repeat `n=16` is 133.43
   31.85 GiB. It is 0.07 GiB under the usable size at the moment it dies — the 128K KV cache
   and compute buffers push a config that fits at load over the edge at depth.
 - **`n=16` and `n=24`:** complete both contexts, needle passes, no spill visible.
+- **`n=48` (every expert on the CPU):** completes both contexts (needle passes) but is a
+  different regime: 4K output 2.95 tok/s, 128K output 2.26 tok/s, and the 128K prefill takes
+  ~30 minutes at 72 tok/s. This is the CPU-bound cliff, ~20 GiB below the VRAM ceiling.
 
 **Feasibility edge for 128K is between `n=12` and `n=16`** (untested: `n=13,14,15`). The
 shipped default (`n=16`) is at that edge and is a correct conservative choice.
@@ -118,23 +122,26 @@ shipped default (`n=16`) is at that edge and is a correct conservative choice.
 
 ### Throughput per GPU-resident expert GiB
 
-Comparing the two configs that both serve 128K:
+The three configs that serve 128K, ordered by GPU expert residency:
 
-| config | GPU experts GiB | 4K output tok/s | 128K output tok/s | 128K prompt tok/s |
-| --- | ---: | ---: | ---: | ---: |
-| n=16 | 22.40 | 16.11 | 7.62 | 133.43 |
-| n=24 | 16.83 | 11.25 | 7.53 | 114.46 |
-| **marginal** | **+5.57** | **+4.86** | **+0.09** | **+18.97** |
-| **per GPU GiB** | | **+0.87** | **+0.016** | **+3.41** |
+| config | GPU experts GiB | CPU expert share | 4K output tok/s | 128K output tok/s | 128K prompt tok/s |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| n=16 | 22.40 | 0.322 | 16.11 | 7.62 | 133.43 |
+| n=24 | 16.83 | 0.490 | 11.25 | 7.53 | 114.46 |
+| n=48 | 0.00 | 1.000 | 2.95 | 2.26 | 72.35 |
+| **16 → 24 (per GiB)** | **-5.57** | | **+0.87** | **+0.016** | **+3.41** |
+| **24 → 48 (per GiB)** | **-16.83** | | **+0.49** | **+0.313** | **+2.50** |
 
-- **At 128K decode, the marginal value of an expert GiB on the GPU is ~0.016 tok/s — inside
-  the run-to-run noise.** The 128K needle passing at both ends proves the context is real;
-  the cost is the long-context attention/KV path, which both configs pay identically.
-- **At 128K prefill the marginal is ~3.4 prompt-tok/s per GPU GiB (~14% over 5.6 GiB).**
-  Prefill is where expert placement still shows up at depth, because every prompt token
-  routes through the experts and the CPU expert matmul is the slow path.
-- **At 4K both are sensitive** (marginal ~+0.87 output tok/s per GPU GiB, and the `n=12`
-  point is faster still), so placement matters much more for short conversations.
+- **128K decode is flat until the CPU is the only expert compute.** `n=16` and `n=24`
+  differ by 1.2%; the 0.09 tok/s step is inside the single-repeat noise. Only at `n=48`
+  (CPU share 100%) does decode fall to 2.26 tok/s. The whole feasible static range sits on
+  the flat part of the curve, well before the CPU cliff. At 128K the bottleneck is the
+  long-context attention/KV path, which every config pays identically.
+- **128K prefill scales with CPU expert bytes** at roughly 2.5-3.4 prompt-tok/s per GiB moved
+  to the GPU. That is the one metric where expert placement still matters at depth, and it
+  is why a cache could theoretically help TTFT — but see the budget argument below.
+- **4K is placement-sensitive everywhere** (marginal 0.5-0.9 output tok/s per GPU GiB), so
+  placement matters most in the short-context turns at the start of a conversation.
 
 ### CPU-expert share
 
@@ -151,15 +158,19 @@ expert bytes on the GPU than the static split — it can only replace cold exper
 ones.
 
 The most a frequency-based cache could buy, therefore, is the difference between the static
-CPU share (32%) and the CPU share implied by the hot-expert working set. If expert activation
-is heavily skewed, that might be a few GiB of effective GPU residency. Valued at the
-measured marginals, that is:
+CPU share (32%) and the CPU share implied by the hot-expert working set — i.e. how much more
+expert activation a *frequency-ordered* 22.4 GiB set covers than a *layer-ordered* 22.4 GiB
+set. That coverage is not measured here. Valued at the measured marginals:
 
-- **128K output: ≲1%** (0.016 tok/s/GiB × a few GiB).
-- **128K prefill: a low-single-digit-percent improvement** (3.4 prompt-tok/s/GiB × a few
-  GiB), on a prefill that already takes ~15 minutes.
-- **4K output/prefill: ~10-15%, but only in the first turns of a conversation before the
-  context grows.**
+- **128K output: ~0.** `n=16` and `n=24` decode within 1.2%, so any re-labelling inside the
+  same ~22 GiB residency stays on the flat part of the decode curve.
+- **128K prefill: the only lever, bounded by the same VRAM budget.** At ~3.4 prompt-tok/s per
+  GPU GiB, reallocating ~5 GiB of residency toward hot experts is worth ~17 tok/s (~13%) —
+  but only to the extent that the hot set actually absorbs CPU work the layer rule does not.
+  The absolute ceiling (eliminating CPU expert prefill entirely, ~10.6 GiB) is ~25%, and it is
+  unreachable because the cache still has to hold those bytes somewhere.
+- **4K output/prefill: ~10%**, and only in the first turns of a conversation before the
+  context grows.
 
 Against that, Stage 1 carries a fork-or-scheduler cost, VRAM-pressure risk (the `n=12`
 device-loss shows how thin the margin is), and a new failure surface at exactly the context
@@ -179,11 +190,17 @@ of the 4K win with a config switch and no new engine code.
 current evidence:
 
 1. At the required 128K context, expert placement barely moves decode (1.2% across a 25%
-   shift in GPU expert residency), so the cache's only clear lever is prefill.
+   shift in GPU expert residency); the CPU-bound collapse only appears at `n=48`, where
+   every expert is on the CPU and no GPU residency remains. So the cache's only lever is
+   prefill, and it is bounded by a resident set the cache cannot enlarge.
 2. The cache cannot increase GPU expert residency; `n=12` already exceeds the 128K
    feasibility edge, so the static budget is the real constraint.
-3. The measured up-side (low single digits at 128K) does not justify a fork or a scheduler
-   layer, and the `n=12` device-loss shows the VRAM margin is too thin to safely trade.
+3. The measured up-side (low single digits at 128K prefill; ~0 at 128K decode) does not
+   justify a fork or a scheduler layer, and the `n=12` device-loss shows the VRAM margin is
+   too thin to safely trade.
+4. The one quantity that could change the answer — how much more expert activation a
+   frequency-ordered ~22 GiB set covers than a layer-ordered one — is cheap to measure
+   before any cache code is written (see below).
 
 Re-open Stage 1 only if a later measurement changes the premise, e.g. the SYCL backend is
 made to work (its MoE kernels may move the CPU/GPU balance), a smaller/other tier changes
@@ -191,16 +208,23 @@ the expert:VRAM ratio, or a byte-budget (`-ot`) placement beats the layer-count 
 
 ### Smallest next experiment (cheap, no cache code)
 
-Find the true 128K feasibility edge and test the context-adaptive switch. Concretely:
+Two cheap measurements decide whether Stage 1 is worth revisiting. Neither requires cache
+code:
 
-1. Run `--n-cpu-moe 13,14,15` at 128K (same harness, 1 repeat) to locate the largest
-   GPU-resident split that survives 128K without a device loss. This bounds how much the
-   static default can be raised.
-2. If `n=13/14` survives, measure the 4K→128K switch: start at `n=12`, step to the edge when
-   the prompt crosses a threshold (e.g. 32K), and compare end-to-end against fixed `n=16`.
+1. **Find the 128K feasibility edge.** Run `--n-cpu-moe 13,14,15` at 128K (same harness, 1
+   repeat) to locate the largest GPU-resident split that survives without a device loss.
+   This bounds how much the static default can be raised, and gives the first point on the
+   other side of the feasibility cliff `n=12` fell off.
+2. **Measure expert activation skew.** Instrument llama.cpp's MoE router (or parse its
+   routing logs) over a representative prompt set and compute the fraction of expert FFNs a
+   frequency-ordered 22.4 GiB resident set serves, versus the static layer set. If the hot
+   set covers no more than the layer rule, the cache has no upside and Stage 1 stays closed.
+   If it covers substantially more, price the difference with the prefill marginal above
+   before committing to a build.
 
-This is a config-layer change; it does not require the Stage 1 cache and can be tested with
-the existing harness.
+If (2) shows a real gap, the build is a config-layer change first (byte-budget `-ot`
+placement plus a context-aware switch from the `n=12`-class short-context setting to the
+128K edge); a fork is only justified if a config layer cannot express it.
 
 ## Reproduce
 
@@ -234,3 +258,7 @@ iGPU is `Vulkan0`.
 - **`-ot` byte-budget placement was not swept.** `--n-cpu-moe N` is layer-count based; a
   byte-budget `-ot` rule could pack slightly more expert bytes into VRAM and is worth a
   follow-up if the feasibility edge matters.
+- **`n=48`'s harness run was cut short after the two measured contexts.** On the all-CPU
+  config the harness's `negative_max_tokens` error case generated unbounded text at ~3
+  tok/s, so the error-case suite was not completed (the raw 4K/128K runs and needle are
+  complete). The other four configs ran the full suite.

@@ -145,6 +145,45 @@
         "gpu_gib": 16.83349609375,
         "cpu_gib": 16.1865234375
       }
+    },
+    {
+      "n_cpu_moe": 48,
+      "loaded": true,
+      "fit": true,
+      "fit_by_context": {
+        "4096": true,
+        "131072": true
+      },
+      "fatal_error": null,
+      "vram_after_load_bytes": 6798548992,
+      "server_read_bytes_delta": 74078482432,
+      "contexts": {
+        "4096": {
+          "status": "ok",
+          "prompt_tokens": 4097,
+          "prompt_tps": 52.92035700690263,
+          "output_tps": 2.9478996342770722,
+          "ttft_ms": 77499.06,
+          "vram_peak_bytes": 6874058752.0,
+          "ram_peak_bytes": 26430013440.0
+        },
+        "131072": {
+          "status": "ok",
+          "prompt_tokens": 130861,
+          "prompt_tps": 72.3543115546168,
+          "output_tps": 2.2623930596194013,
+          "ttft_ms": 1808833.28,
+          "vram_peak_bytes": 7342514176.0,
+          "ram_peak_bytes": 26739433472.0
+        }
+      },
+      "experts": {
+        "total": 35454976000,
+        "cpu": 35454976000,
+        "gpu": 0,
+        "gpu_gib": 0.0,
+        "cpu_gib": 33.02001953125
+      }
     }
   ]
 }

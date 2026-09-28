@@ -165,14 +165,14 @@ def render_md(rows, contexts):
         ex = r.get("experts") or {}
         cpu_share = (ex.get("cpu_gib") / (ex.get("cpu_gib") + ex.get("gpu_gib"))) if ex else None
         o128 = (r["contexts"].get(131072) or {}).get("output_tps")
+        g = ex.get("gpu_gib")
         marginal = None
-        if r["fit"] and o128:
+        if r["fit"] and o128 and g is not None:
             for prev in reversed(ok_rows[: ok_rows.index(r)]):
                 p_o = (prev["contexts"].get(131072) or {}).get("output_tps")
                 p_g = (prev.get("experts") or {}).get("gpu_gib")
-                g = ex.get("gpu_gib")
-                if p_o and p_g and g and (p_g - g) != 0:
-                    marginal = (o128 - p_o) / (p_g - g)
+                if p_o and p_g is not None and (p_g - g) != 0:
+                    marginal = (o128 - p_o) / (g - p_g)
                     break
         lines.append(
             f"| {r['n_cpu_moe']} | {fmt(cpu_share,3) if cpu_share is not None else 'n/a'} | "
