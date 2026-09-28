@@ -4,6 +4,11 @@
 Parent: [BAS-62](/BAS/issues/BAS-62). Extends the R5 characterisation
 ([BAS-67](/BAS/issues/BAS-67), [`ssd-ngram-shard.md`](ssd-ngram-shard.md)).
 
+**Disposition (ADR-0004):** the reader stays **opt-in** behind `--ple-reader off`. The engine A/B at 128K
+is neutral for prefill and decode, so M3.4b closes ([BAS-79](/BAS/issues/BAS-79)) and no further engine work
+runs on this line. See [ADR-0004](../adr/0004-ple-reader-disposition.md). The 6.7x/4.3x below is an
+isolated read-path result.
+
 **Verdict: the design holds.** Reading the 26.82 GiB table through a dedicated
 `O_DIRECT` reader pool with a bounded row cache is **4.3x faster per token** than
 the mmap page-fault path on decode and **6.7x faster** on a de-duplicated 2048-token

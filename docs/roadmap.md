@@ -79,7 +79,9 @@ See [ADR-0003](adr/0003-engine-direction.md). Milestones, in measured expected-v
 - [ ] M3.2 Suffix/n-gram speculation with the exact verify/commit window and an online acceptance policy.
 - [ ] M3.3 Placement: cheapest-layer-first byte-budget `-ot`, then a dynamic VRAM LRU over RAM-pinned experts
   (R4 profile as initialisation only, held-out A/B required).
-- [ ] M3.4 PLE/n-gram second-shard reader: direct reads, parallel prefetch, bounded row cache.
+- [x] M3.4 PLE/n-gram second-shard reader: direct reads, parallel prefetch, bounded row cache. Reader is
+  opt-in behind `--ple-reader off`; the M3.4b engine A/B at 128K measured neutral prefill and decode
+  ([BAS-79](/BAS/issues/BAS-79)), so the line closes — [ADR-0004](adr/0004-ple-reader-disposition.md).
 - [ ] M3.5 Long context: **256K** (the model's 262144 native limit) with quantized KV. Measured fit: q8 KV at
   `n=18` = 30.35 GiB (safe), q4 KV at `n=16` = 30.10 GiB (safe), q8 KV at `n=16` = 31.82 GiB (unsafe, within
   0.03 GiB of device loss). Default to q8 KV + `--n-cpu-moe 18`; validate with a real 256K prefill + needle.
