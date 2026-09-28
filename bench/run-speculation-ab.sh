@@ -91,14 +91,14 @@ for i in $(seq 1 200); do
 done
 echo "server healthy; running measurement"
 
-note="engine=llama.cpp $REV (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=$N_CPU_MOE ctx=$CTX spec_type=$spec_type synth_len=${spec_synth_len:-none}"
+note="engine=llama.cpp $REV (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=$N_CPU_MOE ctx=$CTX spec_type=$spec_type synth_len=${spec_synth_len:-none} flags=${flags[*]}"
 python3 "$here/measure-speculation.py" run \
   --base-url "http://$HOST:$PORT/v1" --model bongo-iq2_xs --tier iq2_xs \
   --label "$label" --spec-type "$spec_type" \
   --spec-synth "${spec_synth_len:-${spec_synth_rates:-none}}" \
   --contexts "$contexts" --max-tokens "$max_tokens" --repeats "$repeats" \
   --context-limit-guard "$CTX" \
-  --server-log "$log" \
+  --server-log "$log" --server-note "$note" \
   --out "$OUT_DIR/$label.json" "${extra[@]}"
 echo "note: $note"
 echo "saved $OUT_DIR/$label.json"

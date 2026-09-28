@@ -263,7 +263,9 @@ def run_measurement(args):
         },
         "server": {
             "build_info": props.get("build_info") or props.get("build"),
-            "flags": props.get("default_generation_settings"),
+            "default_generation_settings": props.get("default_generation_settings"),
+            "log": args.server_log,
+            "note": args.server_note,
         },
         "warmup": warm,
         "contexts": [],
@@ -485,6 +487,8 @@ def parse_args(argv=None):
                    help="server n_ctx; caps the prompt so prompt+max_tokens cannot overflow")
     r.add_argument("--skip-equivalence", action="store_true")
     r.add_argument("--server-log", default=None)
+    r.add_argument("--server-note", default=None,
+                   help="free-text record of the exact server flags/engine/tier for reproducibility")
     r.add_argument("--timeout", type=float, default=float(os.environ.get("BONGO_TIMEOUT", "3600")))
     r.add_argument("--label", required=True)
     r.add_argument("--spec-type", default="none")
