@@ -54,6 +54,8 @@ Run `./bongo.sh --help` for the full list. The most-used options:
 | `--no-slot-save-path` | — | Disable the slot save/restore endpoint (engine default) |
 | `--cache-idle-slots` / `--no-cache-idle-slots` | engine (on) | Save idle slots to the in-RAM prompt cache on a new task |
 | `--ctx-checkpoints N` | engine (32) | Max context checkpoints per slot |
+| `--save-slot-checkpoints` | — | Persist context checkpoints in the slot sidecar so a restored hybrid/recurrent slot reuses its prefix (BAS-86; default: off) |
+| `--no-save-slot-checkpoints` | on | Disable checkpoint persistence (baseline) |
 | `--no-warmup` | — | Do not send the post-load warmup request |
 
 ## Runtime provisioning
@@ -150,7 +152,7 @@ The endpoint is only available when a slot-save path is set; `--no-slot-save-pat
 engine default (disabled). The file lives *inside* the directory given to `--slot-save-path`.
 Saving is explicit: `bongo.sh` never writes a KV file on its own.
 
-**On this model a restored slot is not reused.** `Swift-1.5-Qwen3.8-Flash-Next` is a hybrid
+**On this model a restored slot is not reused by default** (baseline). `Swift-1.5-Qwen3.8-Flash-Next` is a hybrid
 `qwen4exp` GGUF: 36 Gated-DeltaNet (linear/recurrent) layers and 12 full-attention layers, with no
 SWA layers. `save` writes the slot's tokens plus its sequence state (KV + recurrent state), and
 `restore` reads them back and reports `n_restored`; the bytes round-trip and are fast (see the
@@ -159,19 +161,58 @@ hybrid/recurrent memory, and the server does not persist its checkpoint list in 
 The next request therefore re-prefills the whole prompt and the log shows *"forcing full prompt
 re-processing due to lack of cache data (likely due to SWA or hybrid/recurrent memory)"*.
 
-Consequences and things that do **not** fix it on this model:
+`--save-slot-checkpoints` (with `--slot-save-path`) is the attempted fix, and it is
+**implemented but not yet measured**: it makes the server write a sidecar file `{filename}.ckpt`
+alongside each saved slot, containing the slot's context checkpoint list (anchored position
+ranges plus the recurrent/full-attention state bytes). On restore that sidecar is replayed into
+the slot, so the engine's `cache_prompt` path can find a usable checkpoint anchor. Whether the
+prefix is then actually reused is the open question — **BAS-86 owns the measurement and the AC is
+not met until a restored slot shows `cache_n > 0`.** The sidecar is gated behind
+`--save-slot-checkpoints`; when it is off (the shipped baseline) nothing changes and the engine
+falls back to a full re-prefill on a restored slot exactly as before.
 
-- `--ctx-checkpoints N` only bounds the in-RAM checkpoint list; the checkpoints are still not
-  written to the slot file.
-- `--cache-idle-slots` keeps an idle slot in the **in-RAM** prompt cache; it does not survive a
-  process restart.
-- `--swa-full` is rejected by the engine here (`swa_full is not supported by this model`), because
-  this GGUF has no sliding-window layers.
+Two preconditions before this flag can be trusted on a normal box:
 
-So `--slot-save-path` persists the KV *bytes* cheaply, but on this model it does not turn a
-restore into a cache hit. **In-session prefix reuse (no restart) is unaffected and remains the
-product path.** Making restart survival a latency win needs the engine to persist context
-checkpoints (engine work, tracked separately), or a non-hybrid model tier.
+- It needs an engine built with the patch, not the stock `b11223` binary. Stock rejects the flag
+  with `invalid argument: --save-slot-checkpoints`. The patch is pinned at
+  [`tools/patches/slot-checkpoints-sidecar.patch`](../tools/patches/slot-checkpoints-sidecar.patch);
+  `bongo.sh` accepts `--save-slot-checkpoints` but the flag only takes effect when the selected
+  `llama-server` was built with that patch.
+- The sidecar's size and the restore-reuse verdict are unmeasured; the 31K/256K numbers below are
+  the **baseline (sidecar off)**.
+
+Cost: each checkpoint sidecar is roughly the size of the checkpoint payload for the saved range
+(≈390 MiB for the 31K prefix on this model; one sidecar per save/restore cycle).
+
+#### Measured at full size (256K, q8 KV)
+
+With the checkpoint sidecar **off** (the shipped baseline), the 262,144-token point on the
+reference box, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`
+([`bench/results/2026-09-28-prefix-cache-256k/`](../bench/results/2026-09-28-prefix-cache-256k/README.md)):
+
+| action | 31K | 256K | rate |
+| --- | ---: | ---: | ---: |
+| `save` | 127.9 ms | 1,558.6 ms | 2.55 GB/s |
+| `restore` | 264.4 ms | 11,521.1 ms | 0.35 GB/s |
+| bytes | 585,931,732 | 3,980,332,632 | — |
+
+**The restored KV is not reused at 256K either** — `cache_n: 0`, and the next request
+re-prefilled all 261,997 tokens in 2,351 s. The same verdict at 31K, and worse in absolute
+terms: at 256K the restore costs 11.5 s and then buys nothing, so losing the KV and
+restoring it is a ~204x net loss. The conclusion is size-independent for this hybrid model.
+
+Two things to size for before designing around restore on model swap:
+
+- **Restore degrades with size much faster than save does.** 6.79x the bytes costs 43.6x
+  the time, so restore is 6.4x worse than linear (2.22 GB/s → 0.35 GB/s per byte) where save
+  only slows 1.8x (4.58 → 2.55 GB/s). A 256K swap pays ~11.5 s of restore before knowing it
+  helped.
+- **KV size is not simply proportional to token count** across these two points: 18,459
+  B/token at 31K vs 15,190 B/token at 256K. One sample each, so treat it as an open question
+  rather than a sizing rule.
+
+If `--save-slot-checkpoints` is turned on, budget the sidecar for the whole range rather than
+the 31K example above: the 256K slot file is already 3.71 GiB before any sidecar.
 
 `--cache-idle-slots` (engine default: on) saves an idle slot to the **in-RAM** prompt cache when a
 new task starts, so a second slot can reuse it without touching the disk. It needs the engine's

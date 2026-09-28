@@ -1,0 +1,221 @@
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 2acac3b5c..ba8787c1e 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -3621,6 +3621,14 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
+             }
+         }
+     ).set_examples({LLAMA_EXAMPLE_SERVER}));
++    add_opt(common_arg(
++        {"--save-slot-checkpoints"},
++        {"--no-save-slot-checkpoints"},
++        "persist context checkpoints to the slot file alongside the KV state (default: off)",
++        [](common_params & params, bool value) {
++            params.save_slot_checkpoints = value;
++        }
++    ).set_env("LLAMA_ARG_SAVE_SLOT_CHECKPOINTS").set_examples({LLAMA_EXAMPLE_SERVER}));
+     add_opt(common_arg(
+         {"--media-path"}, "PATH",
+         "directory for loading local media files; files can be accessed via file:// URLs using relative paths (default: disabled)",
+diff --git a/common/common.h b/common/common.h
+index 527f4be7d..854b58d13 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -691,6 +691,7 @@ struct common_params {
+     bool log_json = false;
+ 
+     std::string slot_save_path;
++    bool        save_slot_checkpoints = false; // persist context checkpoints alongside the slot file
+     std::string media_path; // path to directory for loading media files
+ 
+     float slot_prompt_similarity = 0.1f;
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 611e82a6a..1df13d1f0 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -27,6 +27,131 @@
+ #include <utility>
+ #include <fstream>
+ 
++// --- Slot checkpoint persistence (BAS-86) ---
++// On hybrid/recurrent models (e.g. qwen4exp) the engine keeps an in-RAM list of
++// "context checkpoints" (common_prompt_checkpoint, one per anchorable position
++// range) that let cache_prompt resume a prefix after the recurrent state can no
++// longer be shifted. Those checkpoints are ephemeral: slot save/restore only
++// round-trips the tokens + the sequence KV state, so an erased/restored slot has
++// an empty checkpoint list and the next request "forces full prompt re-processing".
++// The helpers below persist/restore that checkpoint list as a sidecar file next to
++// the slot KV, so a restored slot can reuse the prefix instead of re-prefilling.
++// The binary is gated on `--save-slot-checkpoints`; when it is disabled (the
++// shipped baseline default) nothing changes and the engine falls back to a full
++// re-prefill on a restored slot exactly as before.
++
++// sidecar path for a slot KV file written at `filepath`
++inline std::string slot_ckpt_path(const std::string & filepath) {
++    return filepath + ".ckpt";
++}
++
++// write the checkpoint list of `checkpoints` to `ckpt_path`.
++// returns true on success.
++static bool slot_checkpoints_save(
++        const std::string & ckpt_path,
++        const std::list<common_prompt_checkpoint> & checkpoints) {
++    std::ofstream out(ckpt_path, std::ios::binary);
++    if (!out.is_open()) {
++        return false;
++    }
++
++    const char            magic[4]  = {'B', 'K', 'C', 'P'};
++    const uint32_t        version   = 1;
++    const uint32_t        n         = static_cast<uint32_t>(checkpoints.size());
++
++    out.write(magic, sizeof(magic));
++    out.write(reinterpret_cast<const char *>(&version), sizeof(version));
++    out.write(reinterpret_cast<const char *>(&n), sizeof(n));
++
++    for (const auto & cp : checkpoints) {
++        const uint32_t u_pos_min = static_cast<uint32_t>(cp.pos_min);
++        const uint32_t u_pos_max = static_cast<uint32_t>(cp.pos_max);
++        const uint64_t len_tgt  = cp.data_tgt.size();
++        const uint64_t len_dft  = cp.data_dft.size();
++        const uint64_t len_spec = cp.data_spec.size();
++
++        out.write(reinterpret_cast<const char *>(&cp.n_tokens),  sizeof(cp.n_tokens));
++        out.write(reinterpret_cast<const char *>(&cp.id_task),   sizeof(cp.id_task));
++        out.write(reinterpret_cast<const char *>(&u_pos_min),    sizeof(u_pos_min));
++        out.write(reinterpret_cast<const char *>(&u_pos_max),    sizeof(u_pos_max));
++        out.write(reinterpret_cast<const char *>(&len_tgt),      sizeof(len_tgt));
++        out.write(reinterpret_cast<const char *>(cp.data_tgt.data()), len_tgt);
++        out.write(reinterpret_cast<const char *>(&len_dft),      sizeof(len_dft));
++        out.write(reinterpret_cast<const char *>(cp.data_dft.data()), len_dft);
++        out.write(reinterpret_cast<const char *>(&len_spec),     sizeof(len_spec));
++        out.write(reinterpret_cast<const char *>(cp.data_spec.data()), len_spec);
++    }
++
++    return out.good();
++}
++
++// load checkpoint list from `ckpt_path` into `checkpoints`.
++// returns true iff the file exists and is a readable BKC1 checkpoint file.
++static bool slot_checkpoints_load(
++        const std::string & ckpt_path,
++        std::list<common_prompt_checkpoint> & checkpoints) {
++    std::ifstream in(ckpt_path, std::ios::binary | std::ios::ate);
++    if (!in.is_open()) {
++        return false;
++    }
++
++    checkpoints.clear();
++
++    char             magic[4];
++    uint32_t         version = 0;
++    uint32_t         n       = 0;
++
++    in.seekg(0, std::ios::beg);
++    in.read(magic, sizeof(magic));
++    in.read(reinterpret_cast<char *>(&version), sizeof(version));
++    in.read(reinterpret_cast<char *>(&n), sizeof(n));
++    if (!in || magic[0] != 'B' || magic[1] != 'K' || magic[2] != 'C' || magic[3] != 'P' || version != 1) {
++        SRV_WRN("slot checkpoint sidecar has unknown format/version (%s, v%u); skipping checkpoint restore\n", ckpt_path.c_str(), version);
++        return false;
++    }
++
++    for (uint32_t i = 0; i < n; ++i) {
++        common_prompt_checkpoint cp;
++        uint32_t u_pos_min = 0;
++        uint32_t u_pos_max = 0;
++        uint64_t len_tgt = 0;
++        uint64_t len_dft = 0;
++        uint64_t len_spec = 0;
++
++        in.read(reinterpret_cast<char *>(&cp.n_tokens),  sizeof(cp.n_tokens));
++        in.read(reinterpret_cast<char *>(&cp.id_task),   sizeof(cp.id_task));
++        in.read(reinterpret_cast<char *>(&u_pos_min),    sizeof(u_pos_min));
++        in.read(reinterpret_cast<char *>(&u_pos_max),    sizeof(u_pos_max));
++        in.read(reinterpret_cast<char *>(&len_tgt),      sizeof(len_tgt));
++        cp.data_tgt.resize(len_tgt);
++        in.read(reinterpret_cast<char *>(cp.data_tgt.data()), static_cast<std::streamsize>(len_tgt));
++        in.read(reinterpret_cast<char *>(&len_dft),      sizeof(len_dft));
++        cp.data_dft.resize(len_dft);
++        in.read(reinterpret_cast<char *>(cp.data_dft.data()), static_cast<std::streamsize>(len_dft));
++        in.read(reinterpret_cast<char *>(&len_spec),     sizeof(len_spec));
++        cp.data_spec.resize(len_spec);
++        in.read(reinterpret_cast<char *>(cp.data_spec.data()), static_cast<std::streamsize>(len_spec));
++
++        cp.pos_min = static_cast<llama_pos>(u_pos_min);
++        cp.pos_max = static_cast<llama_pos>(u_pos_max);
++
++        if (!in) {
++            SRV_WRN("slot checkpoint sidecar truncated; restored %u/%u checkpoints\n", i, n);
++            return !checkpoints.empty();
++        }
++        checkpoints.push_back(std::move(cp));
++    }
++
++    return true;
++}
++
++// remove the checkpoint sidecar for `filepath`, if present.
++static void slot_checkpoints_erase(const std::string & filepath) {
++    std::error_code ec;
++    std::filesystem::remove(slot_ckpt_path(filepath), ec);
++    // ignoring ec: erase is best-effort; a missing sidecar is the expected case
++}
++
+ // fix problem with std::min and std::max
+ #if defined(_WIN32)
+ #define WIN32_LEAN_AND_MEAN
+@@ -2590,6 +2715,17 @@ private:
+                         break;
+                     }
+ 
++                    // persist context checkpoints (if any) so a restored
++                    // slot on a hybrid/recurrent model can reuse the prefix
++                    if (params_base.save_slot_checkpoints && !slot->prompt.checkpoints.empty()) {
++                        const std::string ckpt_path = slot_ckpt_path(filepath);
++                        if (!slot_checkpoints_save(ckpt_path, slot->prompt.checkpoints)) {
++                            SLT_WRN(*slot, "failed to save checkpoint sidecar %s\n", ckpt_path.c_str());
++                        } else {
++                            SLT_DBG(*slot, "saved %zu context checkpoints to %s\n", slot->prompt.checkpoints.size(), ckpt_path.c_str());
++                        }
++                    }
++
+                     const int64_t t_end = ggml_time_us();
+                     const double t_save_ms = (t_end - t_start) / 1000.0;
+ 
+@@ -2649,6 +2785,24 @@ private:
+ 
+                         slot->prompt.clear();
+                         slot->prompt.tokens = std::move(restored);
++
++                        // re-establish the checkpoint list from the sidecar so the
++                        // engine's cache_prompt path finds a usable anchor for hybrid /
++                        // recurrent models (BAS-86)
++                        if (params_base.save_slot_checkpoints) {
++                            std::list<common_prompt_checkpoint> loaded;
++                            if (slot_checkpoints_load(slot_ckpt_path(filepath), loaded)) {
++                                for (auto & cp : loaded) {
++                                    cp.load_tgt(ctx_tgt, slot->id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
++                                    cp.load_dft(ctx_dft, slot->id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
++                                    common_speculative_set_state(spec.get(), slot->id, cp.data_spec);
++                                }
++                                slot->prompt.checkpoints = std::move(loaded);
++                                LOG_DBG("slot %12s: id %2d | restored %zu context checkpoints from sidecar\n", "server_context", slot->id, slot->prompt.checkpoints.size());
++                            } else {
++                                LOG_DBG("slot %12s: id %2d | no checkpoint sidecar; falling back to full re-prefill on cache miss\n", "server_context", slot->id);
++                            }
++                        }
+                     } catch (const std::exception & err) {
+                         slot->prompt_clear();
+                         send_error(task, std::string("Unable to restore slot: ") + err.what(), ERROR_TYPE_INVALID_REQUEST);
+@@ -2688,6 +2842,10 @@ private:
+ 
+                     slot->prompt_clear();
+ 
++                    if (params_base.save_slot_checkpoints) {
++                        slot_checkpoints_erase(task.slot_action.filepath);
++                    }
++
+                     auto res = std::make_unique<server_task_result_slot_erase>();
+                     res->id       = task.id;
+                     res->id_slot  = id_slot;

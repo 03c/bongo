@@ -86,6 +86,7 @@ CACHE_IDLE_SLOTS=""       # "" = engine default (on); 1/0 force --[no-]cache-idl
 CTX_CHECKPOINTS=""        # "" = engine default (32); N = --ctx-checkpoints N
 SLOT_SAVE_PATH=""         # "" = disabled; set by --slot-save-path or the run-dir default
 SLOT_SAVE_PATH_SET=0       # 1 once --slot-save-path/--no-slot-save-path was given
+SAVE_SLOT_CHECKPOINTS=0    # 1 persist context checkpoints alongside the slot file (BAS-86)
 WARMUP=1                   # warm the server after load (pays shader/kernel compile once)
 
 SERVER_PID=""
@@ -204,6 +205,10 @@ Prefix cache / agentic turns:
   --cache-idle-slots     Force --cache-idle-slots on (engine default: on)
   --no-cache-idle-slots  Pass --no-cache-idle-slots
   --ctx-checkpoints N    Pass --ctx-checkpoints N (engine default: 32)
+  --save-slot-checkpoints  Persist context checkpoints alongside the slot file so a
+                           restored slot on hybrid/recurrent models reuses the prefix
+                           (default: off; requires --slot-save-path)
+  --no-save-slot-checkpoints
   --no-warmup            Do not send the post-load warmup request
 
 Runtime / engine provisioning:
@@ -264,6 +269,8 @@ parse_args() {
       --cache-idle-slots) CACHE_IDLE_SLOTS=1; shift;;
       --no-cache-idle-slots) CACHE_IDLE_SLOTS=0; shift;;
       --ctx-checkpoints) CTX_CHECKPOINTS="${2:?--ctx-checkpoints needs a value}"; shift 2;;
+      --save-slot-checkpoints) SAVE_SLOT_CHECKPOINTS=1; shift;;
+      --no-save-slot-checkpoints) SAVE_SLOT_CHECKPOINTS=0; shift;;
       --no-warmup) WARMUP=0; shift;;
       --runtime) RUNTIME_MODE="${2:?--runtime needs a value}"; shift 2;;
       --runtime-dir) RUNTIME_DIR="${2:?--runtime-dir needs a value}"; RUNTIME_MODE="dir"; shift 2;;
@@ -296,6 +303,9 @@ validate_args() {
   [[ "$N_GPU_LAYERS" =~ ^[0-9]+$ ]] || die "--n-gpu-layers must be an integer."
   if [[ -n "$CTX_CHECKPOINTS" ]]; then
     [[ "$CTX_CHECKPOINTS" =~ ^[0-9]+$ ]] || die "--ctx-checkpoints must be an integer (got '$CTX_CHECKPOINTS')."
+  fi
+  if (( SAVE_SLOT_CHECKPOINTS )) && [[ -z "$SLOT_SAVE_PATH" ]]; then
+    die "--save-slot-checkpoints requires --slot-save-path (checkpoints are persisted alongside the slot KV)."
   fi
   # The slot save/restore endpoint is on the product path by default so a long
   # agentic session can persist its KV across idle/restart. It only writes when a
@@ -934,6 +944,7 @@ build_server_flags() {
   # reproducible product path (not the engine default that a reader has to know).
   if (( CACHE_PROMPT )); then SERVER_FLAGS+=(--cache-prompt); else SERVER_FLAGS+=(--no-cache-prompt); fi
   if [[ -n "$SLOT_SAVE_PATH" ]]; then SERVER_FLAGS+=(--slot-save-path "$SLOT_SAVE_PATH"); fi
+  if (( SAVE_SLOT_CHECKPOINTS )); then SERVER_FLAGS+=(--save-slot-checkpoints); fi
   if [[ -n "$CACHE_IDLE_SLOTS" ]]; then
     if (( CACHE_IDLE_SLOTS )); then SERVER_FLAGS+=(--cache-idle-slots); else SERVER_FLAGS+=(--no-cache-idle-slots); fi
   fi
@@ -1014,6 +1025,7 @@ write_config() {
   "serving": {
     "cache_prompt": $cp_json,
     "slot_save_path": "$(json_escape "$SLOT_SAVE_PATH")",
+    "save_slot_checkpoints": $(if (( SAVE_SLOT_CHECKPOINTS )); then echo true; else echo false; fi),
     "cache_idle_slots": $(if [[ -z "$CACHE_IDLE_SLOTS" ]]; then echo 'null'; elif (( CACHE_IDLE_SLOTS )); then echo true; else echo false; fi),
     "ctx_checkpoints": $(if [[ -z "$CTX_CHECKPOINTS" ]]; then echo 'null'; else echo "$CTX_CHECKPOINTS"; fi),
     "warmup": $warmup_json
@@ -1048,7 +1060,7 @@ print_plan() {
   echo "  Model          : $MODEL_REPO [$TIER]"
   echo "  Context        : $CTX"
   echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE"
-  echo "  Prefix cache   : cache_prompt=$CACHE_PROMPT slot_save_path=${SLOT_SAVE_PATH:-disabled} warmup=$WARMUP"
+  echo "  Prefix cache   : cache_prompt=$CACHE_PROMPT slot_save_path=${SLOT_SAVE_PATH:-disabled} save_slot_checkpoints=$SAVE_SLOT_CHECKPOINTS warmup=$WARMUP"
   echo "  Endpoint       : http://$HOST:$PORT/v1"
   echo "  Exact flags    : ${SERVER_FLAGS[*]:-<not built>}"
   echo
