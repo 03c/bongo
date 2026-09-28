@@ -66,6 +66,12 @@ turn. The 3.98 GB slot file survived on disk, so the restore was resumed on its 
 prefill. The restore still comes off disk into a server process that never saw the
 original prefill, which is the property being measured.
 
+The queued run is `bash ./bench/run-slot-restore-256k.sh --restore-only` at script revision
+`b9992e1` (recorded in `queued-script-rev.txt`), waiting on the single-GPU flock behind the
+BAS-79 PLE A/B. It starts on its own when the lock frees; `--plan` confirms the file it
+will resume from and its size. Expect ~1 min of server start, then the restore, then the
+verify turn: ~40 min if the restored KV is not reused, seconds if it is.
+
 Result: see `slot-restore-256k.json` (`restore` and `reuse` blocks) and
 `slot-restore-restore.json` once the run completes.
 
