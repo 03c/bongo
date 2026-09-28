@@ -1,0 +1,104 @@
+{
+  "ncmoe-10": {
+    "n_cpu_moe": 10,
+    "loads": true,
+    "fits_128k": false,
+    "needle": "fail",
+    "notes": [
+      "server reported n_ctx=131072",
+      "128K needle retrieval FAILED: context may be accepted but not usable",
+      "context 131072 failed: {\"error\":{\"code\":500,\"message\":\"decode() failed: vk::Queue::submit: ErrorDeviceLost\",\"type\":\"server_error\"}}"
+    ],
+    "vram_peak_gib": 31.85,
+    "ram_peak_gib": 6.38,
+    "4k_prompt_tps": 296.89,
+    "4k_output_tps": 11.19,
+    "4k_ttft_ms": 13854.8,
+    "128k_prompt_tps": null,
+    "128k_output_tps": null,
+    "128k_ttft_ms": null,
+    "vram_after_load_gib": 31.34,
+    "gpu_experts_gib": 25.05,
+    "cpu_experts_gib": 6.59
+  },
+  "ncmoe-11": {
+    "n_cpu_moe": 11,
+    "loads": true,
+    "fits_128k": true,
+    "needle": "pass",
+    "notes": [
+      "server reported n_ctx=131072"
+    ],
+    "vram_peak_gib": 31.2,
+    "ram_peak_gib": 7.11,
+    "4k_prompt_tps": 288.88,
+    "4k_output_tps": 12.38,
+    "4k_ttft_ms": 14237.1,
+    "128k_prompt_tps": 151.4,
+    "128k_output_tps": 7.44,
+    "128k_ttft_ms": 864505.8,
+    "vram_after_load_gib": 30.68,
+    "gpu_experts_gib": 24.39,
+    "cpu_experts_gib": 7.25
+  },
+  "ncmoe-12": {
+    "n_cpu_moe": 12,
+    "loads": true,
+    "fits_128k": true,
+    "needle": "pass",
+    "4k_prompt_tps": 279.03,
+    "4k_output_tps": 8.81,
+    "4k_ttft_ms": 14739.5,
+    "128k_prompt_tps": 149.74,
+    "128k_output_tps": 7.63,
+    "128k_ttft_ms": 874093.3,
+    "vram_peak_gib": 30.54,
+    "ram_peak_gib": 8.04,
+    "vram_after_load_gib": 30.02,
+    "notes": [
+      "harness killed after the 4K/128K/needle measurements (pre-fix negative_max_tokens hang)"
+    ],
+    "gpu_experts_gib": 23.73,
+    "cpu_experts_gib": 7.91
+  },
+  "ncmoe-15": {
+    "n_cpu_moe": 15,
+    "loads": true,
+    "fits_128k": true,
+    "needle": "pass",
+    "notes": [
+      "server reported n_ctx=131072"
+    ],
+    "vram_peak_gib": 28.56,
+    "ram_peak_gib": 9.7,
+    "4k_prompt_tps": 256.34,
+    "4k_output_tps": 9.82,
+    "4k_ttft_ms": 16036.8,
+    "128k_prompt_tps": 141.61,
+    "128k_output_tps": 6.81,
+    "128k_ttft_ms": 924306.4,
+    "vram_after_load_gib": 28.04,
+    "gpu_experts_gib": 21.75,
+    "cpu_experts_gib": 9.89
+  },
+  "ncmoe-16": {
+    "n_cpu_moe": 16,
+    "loads": true,
+    "fits_128k": true,
+    "needle": "pass",
+    "notes": [
+      "server reported n_ctx=131072"
+    ],
+    "vram_peak_gib": 27.9,
+    "ram_peak_gib": 11.32,
+    "4k_prompt_tps": 247.92,
+    "4k_output_tps": 6.97,
+    "4k_ttft_ms": 16581.0,
+    "128k_prompt_tps": 139.02,
+    "128k_output_tps": 6.91,
+    "128k_ttft_ms": 941485.2,
+    "vram_after_load_gib": 27.38,
+    "gpu_experts_gib": 21.09,
+    "cpu_experts_gib": 10.55
+  }
+}

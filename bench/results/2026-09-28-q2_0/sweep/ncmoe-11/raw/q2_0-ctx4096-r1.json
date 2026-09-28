@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 24495.22,
+  "prompt_tokens": 4097,
+  "prompt_ms": 14182.546,
+  "prompt_tps": 288.87620036628124,
+  "output_tokens": 128,
+  "output_ms": 10258.145,
+  "output_tps": 12.380406009078639,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 4097,
+    "total_tokens": 4225,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\nThe user has pasted a paragraph repeated many times, ending abruptly with \"The turbin\" - cut off mid-word. They want me to complete the text. The paragraph is:\n\n\"The mountain road curved pas",
+  "ttft_ms": 14237.06,
+  "ttfb_ms": 14237.03,
+  "stream_total_ms": 24495.22,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\nThe user has pasted a paragraph repeated many times, ending abruptly with \"The turbin\" - cut off mid-word. The",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 33028767744.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 6438653952.0,
+    "system_ram_process_hwm_bytes": 20626190336.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 98
+  }
+}

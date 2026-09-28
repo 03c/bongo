@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 169844.38,
+  "prompt_tokens": 32768,
+  "prompt_ms": 157561.258,
+  "prompt_tps": 207.96990590161445,
+  "output_tokens": 128,
+  "output_ms": 12259.336,
+  "output_tps": 10.359451768023979,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 32768,
+    "total_tokens": 32896,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger, comparing it against the previous week. ",
+  "ttft_ms": 157584.87,
+  "ttfb_ms": 30030.27,
+  "stream_total_ms": 169844.38,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers lo",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 33087488000.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 6834946048.0,
+    "system_ram_process_hwm_bytes": 16597716992.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 677
+  }
+}

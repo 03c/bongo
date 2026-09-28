@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 34789.52,
+  "prompt_tokens": 4097,
+  "prompt_ms": 16525.444,
+  "prompt_tps": 247.92072152494057,
+  "output_tokens": 128,
+  "output_ms": 18208.482,
+  "output_tps": 6.9747714279531925,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 4097,
+    "total_tokens": 4225,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\nThe user has pasted a repeated paragraph many times, ending with \"The turbin\" which is cut off. This appears to be a repetitive text that loops the same paragraph over and over. The last ins",
+  "ttft_ms": 16580.99,
+  "ttfb_ms": 16580.95,
+  "stream_total_ms": 34789.52,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\nThe user has pasted a repeated paragraph many times, ending with \"The turbin\" which is cut off. This appears t",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 29489799168.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 10583826432.0,
+    "system_ram_process_hwm_bytes": 22257848320.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 139
+  }
+}
