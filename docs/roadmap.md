@@ -45,8 +45,8 @@ IQ2_XS on the pinned engine (llama.cpp `b11223`), `--n-cpu-moe 16`, warm, median
 Peak VRAM 29.27 GiB, peak RSS 14.07 GiB; 128K needle recalled. Raw data:
 [`bench/results/2026-09-27-baseline/`](../bench/results/2026-09-27-baseline/).
 
-**Runtime caveat:** the Intel compute stack (Level Zero / SYCL) does not enumerate the B70 (NEO abort), so
-these numbers are on the **Vulkan** fallback. [BAS-57](/BAS/issues/BAS-57) tracks restoring SYCL.
+**Runtime caveat:** these numbers are on the **Vulkan** fallback. [BAS-57](/BAS/issues/BAS-57) restored
+SYCL enumeration on the B70, so the baseline can be re-run on SYCL to supersede them.
 
 ## M2 — Expert placement (Stage 1) — resolved, then superseded by R1–R7
 
