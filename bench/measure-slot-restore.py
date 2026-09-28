@@ -56,22 +56,44 @@ def _json_int(body, key):
         return None
 
 
-def slot_filled_tokens(slot):
-    """Tokens currently held in a ``/slots`` entry, across llama.cpp field names.
+def _json_timing_ms(body, key):
+    """Read ``timings.<key>`` (ms) out of a save/restore response body.
 
-    Older builds report ``n_past``. The b11223 Vulkan build used for the 256K
-    run instead reports ``n_prompt_tokens`` (the whole prompt) alongside
-    ``n_prompt_tokens_processed``/``n_prompt_tokens_cache``, so reading only
-    ``n_past`` silently yielded ``None`` and made the save/restore records look
-    like they had lost the KV. Prefer the explicit occupancy fields and fall
-    back to ``n_past``.
+    llama-server nests the server-side timing under ``timings`` -- e.g.
+    ``{"timings":{"restore_ms":11521.056}}`` -- so a flat lookup misses it.
+    """
+    try:
+        return (json.loads(body).get("timings") or {}).get(key)
+    except (TypeError, ValueError, AttributeError):
+        return None
+
+
+def slot_request_progress(slot):
+    """The per-request progress fields a ``/slots`` entry carries, verbatim.
+
+    This is deliberately *not* a slot-occupancy reading. The b11223 build dropped
+    ``n_past``; what is left describes the slot's **last request**, not the KV it
+    holds. Confirmed on the live 256K server: immediately after
+    ``action=restore`` put 262,028 tokens back in the slot, every one of these
+    read 0, because that server had not yet served a request. And
+    ``n_prompt_tokens_cache`` is the reused-token count *of that request* — it
+    read 0 at 188K tokens into a re-prefill — so reporting it as "tokens
+    resident in the slot" turns a real measurement into a misleading one.
+
+    Slot occupancy is only knowable from the save/restore/erase response bodies
+    (``n_saved`` / ``n_restored`` / ``n_erased``) plus the next request's
+    ``cache_n``. Those are what the record uses for occupancy; this only carries
+    the live progress fields, under a name that says what they are.
     """
     if not isinstance(slot, dict):
-        return None
-    for key in ("n_prompt_tokens_cache", "n_prompt_tokens", "n_past"):
-        value = slot.get(key)
-        if isinstance(value, int):
-            return value
+        return {}
+    keys = ("n_prompt_tokens", "n_prompt_tokens_processed", "n_prompt_tokens_cache", "n_past")
+    return {k: slot[k] for k in keys if k in slot}
+
+
+def _slot_entry(slots_body, index):
+    if isinstance(slots_body, list) and len(slots_body) > index:
+        return slots_body[index]
     return None
 
 
@@ -195,8 +217,10 @@ def main():
 
     status, before = slots(base, args.timeout)
     record["slots_http_status"] = status
-    record["slot_n_past_before"] = slot_filled_tokens(
-        before[args.slot] if isinstance(before, list) and len(before) > args.slot else None
+    record["slot_progress_before"] = slot_request_progress(_slot_entry(before, args.slot))
+    record["slot_occupancy_source"] = (
+        "n_saved / n_restored / n_erased in the action response bodies, plus the next "
+        "request's cache_n. /slots on this build reports last-request progress only."
     )
 
     save_dir = os.environ.get("BONGO_SLOT_SAVE_PATH", ".")
@@ -230,9 +254,7 @@ def main():
             record["prefill_tps"] = pre.get("prompt_tps")
             record["prefill_ttft_ms"] = pre.get("ttft_ms")
         status, populated = slots(base, args.timeout)
-        record["slot_n_past_after_prefill"] = slot_filled_tokens(
-            populated[args.slot] if isinstance(populated, list) and len(populated) > args.slot else None
-        )
+        record["slot_progress_after_prefill"] = slot_request_progress(_slot_entry(populated, args.slot))
 
         t0 = time.time()
         res = None
@@ -256,6 +278,10 @@ def main():
         record["slot_file_bytes"] = save_path.stat().st_size if save_path.exists() else None
         checkpoint()
 
+        record["n_saved"] = _json_int(record["save"].get("body"), "n_saved")
+        record["n_written"] = _json_int(record["save"].get("body"), "n_written")
+        record["save_ms"] = _json_timing_ms(record["save"].get("body"), "save_ms")
+
         t0 = time.time()
         try:
             import urllib.request
@@ -268,10 +294,10 @@ def main():
         except Exception as exc:  # noqa: BLE001
             record["erase"] = {"status": None, "error": repr(exc)}
         record["erase_elapsed_ms"] = (time.time() - t0) * 1000.0
+        record["n_erased"] = _json_int(record["erase"].get("body"), "n_erased")
+        record["erase_ms"] = _json_timing_ms(record["erase"].get("body"), "erase_ms")
         status, after = slots(base, args.timeout)
-        record["slot_n_past_after_erase"] = slot_filled_tokens(
-            after[args.slot] if isinstance(after, list) and len(after) > args.slot else None
-        )
+        record["slot_progress_after_erase"] = slot_request_progress(_slot_entry(after, args.slot))
     else:
         record["slot_file"] = str(save_path)
         record["slot_file_bytes_before_restore"] = save_path.stat().st_size if save_path.exists() else None
@@ -291,10 +317,11 @@ def main():
         except Exception as exc:  # noqa: BLE001
             record["restore"] = {"status": None, "error": repr(exc)}
         record["restore_elapsed_ms"] = (time.time() - t0) * 1000.0
+        record["n_restored"] = _json_int(record["restore"].get("body"), "n_restored")
+        record["n_read"] = _json_int(record["restore"].get("body"), "n_read")
+        record["restore_ms"] = _json_timing_ms(record["restore"].get("body"), "restore_ms")
         status, after = slots(base, args.timeout)
-        record["slot_n_past_after_restore"] = slot_filled_tokens(
-            after[args.slot] if isinstance(after, list) and len(after) > args.slot else None
-        )
+        record["slot_progress_after_restore"] = slot_request_progress(_slot_entry(after, args.slot))
         # The restore timing is the deliverable; checkpoint before the ~40 min
         # verify turn so a signal there cannot discard it.
         checkpoint()

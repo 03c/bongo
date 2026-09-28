@@ -1,0 +1,66 @@
+{
+  "schema": "bongo.slot-restore.v1",
+  "generated_at": "2026-09-28T15:57:09+00:00",
+  "stage": "restore",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "ctx": 262144,
+  "planned_prompt_tokens": 261997,
+  "filename": "ctx256-slot",
+  "slots_http_status": 200,
+  "slot_file": "/home/cchild/.bongo/slot-restore-256k/run/slots/ctx256-slot",
+  "slot_file_bytes_before_restore": 3980332632,
+  "restore": {
+    "status": 200,
+    "body": "{\"id_slot\":0,\"filename\":\"ctx256-slot\",\"n_restored\":262028,\"n_read\":3980332632,\"timings\":{\"restore_ms\":11521.056}}"
+  },
+  "restore_elapsed_ms": 11521.55613899231,
+  "verify_hit": {
+    "status": 200,
+    "wall_ms": 2356977.87,
+    "prompt_tokens": 261997,
+    "prompt_ms": 2351235.012,
+    "prompt_tps": 111.42952476585526,
+    "output_tokens": 32,
+    "output_ms": 5551.625,
+    "output_tps": 5.583950645081395,
+    "cache_n": 0,
+    "cached_tokens": 0,
+    "usage": {
+      "completion_tokens": 32,
+      "prompt_tokens": 261997,
+      "total_tokens": 262029,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where",
+    "ttft_ms": 2351427.67,
+    "ttfb_ms": 30192.59,
+    "stream_total_ms": 2356977.87,
+    "stream_error": null,
+    "stream_text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where"
+  },
+  "verify_hit_prompt_tokens": 261997,
+  "verify_hit_cache_n": 0,
+  "verify_hit_cached_tokens": 0,
+  "verify_hit_prompt_ms": 2351235.012,
+  "verify_hit_ttft_ms": 2351427.67,
+  "restore_n_restored": 262028,
+  "restore_verified": false,
+  "delta_turn": {
+    "skipped": true,
+    "reason": "--skip-delta"
+  },
+  "n_restored": 262028,
+  "n_read": 3980332632,
+  "restore_ms": 11521.056,
+  "slot_occupancy_source": "n_restored from the action=restore response body. /slots on the b11223 build reports last-request progress, not KV held, so it is not an occupancy reading.",
+  "slot_progress_observed_mid_request": {
+    "source": "GET /slots during the post-restore request, 2026-09-28T16:23Z",
+    "n_prompt_tokens": 188416,
+    "n_prompt_tokens_processed": 188416,
+    "n_prompt_tokens_cache": 0,
+    "note": "independent confirmation: 188K tokens re-processed from scratch with cache_n=0, i.e. the restored KV was not consulted"
+  }
+}

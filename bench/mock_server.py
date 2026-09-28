@@ -120,18 +120,41 @@ class Handler(BaseHTTPRequestHandler):
                 return
             with open(path, "w") as fh:
                 json.dump({"slot_id": slot_id, "tokens": srv.cache_tokens}, fh)
-            self._send(200, {"n_saved": len(srv.cache_tokens)})
+            n_saved = len(srv.cache_tokens)
+            # Mirror the real server: the file is written verbatim under the
+            # slot-save dir, and the response carries n_saved, the bytes written
+            # and a server-side save_ms.
+            self._send(
+                200,
+                {
+                    "id_slot": slot_id,
+                    "filename": filename,
+                    "n_saved": n_saved,
+                    "n_written": os.path.getsize(path),
+                    "timings": {"save_ms": 0.0},
+                },
+            )
         elif action == "restore":
             if not filename or not os.path.isfile(path):
                 self._error(400, "Invalid filename")
                 return
             with open(path) as fh:
                 srv.cache_tokens = json.load(fh).get("tokens", [])
-            self._send(200, {"n_restored": len(srv.cache_tokens)})
+            n_restored = len(srv.cache_tokens)
+            self._send(
+                200,
+                {
+                    "id_slot": slot_id,
+                    "filename": filename,
+                    "n_restored": n_restored,
+                    "n_read": os.path.getsize(path),
+                    "timings": {"restore_ms": 0.0},
+                },
+            )
         elif action == "erase":
             n_erased = len(srv.cache_tokens)
             srv.cache_tokens = []
-            self._send(200, {"n_erased": n_erased})
+            self._send(200, {"id_slot": slot_id, "n_erased": n_erased})
         else:
             self._error(400, "Invalid action")
 

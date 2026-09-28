@@ -59,6 +59,9 @@ is disabled (no SWA layers). In-session prefix reuse is unaffected. See
 ## Caveats
 
 - Single box, single pass; no variance repeats.
-- The 256K q8 slot save/restore was not run (cold 256K prefill ~50 min; GPU held by the
-  BAS-72 backend A/B); delegated to a follow-up.
+- The 256K q8 slot save/restore has since been run and committed in
+  [`../2026-09-28-prefix-cache-256k/`](../2026-09-28-prefix-cache-256k/): `save` 1,558.6 ms
+  and `restore` 11,521.1 ms for 3,980,332,632 B, and the restored KV is **still not reused**
+  (`cache_n: 0`). The verdict above is size-independent; the restore rate does get
+  materially worse with size.
 - `server.flags` contains the ephemeral scratch slot path, which no longer exists.

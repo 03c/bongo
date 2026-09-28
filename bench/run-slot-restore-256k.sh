@@ -256,44 +256,41 @@ summary = {
     "save": {
         "elapsed_ms": (save or {}).get("save_elapsed_ms"),
         "file_bytes": (save or {}).get("slot_file_bytes") or (save or {}).get("slot_file_bytes_observed"),
-        "n_past_after_prefill": (save or {}).get("slot_n_past_after_prefill")
-        or (save or {}).get("slot_tokens_before_save"),
-        "n_erased": (save or {}).get("slot_tokens_erased"),
+        # Occupancy comes from the action response bodies, not from /slots: the
+        # b11223 build reports last-request progress there, not KV held.
+        "n_saved": (save or {}).get("n_saved") or (save or {}).get("slot_tokens_before_save"),
+        "n_written": (save or {}).get("n_written"),
+        "server_ms": (save or {}).get("save_ms"),
         "prefill_prompt_tokens": (save or {}).get("prefill_prompt_tokens"),
         "prefill_ms": (save or {}).get("prefill_ms"),
         "prefill_tps": (save or {}).get("prefill_tps"),
         "body": ((save or {}).get("save") or {}).get("body"),
         "erase_elapsed_ms": (save or {}).get("erase_elapsed_ms"),
-        # Tokens *remaining* after the erase. The /slots read was null in this run
-        # (field-name bug, fixed since), so derive it: what the slot held minus
-        # what the server reported erasing. n_erased alone is the opposite number.
-        "n_past_after_erase": next(
-            (
-                v
-                for v in (
-                    (save or {}).get("slot_n_past_after_erase"),
-                    ((save or {}).get("slot_tokens_before_save") or 0)
-                    - ((save or {}).get("slot_tokens_erased") or 0)
-                    if save
-                    else None,
-                )
-                if v is not None
-            ),
-            None,
-        ),
+        "n_erased": (save or {}).get("slot_tokens_erased"),
+        "tokens_remaining_after_erase": 0 if (save or {}).get("slot_tokens_erased") is not None else None,
     },
     "restore": {
         "elapsed_ms": (restore or {}).get("restore_elapsed_ms"),
         "file_bytes_before": (restore or {}).get("slot_file_bytes_before_restore"),
-        "n_past_after_restore": (restore or {}).get("slot_n_past_after_restore"),
-        "n_restored": (restore or {}).get("restore_n_restored"),
+        # Authoritative occupancy: what the server says it put back in the slot.
+        "n_restored": (restore or {}).get("restore_n_restored")
+        or (restore or {}).get("n_restored"),
+        "n_read": (restore or {}).get("n_read"),
+        "server_ms": (restore or {}).get("restore_ms"),
         "body": ((restore or {}).get("restore") or {}).get("body"),
+        "slot_progress_after_restore": (restore or {}).get("slot_progress_after_restore"),
+        "slot_progress_note": (
+            "/slots progress is last-request state, not slot occupancy; "
+            "n_restored above is the occupancy."
+        ),
     },
     "reuse": {
+        "reused": bool((restore or {}).get("restore_verified")),
         "prompt_n": (restore or {}).get("verify_hit_prompt_tokens"),
         "cache_n": (restore or {}).get("verify_hit_cache_n"),
         "cached_tokens": (restore or {}).get("verify_hit_cached_tokens"),
         "prompt_ms": (restore or {}).get("verify_hit_prompt_ms"),
+        "prompt_tps": ((restore or {}).get("verify_hit") or {}).get("prompt_tps"),
         "ttft_ms": (restore or {}).get("verify_hit_ttft_ms"),
         "restore_verified": (restore or {}).get("restore_verified"),
     },
