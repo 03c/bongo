@@ -177,7 +177,10 @@ Two preconditions before this flag can be trusted on a normal box:
   with `invalid argument: --save-slot-checkpoints`. The patch is pinned at
   [`tools/patches/slot-checkpoints-sidecar.patch`](../tools/patches/slot-checkpoints-sidecar.patch);
   `bongo.sh` accepts `--save-slot-checkpoints` but the flag only takes effect when the selected
-  `llama-server` was built with that patch.
+  `llama-server` was built with that patch. Build that engine reproducibly with
+  `tools/build-llama-vulkan.sh <llama.cpp-dir> llama-server` (the patch is applied when missing;
+  `BONGO_APPLY_PATCH=0` builds the stock baseline) and pass the resulting
+  `build-vulkan/bin` directory to `bongo.sh --llama-bin DIR`.
 - The sidecar's size and the restore-reuse verdict are unmeasured; the 31K/256K numbers below are
   the **baseline (sidecar off)**.
 

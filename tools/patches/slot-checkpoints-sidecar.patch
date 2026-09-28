@@ -30,10 +30,10 @@ index 527f4be7d..854b58d13 100644
  
      float slot_prompt_similarity = 0.1f;
 diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
-index 611e82a6a..1df13d1f0 100644
+index 611e82a6a..541313910 100644
 --- a/tools/server/server-context.cpp
 +++ b/tools/server/server-context.cpp
-@@ -27,6 +27,131 @@
+@@ -27,6 +27,127 @@
  #include <utility>
  #include <fstream>
  
@@ -49,6 +49,9 @@ index 611e82a6a..1df13d1f0 100644
 +// The binary is gated on `--save-slot-checkpoints`; when it is disabled (the
 +// shipped baseline default) nothing changes and the engine falls back to a full
 +// re-prefill on a restored slot exactly as before.
++// Note: `erase` clears the in-RAM slot but deliberately leaves the sidecar on
++// disk, so a later `restore` of the same saved file can replay it. The erase
++// route carries no filename, so there is nothing to erase in any case.
 +
 +// sidecar path for a slot KV file written at `filepath`
 +inline std::string slot_ckpt_path(const std::string & filepath) {
@@ -155,17 +158,10 @@ index 611e82a6a..1df13d1f0 100644
 +    return true;
 +}
 +
-+// remove the checkpoint sidecar for `filepath`, if present.
-+static void slot_checkpoints_erase(const std::string & filepath) {
-+    std::error_code ec;
-+    std::filesystem::remove(slot_ckpt_path(filepath), ec);
-+    // ignoring ec: erase is best-effort; a missing sidecar is the expected case
-+}
-+
  // fix problem with std::min and std::max
  #if defined(_WIN32)
  #define WIN32_LEAN_AND_MEAN
-@@ -2590,6 +2715,17 @@ private:
+@@ -2590,6 +2711,17 @@ private:
                          break;
                      }
  
@@ -183,7 +179,7 @@ index 611e82a6a..1df13d1f0 100644
                      const int64_t t_end = ggml_time_us();
                      const double t_save_ms = (t_end - t_start) / 1000.0;
  
-@@ -2649,6 +2785,24 @@ private:
+@@ -2649,6 +2781,24 @@ private:
  
                          slot->prompt.clear();
                          slot->prompt.tokens = std::move(restored);
@@ -208,14 +204,3 @@ index 611e82a6a..1df13d1f0 100644
                      } catch (const std::exception & err) {
                          slot->prompt_clear();
                          send_error(task, std::string("Unable to restore slot: ") + err.what(), ERROR_TYPE_INVALID_REQUEST);
-@@ -2688,6 +2842,10 @@ private:
- 
-                     slot->prompt_clear();
- 
-+                    if (params_base.save_slot_checkpoints) {
-+                        slot_checkpoints_erase(task.slot_action.filepath);
-+                    }
-+
-                     auto res = std::make_unique<server_task_result_slot_erase>();
-                     res->id       = task.id;
-                     res->id_slot  = id_slot;
