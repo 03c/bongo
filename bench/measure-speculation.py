@@ -162,15 +162,15 @@ def parse_acceptance(lines):
 # ---------------------------------------------------------------------------
 
 
-def greedy_completion(base_url, model, prompt, max_tokens, timeout):
-    """Deterministic greedy completion for the equivalence gate (no cache)."""
+def greedy_completion(base_url, model, prompt, max_tokens, timeout, cache_prompt=True):
+    """Deterministic greedy completion for the equivalence gate."""
     payload = {
         "model": model,
         "prompt": prompt,
         "max_tokens": max_tokens,
         "temperature": 0.0,
         "stream": False,
-        "cache_prompt": False,
+        "cache_prompt": bool(cache_prompt),
         "ignore_eos": True,
     }
     res = post_json(base_url, "/completions", payload, timeout)
