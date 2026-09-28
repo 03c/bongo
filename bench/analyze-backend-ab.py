@@ -521,12 +521,7 @@ def build_adr_block(args, rows, v, s, gates, decided):
              "original ADR-0002 that SYCL was the baseline. It now tries **Vulkan** first and keeps "
              "SYCL as the fallback when no Vulkan device is reported; `--backend sycl` still selects "
              "SYCL unconditionally. The Stage-0 `--n-cpu-moe 16` placement baseline is unchanged and "
-             "still pinned.")
-    L.append("")
-    L.append("`docs/bongo-sh.md`'s Backends section still describes the old SYCL-first preference and "
-             "the pre-BAS-72 NEO/GMM abort, both of which this measurement and the `ZEL_LIBRARY_PATH` "
-             "fix supersede. That file carries uncommitted work from another task, so the refresh is "
-             "left to whoever lands it.")
+             "still pinned. `docs/bongo-sh.md`'s Backends section was refreshed to match (`e871a5a`).")
     L.append("")
     return "\n".join(L)
 

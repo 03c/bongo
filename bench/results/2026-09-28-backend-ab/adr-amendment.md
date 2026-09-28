@@ -24,7 +24,5 @@ The default backend is now decided on measurement instead of assumption. Both ba
 - 512-token cached-turn TTFT: Vulkan 4165 ms vs SYCL 3925 ms = 1.06x (required >= 1.3x) — **fail**
 - 131072 decode tok/s: Vulkan 8.00 vs SYCL 4.69 tok/s = 0.59x (required >= 0.91x) — **fail**
 
-`bongo.sh`'s default `--backend auto` used to try SYCL first, on the assumption in the original ADR-0002 that SYCL was the baseline. It now tries **Vulkan** first and keeps SYCL as the fallback when no Vulkan device is reported; `--backend sycl` still selects SYCL unconditionally. The Stage-0 `--n-cpu-moe 16` placement baseline is unchanged and still pinned.
-
-`docs/bongo-sh.md`'s Backends section still describes the old SYCL-first preference and the pre-BAS-72 NEO/GMM abort, both of which this measurement and the `ZEL_LIBRARY_PATH` fix supersede. That file carries uncommitted work from another task, so the refresh is left to whoever lands it.
+`bongo.sh`'s default `--backend auto` used to try SYCL first, on the assumption in the original ADR-0002 that SYCL was the baseline. It now tries **Vulkan** first and keeps SYCL as the fallback when no Vulkan device is reported; `--backend sycl` still selects SYCL unconditionally. The Stage-0 `--n-cpu-moe 16` placement baseline is unchanged and still pinned. `docs/bongo-sh.md`'s Backends section was refreshed to match (`e871a5a`).
 
