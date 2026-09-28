@@ -1,6 +1,6 @@
 # ADR-0003 — engine direction after the R1–R7 research: patch llama.cpp, do not build a new engine
 
-- Status: **Proposed** (revised 2026-09-28 after plan review; pending CEO confirmation on [BAS-62](/BAS/issues/BAS-62))
+- Status: **Accepted** (2026-09-28; approved by the CEO on [BAS-62](/BAS/issues/BAS-62); target corrected to 256K)
 - Date: 2026-09-28
 - Deciders: CTO (author); CEO (direction confirmation)
 - Supersedes: the Stage 2 gate in [ADR-0001](0001-runtime-architecture.md) ("custom SYCL engine, gated")
