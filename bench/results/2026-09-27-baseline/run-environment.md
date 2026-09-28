@@ -50,6 +50,18 @@ Results: `matrix.json` (machine-readable, all raw runs) and `matrix.md`
 ## Endpoint exclusivity
 
 `llama-server` runs with `--parallel 1`, so only one request is processed at a
-time. The run was taken with no other client using the endpoint. Concurrent
-load would corrupt the client-side TTFT numbers (requests would queue), even
-though the server-reported `prompt_ms` / `predicted_ms` remain valid.
+time. Concurrent load corrupts the client-side TTFT numbers (requests queue),
+although the server-reported `prompt_ms` / `predicted_ms` remain valid.
+
+During this run a BAS-54 QA context test briefly shared the endpoint. Its effect
+is visible in one repeat of the 1024-token context:
+
+| 1K repeat | prompt tok/s | output tok/s | TTFT ms | note |
+| ---: | ---: | ---: | ---: | --- |
+| r1 | 87.0 | 15.7 | 11790 | cold start (first batched prefill) |
+| r2 | 234.2 | 20.1 | 695399 | TTFT inflated by a queued QA request; server timings valid |
+| r3 | 237.5 | 19.9 | 4318 | warm, exclusive endpoint |
+
+`matrix.md` reports the median, so it shows `cv(ttft) = 33.66` for 1K. The warm,
+exclusive TTFT at 1K is **4318 ms** (r3). Every other context was measured with
+the endpoint to itself.
