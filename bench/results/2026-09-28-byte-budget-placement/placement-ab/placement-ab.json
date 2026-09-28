@@ -1,0 +1,147 @@
+{
+  "schema": "bongo.placement-ab.v1",
+  "a_label": "byte-budget-22.40",
+  "b_label": "ncmoe-16",
+  "contexts": [
+    "4096",
+    "131072"
+  ],
+  "a": {
+    "contexts": {
+      "4096": {
+        "status": "ok",
+        "prompt_tokens": 3,
+        "prompt_tps": 1.143,
+        "output_tps": 14.772,
+        "ttft_ms": 2678.46,
+        "vram_peak_bytes": 31189774336.0,
+        "ram_peak_bytes": 11327729664.0
+      },
+      "131072": {
+        "status": "ok",
+        "prompt_tokens": 126767,
+        "prompt_tps": 135.224,
+        "output_tps": 8.01,
+        "ttft_ms": 937660.58,
+        "vram_peak_bytes": 31449821184.0,
+        "ram_peak_bytes": 13565890560.0
+      }
+    },
+    "needle": {
+      "status": "pass",
+      "prompt_tokens": 126767
+    },
+    "verdict": {
+      "ok": true,
+      "failed_contexts": [],
+      "needle": "pass",
+      "notes": [
+        "server reported n_ctx=131072"
+      ]
+    },
+    "server": {
+      "build": "b11223-4da633776",
+      "flags": [
+        "/home/cchild/.bongo/llama/b11223/vulkan/llama-server",
+        "--model",
+        "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+        "--ctx-size",
+        "131072",
+        "--jinja",
+        "--flash-attn",
+        "on",
+        "--cache-type-k",
+        "q8_0",
+        "--cache-type-v",
+        "q8_0",
+        "--n-gpu-layers",
+        "99",
+        "--n-cpu-moe",
+        "0",
+        "--override-tensor",
+        "blk\\.(32|33|34|35|36|38|39|40|41|42|43|44|45|46|47)\\.ffn_(gate|up|down)_exps\\.weight=CPU",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8080",
+        "--parallel",
+        "1",
+        "--alias",
+        "bongo-iq2_xs",
+        "--metrics",
+        "--device",
+        "Vulkan1"
+      ]
+    }
+  },
+  "b": {
+    "contexts": {
+      "4096": {
+        "status": "ok",
+        "prompt_tokens": 3,
+        "prompt_tps": 11.791,
+        "output_tps": 14.626,
+        "ttft_ms": 312.19,
+        "vram_peak_bytes": 31217545216.0,
+        "ram_peak_bytes": 9783189504.0
+      },
+      "131072": {
+        "status": "ok",
+        "prompt_tokens": 126767,
+        "prompt_tps": 131.395,
+        "output_tps": 7.951,
+        "ttft_ms": 964978.65,
+        "vram_peak_bytes": 31686000640.0,
+        "ram_peak_bytes": 12029267968.0
+      }
+    },
+    "needle": {
+      "status": "pass",
+      "prompt_tokens": 126767
+    },
+    "verdict": {
+      "ok": true,
+      "failed_contexts": [],
+      "needle": "pass",
+      "notes": [
+        "server reported n_ctx=131072"
+      ]
+    },
+    "server": {
+      "build": "b11223-4da633776",
+      "flags": [
+        "/home/cchild/.bongo/llama/b11223/vulkan/llama-server",
+        "--model",
+        "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+        "--ctx-size",
+        "131072",
+        "--jinja",
+        "--flash-attn",
+        "on",
+        "--cache-type-k",
+        "q8_0",
+        "--cache-type-v",
+        "q8_0",
+        "--n-gpu-layers",
+        "99",
+        "--n-cpu-moe",
+        "16",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8080",
+        "--parallel",
+        "1",
+        "--alias",
+        "bongo-iq2_xs",
+        "--metrics",
+        "--device",
+        "Vulkan1"
+      ]
+    }
+  },
+  "sources": {
+    "a_matrix": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-28-byte-budget-placement/byte-budget-22_40/matrix.json",
+    "b_matrix": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-28-byte-budget-placement/ncmoe-16/matrix.json"
+  }
+}

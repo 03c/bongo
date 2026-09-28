@@ -210,16 +210,18 @@ python3 bench/harness.py \
   --max-tokens 128 \
   --needle-context 131072 \
   --hash-mode none \
+  --server-pid "$pid" \
   --out-dir "$out_dir" \
   >> "$out_dir/harness.log" 2>&1
 rc=$?
 log "harness exit $rc"
 
-if [[ -n "$placement_json" ]]; then
-  log "running measure-prefix-cache.py (held-out agentic turn path)"
-  python3 bench/measure-prefix-cache.py --out "$out_dir/prefix-cache" \
-    >> "$out_dir/harness.log" 2>&1 || log "prefix-cache measurement failed; continuing"
-fi
+# The prefix-cache path is measured for every config so the A/B is complete
+# (previously only the byte-budget branch ran it).
+log "running measure-prefix-cache.py (agentic turn path)"
+python3 bench/measure-prefix-cache.py --out "$out_dir/prefix-cache" \
+  --server-pid "$pid" \
+  >> "$out_dir/harness.log" 2>&1 || log "prefix-cache measurement failed; continuing"
 
 kill "$pid" 2>/dev/null || true
 for _ in $(seq 1 40); do kill -0 "$pid" 2>/dev/null || break; sleep 0.5; done

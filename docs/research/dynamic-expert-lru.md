@@ -16,13 +16,15 @@ offline frequency profile (held-out coverage 0.88–0.99) against R3's citation 
   exact per-layer expert bytes
   ([`expert-bytes-iq2_xs.json`](../../bench/results/2026-09-27-expert-placement/expert-bytes-iq2_xs.json)).
 - **Raw output:** [`bench/results/2026-09-28-byte-budget-placement/`](../../bench/results/2026-09-28-byte-budget-placement/)
-  (`placement-iq2-xs-22.40.json`, `lru-ab.json`, `lru-ab.txt`).
+  (`placement-iq2_xs-22.40.json`, `lru-ab.json`, `lru-ab.txt`).
 
 ## TL;DR
 
 1. **Step 1 (config only): the byte-budget `-ot` placement is worth +4.25 pp** of activation coverage at the
    same 22.40 GiB expert budget — the R4 "+4–8 pp" estimate, reproduced from the exact placement. It needs no
-   engine build. Throughput validation is pending on a free GPU (see **Status of the GPU runs**).
+   engine build. The same-session GPU A/B confirms it translates to throughput: **128K prefill +2.91%,
+   128K decode +0.74%, 128K TTFT −2.83%**, no regression, at 0.22 GiB less peak VRAM (see
+   **Status of the GPU runs**).
 2. **Step 2 conflict resolved: R3's regime is not bongo's.** On bongo's model a *frozen* frequency profile
    generalises at **0.881–0.985** held out (R4 confirmed exactly) while a *cold online LRU* reaches
    **0.947–0.987** — not 67–81%. Neither R3 nor R4 is wrong; they are different model/workload regimes.
@@ -66,13 +68,26 @@ llama-server directly (no `bongo.sh` dependency) and refuses to start if port 80
 cannot contaminate another measurement. The Stage 0 `--n-cpu-moe 16` baseline stays pinned and selectable via
 `--n-cpu-moe 16`.
 
-### Expected throughput
+### Measured throughput — same-session A/B
 
-The step is coverage-confirmed, not yet throughput-confirmed. The dump-to-CPU share falls only from 33.3% to
-31.3% of layers (32 → 33 resident), so the first-order prefill/decode gain is single-digit percent, smaller
-than R4's +18–37% estimate — that estimate assumed a *per-expert* residency that cuts the CPU share to 2–12%,
-which only the Step 2 engine can express. The acceptance criterion for Step 1 is "+4–8 pp coverage at the same
-budget with no 128K decode regression"; coverage is met, the regression check is the pending GPU run.
+`bench/sweep-byte-budget-placement.sh` ran both configs back to back on the same box, engine
+`b11223-4da633776`, Vulkan `Vulkan1`, tier `iq2_xs`, ctx 131072, agentic `cache_prompt=true` profile. The dump
+to-CPU share falls only from 33.3% to 31.3% of layers (32 → 33 resident), so the first-order gain is
+single-digit percent, smaller than R4's +18–37% estimate — that estimate assumed a *per-expert* residency
+that cuts the CPU share to 2–12%, which only the Step 2 engine can express.
+
+| 128K metric | byte-budget `-ot` | `--n-cpu-moe 16` | Δ |
+| --- | ---: | ---: | ---: |
+| prompt tok/s | 135.224 | 131.395 | **+2.91%** |
+| output tok/s | 8.010 | 7.951 | **+0.74%** |
+| TTFT ms | 937660.6 | 964978.7 | **−2.83%** |
+| peak VRAM GiB | 29.29 | 29.51 | −0.22 GiB |
+| needle | pass | pass | — |
+
+The acceptance criterion for Step 1 is "+4–8 pp coverage at the same budget with no 128K decode regression";
+coverage is met (+4.25 pp) and the 128K decode regression check passes (+0.74%). Raw files and the exact
+argv are in [`bench/results/2026-09-28-byte-budget-placement/`](../../bench/results/2026-09-28-byte-budget-placement/);
+the A/B is computed by [`bench/compare-placement-ab.py`](../../bench/compare-placement-ab.py).
 
 ## Step 2 — held-out A/B: frozen profile vs dynamic LRU
 
@@ -147,9 +162,11 @@ This is the same shape Strata ships (R1), expressed for llama.cpp's `qwen4exp` M
 
 ## Status of the GPU runs
 
-The reference box is currently held by a concurrent 256K run (BAS-78), so the Step-1 Stage-1 re-run and the
-engine throughput A/B are queued, not measured, in this pass. The offline results above need no GPU and are
-complete. The exact re-run command is:
+The Step-1 Stage-1 A/B is **measured** (same-session byte-budget `-ot` vs pinned `--n-cpu-moe 16`, see the
+table above): +2.91% 128K prefill, +0.74% 128K decode, −2.83% 128K TTFT, no regression, both needles pass. The
+byte-budget run also measured the agentic prefix-cache path (cold 4K 172.5, 16K 202.9, 24K 190.4 prompt tok/s;
++512-token grow turns at 3.58 s / 4.56 s TTFT; slot restore verified). The engine throughput A/B for Step 2
+still needs the patched engine. Reproduce:
 
 ```sh
 # Step 1: byte-budget -ot at 4K + 128K, VRAM + throughput + needle, plus the prefix-cache path
@@ -168,8 +185,9 @@ python3 bench/sim-expert-lru.py \
 
 ## Limitations
 
-- **Coverage, not tokens/s.** The A/B measures expert-activation coverage; the throughput translation for
-  Step 1 and the engine is pending the GPU window.
+- **Coverage vs tokens/s.** The offline A/B measures expert-activation coverage; the Step-1 throughput
+  translation is now measured (see above) at +0.74–2.91% for whole-layer residency. The Step-2 engine
+  throughput is still pending the patched engine.
 - **Simulated LRU.** The LRU is replayed over captured routing, not over a patched engine. It ignores copy
   latency, cache-line effects and batch behaviour; it bounds the residency policy, not the engine's realised
   speed.
