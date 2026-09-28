@@ -32,6 +32,7 @@ read pool and a bounded LRU row cache, instead of one mmap page fault per row.
 | `build-vulkan.sh` | container build (no host toolchain) |
 | `run-ab.sh` | engine A/B runner (baseline / M3.3 config, `--ple-reader off\|on`) |
 | `ple_reader_selftest.cpp` | reader bytes == `pread`, straddling rows + duplicates |
+| `summarize-ab.py` | join the four `matrix.json` files into the off/on comparison table |
 
 ### Integration shape
 
@@ -101,4 +102,12 @@ bench/ple-reader/run-ab.sh --config m33 --reader on  --label m33-on
 Each run writes `matrix.json`, `matrix.md`, `raw/`, `server-flags.json` and
 `reader-process.json` under `bench/results/2026-09-28-ple-reader-engine/<label>/`.
 `BONGO_DEVICE` (default `Vulkan1`) and `BONGO_PORT` (default `8090`) are
-overridable; the runner refuses to start if the port is already serving.
+overridable; the runner refuses to start if the port is already serving, and it
+queues on the shared single-GPU `flock` ([BAS-80](/BAS/issues/BAS-80)).
+
+Summarise a (possibly partial) set of runs:
+
+```sh
+python3 bench/ple-reader/summarize-ab.py \
+  --md-out bench/results/2026-09-28-ple-reader-engine/summary.md
+```
