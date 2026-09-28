@@ -78,7 +78,31 @@ else
   bad "BONGO_GPU_LOCK_HELD=1 skips acquisition"
 fi
 
-# 6. command form is mutually exclusive
+# 6. the lock follows an inherited fd (server lifetime), not the wrapper
+bongo_gpu_lock_acquire "selftest-server-lifetime" || bad "server-lifetime: acquire"
+( sleep 3 ) &
+server_fd_child=$!
+sleep 0.3
+bongo_gpu_lock_release   # close the wrapper descriptor only
+if BONGO_GPU_LOCK_HELD=0 bash -c '
+    . "'"$here"'/gpu-lock.sh"
+    bongo_gpu_lock_acquire child >/dev/null 2>&1
+  '; then
+  bad "lock stays held while the inherited server fd lives"
+else
+  ok "lock stays held while the inherited server fd lives"
+fi
+wait "$server_fd_child" 2>/dev/null
+if BONGO_GPU_LOCK_HELD=0 bash -c '
+    . "'"$here"'/gpu-lock.sh"
+    bongo_gpu_lock_acquire child && bongo_gpu_lock_release
+  '; then
+  ok "lock frees when the inherited holder exits"
+else
+  bad "lock frees when the inherited holder exits"
+fi
+
+# 7. command form is mutually exclusive
 if "$here/gpu-lock.sh" --timeout 0 -- true >/dev/null 2>&1; then
   ok "command form runs when free"
 else

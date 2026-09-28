@@ -1,0 +1,84 @@
+{
+  "schema": "bongo-bench/1",
+  "generated_at": "2026-09-28T12:45:39+00:00",
+  "harness": {
+    "version": "1.0.0",
+    "argv": [
+      "bench/harness.py",
+      "--repo-root",
+      "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture",
+      "--tier",
+      "iq2_xs",
+      "--contexts",
+      "4096,131072",
+      "--repeats",
+      "1",
+      "--max-tokens",
+      "128",
+      "--needle-context",
+      "131072",
+      "--hash-mode",
+      "none",
+      "--server-pid",
+      "2446184",
+      "--out-dir",
+      "bench/results/2026-09-28-ple-reader-engine/baseline-off"
+    ],
+    "command": "bench/run.sh --repo-root /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture --tier iq2_xs --contexts 4096,131072 --repeats 1 --max-tokens 128 --needle-context 131072 --hash-mode none --server-pid 2446184 --out-dir bench/results/2026-09-28-ple-reader-engine/baseline-off"
+  },
+  "endpoint": {
+    "base_url": "http://127.0.0.1:8080/v1"
+  },
+  "tier": "iq2_xs",
+  "fatal_error": {
+    "stage": "GET /v1/models",
+    "status": null,
+    "body": "URLError: <urlopen error [Errno 111] Connection refused>",
+    "message": "endpoint unreachable or not an OpenAI-compatible server"
+  },
+  "machine": {
+    "hostname": "localhost.localdomain",
+    "uname": "Linux localhost.localdomain 7.0.13-200.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Jun 19 22:51:30 UTC 2026 x86_64 GNU/Linux",
+    "os_release": "NAME=\"Fedora Linux\"\nVERSION=\"44 (Server Edition)\"\nRELEASE_TYPE=stable\nID=fedora\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPRETTY_NAME=\"Fedora Linux 44 (Server Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=fedora-logo-icon\nCPE_NAME=\"cpe:/o:fedoraproject:fedora:44\"\nHOME_URL=\"https://fedoraproject.org/\"\nDOCUMENTATION_URL=\"https://docs.fedoraproject.org/en-US/fedora/f44/\"\nSUPPORT_URL=\"https://ask.fedoraproject.org/\"\nBUG_REPORT_URL=\"https://bugzilla.redhat.com/\"\nREDHAT_BUGZILLA_PRODUCT=\"Fedora\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Fedora\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2027-05-19\nVARIANT=\"Server Edition\"\nVARIANT_ID=server\n",
+    "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           48 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  16\nOn-line CPU(s) list:                     0-15\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen 7 9700X 8-Core Processor\nCPU family:                              26\nModel:                                   68\nThread(s) per core:                      2\nCore(s) per socket:                      8\nSocket(s):                               1\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      30%\nCPU max MHz:                             5582.3008\nCPU min MHz:                             605.3100\nBogoMIPS:                                7585.36\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze\nVirtualization:                          AMD-V\nL1d cache:                               384 KiB (8 instances)\nL1i cache:                               256 KiB (8 instances)\nL2 cache:                                8 MiB (8 instances)\nL3 cache:                                32 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-15\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Mitigation; IBPB on VMEXIT only\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB on VMEXIT",
+    "memory": "total        used        free      shared  buff/cache   available\nMem:     32699588608  5423742976  1075208192    62439424 26736492544 27275845632\nSwap:    25769795584  4737712128 21032083456",
+    "meminfo": "MemTotal:       31933192 kB\nMemFree:         1050008 kB\nMemAvailable:   26636604 kB\nBuffers:            2088 kB\nCached:         25857280 kB\nSwapCached:       167864 kB\nActive:         14413808 kB\nInactive:       13113208 kB\nActive(anon):     964160 kB\nInactive(anon):   764944 kB\nActive(file):   13449648 kB\nInactive(file): 12348264 kB\nUnevictable:           0 kB\nMlocked:               0 kB\nSwapTotal:      25165816 kB\nSwapFree:       20539144 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:               408 kB\nWriteback:             0 kB\nAnonPages:       1646520 kB\nMapped:          8308976 kB\nShmem:             60976 kB\nKReclaimable:     250508 kB\nSlab:             796280 kB\nSReclaimable:     250508 kB\nSUnreclaim:       545772 kB\nKernelStack:       26480 kB\nPageTables:       181060 kB\nSecPageTables:     31224 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    41132412 kB\nCommitted_AS:   17049540 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:      144436 kB\nVmallocChunk:          0 kB\nPercpu:            20288 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:               0 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:     2355940 kB\nDirectMap2M:    29222912 kB\nDirectMap1G:     1048576 kB\n",
+    "pci_display": "03:00.0 VGA compatible controller [0300]: Intel Corporation Battlemage G31 [Arc Pro B70] [8086:e223]\n12:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Granite Ridge [Radeon Graphics] [1002:13c0] (rev c5)",
+    "dri_nodes": [
+      "/dev/dri/by-path",
+      "/dev/dri/card0",
+      "/dev/dri/card1",
+      "/dev/dri/renderD128",
+      "/dev/dri/renderD129"
+    ],
+    "drm_cards": {
+      "card0": "DRIVER=xe\nPCI_CLASS=30000\nPCI_ID=8086:E223\nPCI_SUBSYS_ID=172F:0105\nPCI_SLOT_NAME=0000:03:00.0\nMODALIAS=pci:v00008086d0000E223sv0000172Fsd00000105bc03sc00i00\n",
+      "card1": "DRIVER=amdgpu\nPCI_CLASS=30000\nPCI_ID=1002:13C0\nPCI_SUBSYS_ID=1002:13C0\nPCI_SLOT_NAME=0000:12:00.0\nMODALIAS=pci:v00001002d000013C0sv00001002sd000013C0bc03sc00i00\n"
+    },
+    "drivers": {
+      "card0": "xe",
+      "card1": "amdgpu"
+    },
+    "modules": {
+      "xe": {
+        "version": null,
+        "refcnt": "4"
+      },
+      "amdgpu": {
+        "version": null,
+        "refcnt": "1"
+      }
+    }
+  },
+  "results": [],
+  "needle": {
+    "status": "skipped",
+    "reason": "endpoint unreachable"
+  },
+  "error_cases": [],
+  "highest_working_context": null,
+  "verdict": {
+    "ok": false,
+    "reason": "endpoint unreachable"
+  }
+}

@@ -10,7 +10,9 @@
 # runs, so measurement tasks serialise instead of thrashing.
 #
 # Source it and hold the lock for the *whole* measured run — server start and
-# measurement, not just process launch:
+# measurement, not just process launch. The started llama-server inherits the
+# lock descriptor, so the lock lives exactly as long as the server using the
+# GPU: a wrapper that dies does not free the GPU underneath a surviving server.
 #
 #   . "$repo/bench/gpu-lock.sh"
 #   bongo_gpu_lock_acquire "run-speculation-ab baseline" || exit 3
@@ -104,13 +106,18 @@ bongo_gpu_lock_acquire() {
 
 # bongo_gpu_lock_release
 # Idempotent. Releases only a lock this process tree took.
+#
+# Deliberately closes the descriptor instead of running `flock -u`: a
+# llama-server started by this process tree inherits the descriptor, so a
+# forced unlock would free the GPU lock while the server is still using it.
+# The kernel releases the flock when the last descriptor for the open file
+# description closes, i.e. when the server exits.
 bongo_gpu_lock_release() {
   [[ -n "${BONGO_GPU_LOCK_FD:-}" ]] || return 0
 
   local holder
   holder="$(bongo_gpu_lock_holder_path)"
   rm -f "$holder" 2>/dev/null || true
-  flock -u "$BONGO_GPU_LOCK_FD" 2>/dev/null || true
   exec {BONGO_GPU_LOCK_FD}>&- 2>/dev/null || true
   BONGO_GPU_LOCK_FD=""
   BONGO_GPU_LOCK_HELD=0
