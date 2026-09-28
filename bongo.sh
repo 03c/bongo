@@ -521,6 +521,20 @@ check_disk() {
 ONEAPI_REPO_URL="https://yum.repos.intel.com/oneapi"
 ONEAPI_REPO_FILE_URL="https://yum.repos.intel.com/oneapi/file/intel-oneapi.repo"
 
+# oneAPI runtime ABI pins (BAS-57 F1).
+# The pinned llama.cpp prebuilt is linked against the oneAPI 2025.3 ABI:
+# libsycl.so.8, libmkl_sycl_blas.so.5 and a libdnnl.so.3 built against SYCL 8.
+# The oneAPI repository now also serves 2026.1 (libsycl.so.9 / MKL .so.6).
+# Installing those packages unpinned produces a runtime that cannot load the
+# pinned binary ("libsycl.so.8: cannot open shared object file"), so the three
+# ABI-bearing packages are pinned here and extracted last (see
+# install_runtime_user).
+ONEAPI_SYCL_CORE_PKG="intel-oneapi-runtime-dpcpp-sycl-core-2025.3.3-30"
+ONEAPI_MKL_PKG="intel-oneapi-runtime-mkl-2025.3.1-8"
+ONEAPI_DNNL_PKG="intel-oneapi-runtime-dnnl-2025.3.0-409"
+# The SONAME the pinned llama.cpp SYCL asset was built against.
+ONEAPI_SYCL_SONAME="8"
+
 setup_runtime_env() {
   local base="$RUNTIME_DIR"
   local -a libdirs=()
@@ -606,9 +620,11 @@ install_runtime_fedora() {
       $SUDO dnf config-manager addrepo --from-repofile="$ONEAPI_REPO_FILE_URL" >/dev/null 2>&1 || true
     fi
   fi
+  # Pin the ABI-bearing runtime packages to the SYCL 8 ABI the prebuilt needs
+  # (BAS-57 F1); the unpinned meta-packages may otherwise resolve to 2026.1.
   $SUDO dnf install -y \
-    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl \
-    intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb \
+    "$ONEAPI_SYCL_CORE_PKG" "$ONEAPI_MKL_PKG" "$ONEAPI_DNNL_PKG" \
+    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-tbb \
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp \
     intel-oneapi-runtime-opencl \
     || warn "One or more oneAPI runtime packages failed to install; SYCL may be unavailable."
@@ -663,14 +679,14 @@ EOF
   # (intel-oneapi-runtime-dpcpp-sycl-core), so the prefix has no SYCL library and
   # every run re-provisions (BAS-58 F1).
   local oneapi_pkgs=(
-    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-dpcpp-sycl-core
-    intel-oneapi-runtime-mkl intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
+    "$ONEAPI_SYCL_CORE_PKG" "$ONEAPI_MKL_PKG" "$ONEAPI_DNNL_PKG"
+    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-tbb
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
     intel-oneapi-runtime-opencl
   )
   log "  downloading oneAPI runtime packages..."
   if ! ( cd "$tmp" && dnf -q --setopt=reposdir="$repo_dir" download --resolve "${oneapi_pkgs[@]}" ); then
-    warn "SYCL core runtime package unavailable from $ONEAPI_REPO_URL; retrying without it."
+    warn "Pinned oneAPI runtime packages unavailable from $ONEAPI_REPO_URL; retrying unpinned."
     oneapi_pkgs=(
       intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl
       intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
@@ -684,8 +700,22 @@ EOF
   ( cd "$tmp" && dnf -q download --resolve intel-level-zero oneapi-level-zero intel-opencl intel-igc-libs intel-gmmlib clinfo ) \
     || die "Failed to download the Intel GPU runtime packages."
   log "  extracting packages into $RUNTIME_DIR..."
-  ( cd "$RUNTIME_DIR" && for r in "$tmp"/*.rpm; do
-      case "$r" in *.i686.rpm) continue;; esac
+  # dnf --resolve can pull a newer transitive copy of the ABI packages (for
+  # example a 2026 sycl-core required by the dpcpp-cpp meta-package). Extract
+  # the pinned packages last so their libraries win, regardless of glob order
+  # (BAS-57 F1).
+  local -a extract_first=() extract_last=()
+  local r
+  for r in "$tmp"/*.rpm; do
+    case "$r" in *.i686.rpm) continue;; esac
+    case "$(basename "$r")" in
+      "$ONEAPI_SYCL_CORE_PKG".*.rpm|"$ONEAPI_MKL_PKG".*.rpm|"$ONEAPI_DNNL_PKG".*.rpm)
+        extract_last+=("$r");;
+      *)
+        extract_first+=("$r");;
+    esac
+  done
+  ( cd "$RUNTIME_DIR" && for r in "${extract_first[@]}" "${extract_last[@]}"; do
       rpm2cpio "$r" | cpio -idmu --quiet --no-absolute-filenames 2>/dev/null || true
     done )
   rm -rf "$tmp"
@@ -693,6 +723,19 @@ EOF
   if ! compgen -G "$RUNTIME_DIR/usr/lib64/*.so*" >/dev/null \
      && ! compgen -G "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/*.so*" >/dev/null; then
     die "Runtime extraction produced no shared libraries under $RUNTIME_DIR."
+  fi
+  # ABI guard (BAS-57 F1): the pinned llama.cpp SYCL asset links
+  # libsycl.so.${ONEAPI_SYCL_SONAME}. If the prefix only carries a newer SONAME,
+  # the helper cannot load and the failure would otherwise surface as a
+  # confusing "no SYCL device".
+  local soname_dir found_soname=0
+  for soname_dir in "$RUNTIME_DIR/opt/intel/oneapi/redist/lib" "$RUNTIME_DIR/usr/lib64"; do
+    if compgen -G "$soname_dir/libsycl.so.${ONEAPI_SYCL_SONAME}*" >/dev/null; then
+      found_soname=1; break
+    fi
+  done
+  if (( found_soname == 0 )); then
+    warn "The provisioned runtime has no libsycl.so.${ONEAPI_SYCL_SONAME}; llama.cpp $LLAMA_REV was built against that SONAME. SYCL will not be selectable."
   fi
   # Sentinel for sycl_runtime_present(): the user-local set can legitimately
   # lack libsycl.so, so the prefix itself is the reliable idempotency signal.
@@ -763,6 +806,16 @@ probe_sycl() {
   local out
   if ! out="$("$helper" 2>&1)"; then
     PROBE_SYCL_OUTPUT="$out"
+    # A missing or ABI-mismatched runtime library looks identical to "no
+    # device" unless we say so (BAS-57 F1): llama.cpp $LLAMA_REV links
+    # libsycl.so.${ONEAPI_SYCL_SONAME} (oneAPI 2025.3), while the oneAPI repo
+    # now also serves 2026.1 with libsycl.so.9.
+    if grep -qiE 'error while loading shared libraries|cannot open shared object file' <<<"$out"; then
+      warn "The SYCL helper could not load a runtime library:"
+      while IFS= read -r line; do warn "  $line"; done <<<"$out"
+      warn "This is usually an ABI mismatch: llama.cpp $LLAMA_REV needs the oneAPI 2025.3 runtime (libsycl.so.${ONEAPI_SYCL_SONAME})."
+      warn "Re-run with './bongo.sh --runtime user' to reprovision the pinned runtime."
+    fi
     return 1
   fi
   # The helper lists "Found N SYCL devices" and a device table.
