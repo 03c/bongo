@@ -96,17 +96,27 @@ The recommended default is **q8 KV with `--n-cpu-moe 18`**; q4 KV is the alterna
 worth more than KV precision. A full 256K prefill was not run (~30+ min); the fit test loads the full KV
 budget and is the risk it retires.
 
-## 4. Serving model for the workload
+## 4. Serving model for the workload (implemented in M3.0a)
 
-llama-server `b11223` already has the necessary machinery; bongo must expose and validate it:
+llama-server `b11223` already has the necessary machinery; bongo now exposes and records it
+(see [`docs/bongo-sh.md`](../bongo-sh.md) and `bench/`):
 
 - `--cache-prompt` is **on by default**; in-session turns reuse the slot KV (measured above).
-- `--slot-save-path PATH` + `/slots/{id}?action=save|restore` persists a slot KV to disk. A 256K q8 KV is
-  ~3–4 GiB, so save/restore is ~2–4 s at SSD bandwidth versus ~30 min to re-prefill. This is the
-  cross-idle/cross-restart feature that makes long agentic sessions usable.
-- `--cache-idle-slots` saves idle slots on a new task; `--ctx-checkpoints N` bounds checkpoint memory.
-- The benchmark harness must gain a `cache_prompt` mode so the product metric is measured, not the
-  cold-prefill proxy.
+  `bongo.sh` now passes it (or `--no-cache-prompt`) explicitly and records it, and
+  `bench/harness.py` sends `cache_prompt: true` by default (`profile: agentic`), so the cached
+  path is the measured default instead of the cold-prefill proxy.
+- `--slot-save-path PATH` + `/slots/{id}?action=save|restore|erase` persists a slot KV to disk.
+  `bongo.sh` enables the endpoint by default under `$BONGO_HOME/run/slots` and records the path;
+  `bench/measure-prefix-cache.py` times save -> erase -> restore and re-sends the prompt to
+  prove the restored KV is reused. Saving is explicit; no KV file is written unless a client
+  asks for it.
+- `--cache-idle-slots` saves idle slots to the **in-RAM** prompt cache on a new task, bounded by
+  the engine's prompt-cache budget (`--cache-ram`, default 8192 MiB); `--ctx-checkpoints N`
+  bounds the context checkpoints a slot may keep. Both default to the engine value and are
+  exposed only as recorded overrides.
+- The server is warmed at startup. The first request after a model load paid ~27 s of
+  shader/kernel compile; `bongo.sh` now sends one tiny request after health so that cost lands
+  at startup, not on the user's first turn (`--no-warmup` restores a cold start for A/B).
 
 ## 5. Limits of this study
 
