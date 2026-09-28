@@ -26,6 +26,8 @@ set -uo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
+# shellcheck source=bench/gpu-lock.sh
+. "$repo/bench/gpu-lock.sh"
 
 tier="${BONGO_SWEEP_TIER:-iq2_xs}"
 budget_gib="${BONGO_BUDGET_GIB:-22.40}"
@@ -148,6 +150,9 @@ PY
 }
 
 log "starting llama-server ($label); log: $server_log"
+# Serialise on the single GPU for the whole measured run (BAS-80).
+bongo_gpu_lock_acquire "sweep-byte-budget-placement $label" || exit 3
+trap 'bongo_gpu_lock_release' EXIT INT TERM
 setsid "$llama_bin" "${flags[@]}" > "$server_log" 2>&1 &
 echo $! > "$pidfile"
 pid="$(cat "$pidfile")"

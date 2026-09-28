@@ -14,6 +14,8 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(dirname "${here}")"
+# shellcheck source=bench/gpu-lock.sh
+. "$here/gpu-lock.sh"
 scratch="${PAPERCLIP_RUN_SCRATCH_DIR:-${PAPERCLIP_SCRATCH_DIR:-$(mktemp -d)}}"
 mkdir -p "$scratch"
 
@@ -57,6 +59,10 @@ done
 [ -x "$SERVER_BIN" ] || { echo "llama-server not found at $SERVER_BIN" >&2; exit 1; }
 [ -f "$MODEL" ] || { echo "model not found at $MODEL" >&2; exit 1; }
 
+# Serialise on the single GPU for the whole measured run (BAS-80). Acquire the
+# shared lock before the port/pid guards so contention names the lock holder.
+bongo_gpu_lock_acquire "run-speculation-ab $label" || exit 3
+
 if curl -sf -m 2 "http://$HOST:$PORT/v1/models" >/dev/null 2>&1; then
   echo "A server is already listening on http://$HOST:$PORT; refusing to disturb it." >&2
   echo "Stop it (or set BONGO_PORT) before running this A/B." >&2
@@ -84,10 +90,11 @@ if [ -n "$spec_synth_rates" ]; then flags+=(--spec-synth-rates "$spec_synth_rate
 
 log="$scratch/speculation-$label-server.log"
 pidfile="$scratch/speculation-$label-server.pid"
+
 "$SERVER_BIN" "${flags[@]}" >"$log" 2>&1 &
 spid=$!
 echo "$spid" > "$pidfile"
-cleanup() { kill "$spid" 2>/dev/null || true; wait "$spid" 2>/dev/null || true; }
+cleanup() { kill "$spid" 2>/dev/null || true; wait "$spid" 2>/dev/null || true; bongo_gpu_lock_release; }
 trap cleanup EXIT
 
 echo "starting $label: spec-type=$spec_type synth-len=${spec_synth_len:-none}"

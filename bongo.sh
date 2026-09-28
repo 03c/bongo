@@ -16,6 +16,15 @@ set -Eeuo pipefail
 
 BONGO_VERSION="0.1.0"
 
+# Single-GPU serialisation (BAS-80). `bench/gpu-lock.sh` lives beside this
+# script in the repo; when bongo.sh is copied standalone the lock degrades to a
+# no-op, which is acceptable for a dev box without the bench tree.
+GPU_LOCK_LIB="${BONGO_GPU_LOCK_LIB:-${BASH_SOURCE[0]%/*}/bench/gpu-lock.sh}"
+if [[ -r "$GPU_LOCK_LIB" ]]; then
+  # shellcheck disable=SC1090
+  . "$GPU_LOCK_LIB"
+fi
+
 # ---------------------------------------------------------------------------
 # Pins (ADR-0002: pinning is mandatory; record the revision in the config)
 # ---------------------------------------------------------------------------
@@ -1279,6 +1288,15 @@ main() {
   if (( DRY_RUN )); then
     log "Dry run complete; nothing was started."
     exit 0
+  fi
+
+  # Hold the single-GPU lock across the server lifetime so two measurements
+  # cannot overlap and thrash VRAM (BAS-80). A wrapper that already holds it
+  # exports BONGO_GPU_LOCK_HELD=1, and this is a no-op.
+  if declare -F bongo_gpu_lock_acquire >/dev/null 2>&1; then
+    bongo_gpu_lock_acquire "bongo.sh backend=$BACKEND tier=$TIER port=$PORT" \
+      || die "the single GPU is busy; another measurement holds the lock (BAS-80)."
+    trap 'bongo_gpu_lock_release' EXIT INT TERM
   fi
 
   start_server

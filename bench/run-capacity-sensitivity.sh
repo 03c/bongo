@@ -27,6 +27,8 @@ set -uo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
+# shellcheck source=bench/gpu-lock.sh
+. "$repo/bench/gpu-lock.sh"
 
 mem_gib="${1:?usage: run-capacity-sensitivity.sh <memory-max-GiB|none> [n-cpu-moe]}"
 n_cpu_moe="${2:-16}"
@@ -184,7 +186,7 @@ run_one() {
     # Still run inside a dedicated transient scope so the control does not share
     # the agent's cgroup (and its memory pressure); just no MemoryMax.
     log "starting server UNCONSTRAINED in an isolated scope (n-cpu-moe=$n_cpu_moe)"
-    systemd-run --user --scope --unit "$unit" -- \
+    systemd-run --user --scope --setenv=BONGO_GPU_LOCK_HELD=1 --unit "$unit" -- \
       ./bongo.sh \
         --tier "$tier" \
         --gguf-dir "$gguf_dir" \
@@ -194,7 +196,7 @@ run_one() {
       > "$run_dir/server-start.log" 2>&1 &
   else
     log "starting server under MemoryMax=${mem_gib}G SwapMax=0 (n-cpu-moe=$n_cpu_moe)"
-    systemd-run --user --scope -p "MemoryMax=${mem_gib}G" -p MemorySwapMax=0 \
+    systemd-run --user --scope --setenv=BONGO_GPU_LOCK_HELD=1 -p "MemoryMax=${mem_gib}G" -p MemorySwapMax=0 \
       --unit "$unit" -- \
       ./bongo.sh \
         --tier "$tier" \
@@ -331,5 +333,9 @@ PY
 }
 
 log "capacity sensitivity: tier=$tier mem=${mem_gib}G n-cpu-moe=$n_cpu_moe contexts=$contexts -> $run_dir"
+# Serialise on the single GPU for the whole sweep (BAS-80). bongo.sh inside the
+# systemd scope skips re-acquiring via --setenv=BONGO_GPU_LOCK_HELD=1.
+bongo_gpu_lock_acquire "run-capacity-sensitivity mem=${mem_gib}g ncmoe=${n_cpu_moe}" || exit 3
+trap 'bongo_gpu_lock_release' EXIT INT TERM
 run_one
 log "done"

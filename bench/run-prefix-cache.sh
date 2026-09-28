@@ -13,6 +13,8 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(dirname "${here}")"
+# shellcheck source=bench/gpu-lock.sh
+. "$here/gpu-lock.sh"
 scratch="${PAPERCLIP_RUN_SCRATCH_DIR:-${PAPERCLIP_SCRATCH_DIR:-$(mktemp -d)}}"
 mkdir -p "$scratch"
 
@@ -44,6 +46,11 @@ fi
 
 mkdir -p "$STATE_HOME" "$SLOT_DIR" "$OUT_DIR"
 start_log="$scratch/prefix-cache-bongo-start.log"
+
+# Serialise on the single GPU for the whole measured run (BAS-80). bongo.sh
+# inherits BONGO_GPU_LOCK_HELD=1 and will not try to take the lock again.
+bongo_gpu_lock_acquire "run-prefix-cache ctx=$CTX port=$PORT" || exit 3
+
 echo "starting bongo.sh: Vulkan, n-cpu-moe=$N_CPU_MOE, ctx=$CTX, port=$PORT, slots=$SLOT_DIR"
 BONGO_HOME="$STATE_HOME" "$repo/bongo.sh" \
   --backend vulkan --llama-bin "$LLAMA_BIN" --gguf-dir "$GGUF_DIR" \
@@ -53,7 +60,7 @@ BONGO_HOME="$STATE_HOME" "$repo/bongo.sh" \
 grep -E 'Warmup|Server ready|Slot KV|Endpoint' "$start_log" | sed 's/^/  /' || true
 
 spid="$(cat "$STATE_HOME/run/llama-server.pid" 2>/dev/null || true)"
-cleanup() { if [ -n "$spid" ]; then kill "$spid" 2>/dev/null || true; wait "$spid" 2>/dev/null || true; fi; }
+cleanup() { if [ -n "$spid" ]; then kill "$spid" 2>/dev/null || true; wait "$spid" 2>/dev/null || true; fi; bongo_gpu_lock_release; }
 trap cleanup EXIT
 
 if [ -z "$spid" ] || ! kill -0 "$spid" 2>/dev/null; then
