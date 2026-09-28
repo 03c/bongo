@@ -33,7 +33,7 @@ read pool and a bounded LRU row cache, instead of one mmap page fault per row.
 | `run-ab.sh` | engine A/B runner (baseline / M3.3 config, `--ple-reader off\|on`) |
 | `run-all.sh` | the full 2x2 matrix (`baseline`/`m33` x `off`/`on`) |
 | `ple_reader_selftest.cpp` | reader bytes == `pread`, straddling rows + duplicates |
-| `summarize-ab.py` | join the four `matrix.json` files into the off/on comparison table |
+| `summarize-ab.py` | join the four `matrix.json` files into the off/on table, and state the acceptance verdict |
 
 ### Integration shape
 
@@ -114,3 +114,11 @@ python3 bench/ple-reader/summarize-ab.py \
 # or run the whole matrix in one command:
 bench/ple-reader/run-all.sh
 ```
+
+`summary.md` also carries the verdict the issue is judged on, so the numbers are
+not read by eye: `pass` / `fail` / `fail-no-gain` / `incomplete`, the list of metrics that moved
+more than 5% against the reader (throughput higher-is-better, TTFT lower-is-better), the prefill
+gains, and the RSS growth per pair next to the 26.82 GiB PLE table so "the table is never forced
+resident" is checkable. A partial A/B always reports `incomplete`; it never reports `pass`.
+The provenance block prints tier, ctx, `--n-cpu-moe`, KV types, flash-attn, device,
+`--ple-reader` and the engine commit for each config, read from that run's `server-flags.json`.
