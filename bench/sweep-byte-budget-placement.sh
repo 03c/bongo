@@ -11,6 +11,12 @@
 # run this script with `--n-cpu-moe 16` to measure it, or compare against the
 # already-recorded `bench/results/2026-09-27-expert-placement/ncmoe-16/`.
 #
+# BAS-139 MoE expert cache: pass --moe-expert-cache-profile FILE (and optionally
+# --moe-expert-cache-inserts N / --moe-expert-cache-stats FILE) to measure the
+# GPU-resident LRU over the host-pinned experts. Run it together with
+# `--n-cpu-moe 48` so every expert layer is host-resident and the cache decides
+# residency. `bench/run-moe-cache-ab.sh` runs both configs for you.
+#
 # Output:
 #   bench/results/2026-09-28-byte-budget-placement/<label>/
 #     placement.json          the placement spec + coverage
@@ -33,7 +39,7 @@ tier="${BONGO_SWEEP_TIER:-iq2_xs}"
 budget_gib="${BONGO_BUDGET_GIB:-22.40}"
 contexts="${BONGO_SWEEP_CONTEXTS:-4096,131072}"
 bongo_home="${BONGO_HOME:-$HOME/.bongo}"
-llama_bin="$bongo_home/llama/b11223/vulkan/llama-server"
+llama_bin="${BONGO_LLAMA_BIN:-$bongo_home/llama/b11223/vulkan/llama-server}"
 gguf_dir="$bongo_home/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/$tier"
 ctx="${BONGO_CTX:-131072}"
 host="127.0.0.1"
@@ -43,6 +49,10 @@ out_root="${BONGO_SWEEP_OUT:-bench/results/2026-09-28-byte-budget-placement}"
 expert_bytes="bench/results/2026-09-27-expert-placement/expert-bytes-$tier.json"
 analysis="bench/results/2026-09-28-expert-activation/analysis.json"
 n_cpu_moe_override=""
+moe_cache_profile=""
+moe_cache_inserts=""
+moe_cache_stats=""
+label_suffix=""
 dry_run=0
 
 while [[ $# -gt 0 ]]; do
@@ -51,6 +61,10 @@ while [[ $# -gt 0 ]]; do
     --n-cpu-moe) n_cpu_moe_override="${2:?--n-cpu-moe needs a value}"; shift 2;;
     --budget-gib) budget_gib="${2:?--budget-gib needs a value}"; shift 2;;
     --contexts) contexts="${2:?--contexts needs a value}"; shift 2;;
+    --moe-expert-cache-profile) moe_cache_profile="${2:?--moe-expert-cache-profile needs a value}"; shift 2;;
+    --moe-expert-cache-inserts) moe_cache_inserts="${2:?--moe-expert-cache-inserts needs a value}"; shift 2;;
+    --moe-expert-cache-stats) moe_cache_stats="${2:?--moe-expert-cache-stats needs a value}"; shift 2;;
+    --label-suffix) label_suffix="${2:?--label-suffix needs a value}"; shift 2;;
     *) echo "unknown option '$1'" >&2; exit 2;;
   esac
 done
@@ -103,7 +117,7 @@ else
   log "  -ot $override_tensor"
 fi
 
-out_dir="$out_root/$label"
+out_dir="$out_root/$label$label_suffix"
 mkdir -p "$out_dir"
 if [[ -n "$placement_json" ]]; then cp "$placement_json" "$out_dir/placement.json"; fi
 
@@ -112,6 +126,9 @@ flags=(--model "$model" --ctx-size "$ctx" --jinja --flash-attn on
   --n-gpu-layers 99 --n-cpu-moe "$n_cpu_moe")
 if [[ -n "$override_tensor" ]]; then flags+=(--override-tensor "$override_tensor"); fi
 flags+=(--host "$host" --port "$port" --parallel 1 --alias "bongo-$tier" --metrics --device "$device")
+if [[ -n "$moe_cache_profile" ]]; then flags+=(--moe-expert-cache-profile "$moe_cache_profile"); fi
+if [[ -n "$moe_cache_inserts" ]]; then flags+=(--moe-expert-cache-inserts "$moe_cache_inserts"); fi
+if [[ -n "$moe_cache_stats" ]]; then flags+=(--moe-expert-cache-stats "$moe_cache_stats"); fi
 
 python3 - "$out_dir/server-flags.json" "${flags[@]}" <<'PY'
 import json, sys
