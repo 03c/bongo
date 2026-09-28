@@ -42,6 +42,24 @@ BACKENDS="${BONGO_BACKENDS:-vulkan sycl}"
 
 log() { printf '[ab %s] %s\n' "$(date -u +%H:%M:%SZ)" "$*"; }
 
+# Fail before measuring if the build in $1 is not a <backend> build.  The bin
+# directory is named after the backend, so a mis-pointed --llama-bin would
+# measure one backend twice and "confirm" SYCL with Vulkan's numbers.
+assert_backend_binary() {
+  local bin_dir="$1" backend="$2"
+  local want="libggml-$backend.so" other
+  case "$backend" in vulkan) other=sycl ;; sycl) other=vulkan ;; *) return 0 ;; esac
+  if ! compgen -G "$bin_dir/$want*" >/dev/null; then
+    log "ERROR: $bin_dir has no $want — this is not a $backend build; refusing to measure it."
+    return 1
+  fi
+  if compgen -G "$bin_dir/libggml-$other.so*" >/dev/null; then
+    log "ERROR: $bin_dir also ships libggml-$other.so — the A/B would not be isolated."
+    return 1
+  fi
+  log "$backend: build identity OK ($want in $bin_dir)"
+}
+
 BONGO_GPU_LOCK_TIMEOUT="${BONGO_GPU_LOCK_TIMEOUT:-21600}"
 bongo_gpu_lock_acquire "run-backend-ab backend-ab (BAS-72)" || exit 3
 trap 'bongo_gpu_lock_release' EXIT INT TERM
@@ -55,6 +73,7 @@ run_backend() {
   mkdir -p "$home" "$be_out"
 
   [ -x "$bin/llama-server" ] || { log "$backend: no llama-server at $bin"; return 1; }
+  assert_backend_binary "$bin" "$backend" || return 1
 
   # One retry: the first start after another server released the GPU can still
   # lose the Level Zero device. bongo.sh's probe failure prints its own output.
