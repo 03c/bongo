@@ -62,6 +62,14 @@ if curl -sf -m 2 "http://$HOST:$PORT/v1/models" >/dev/null 2>&1; then
   echo "Stop it (or set BONGO_PORT) before running this A/B." >&2
   exit 3
 fi
+# The Arc has 32 GiB and the model needs ~30 GiB, so exactly one llama-server
+# may run on this box. Refuse if a sibling run holds the device on another port,
+# otherwise the second process device-losses and can take the first one with it.
+if pgrep -x llama-server >/dev/null 2>&1; then
+  echo "A llama-server is already running (another run holds the GPU); refusing to start a second one." >&2
+  pgrep -a -x llama-server >&2 || true
+  exit 3
+fi
 
 flags=(
   --model "$MODEL" --ctx-size "$CTX" --jinja --flash-attn on
