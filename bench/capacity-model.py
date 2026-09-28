@@ -535,6 +535,13 @@ def main():
     model = CapacityModel(args.repo_root, args.capacity_dir)
     result = {
         "schema": "bongo.capacity-model.v1",
+        "inputs": {
+            "expert_bytes": "bench/results/2026-09-27-expert-placement/expert-bytes-iq2_xs.json",
+            "coverage": "bench/results/2026-09-28-expert-activation/analysis.json",
+            "vram_sweep": "bench/results/2026-09-27-expert-placement/sweep-matrix.json",
+            "capacity_dir": args.capacity_dir,
+            "ssd_read_cost": "bench/results/2026-09-28-ssd-random4k-probe/README.md",
+        },
         "constants": {
             "total_expert_gib": model.E,
             "non_expert_4k_gib": NON_EXPERT_4K_GIB,

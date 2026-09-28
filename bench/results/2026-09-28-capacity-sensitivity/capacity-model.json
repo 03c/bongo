@@ -1,5 +1,12 @@
 {
   "schema": "bongo.capacity-model.v1",
+  "inputs": {
+    "expert_bytes": "bench/results/2026-09-27-expert-placement/expert-bytes-iq2_xs.json",
+    "coverage": "bench/results/2026-09-28-expert-activation/analysis.json",
+    "vram_sweep": "bench/results/2026-09-27-expert-placement/sweep-matrix.json",
+    "capacity_dir": "bench/results/2026-09-28-capacity-sensitivity",
+    "ssd_read_cost": "bench/results/2026-09-28-ssd-random4k-probe/README.md"
+  },
   "constants": {
     "total_expert_gib": 33.02001953125,
     "non_expert_4k_gib": 6.42,

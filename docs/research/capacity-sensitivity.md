@@ -58,6 +58,23 @@ and extrapolate to 64 GiB?**
   VRAM budget). 64 GiB RAM is worth nothing on this box and model; it is only interesting for a
   low-VRAM box (Strata's 12 GiB case) where the CPU expert set is ~28 GiB.
 
+## Verdict (one paragraph)
+
+**“More VRAM/RAM = more throughput” is conditional, and the condition is asymmetric: it is proven
+for VRAM on the CPU-expert path and disproven for RAM at every budget this box can use.** On
+IQ2_XS with llama.cpp b11223, moving experts from the CPU to the GPU raises 4K decode from 2.95 to
+16.11 tok/s and 128K prefill from 72.4 to 133.4 tok/s, but the return is strongly concave and is
+**zero on 128K decode** (+0.016 output tok/s per GiB between 16.83 and 22.40 GiB of GPU experts).
+Adding system RAM is worth ~0 tok/s: a 16 GiB cgroup cap reproduces the uncapped ~30 GiB box to
+within 1.5% at the shipped split (128K output **8.00 vs 7.93**, prefill 133.52 vs 133.67), and
+loses only 6.8% at a deliberately over-subscribed split whose CPU expert set is 16.19 GiB. **VRAM
+stops paying** once the GPU-resident expert budget reaches ~22.4 GiB, the 128K-safe ceiling;
+**RAM stops paying** once it holds the CPU expert set plus ~4 GiB, which at the shipped 22.4 GiB
+VRAM residency is ~15 GiB — so the 32 GiB box already has surplus and **64 GiB buys 0 tok/s**. RAM
+only becomes a binding throughput resource on a low-VRAM box (~12 GiB VRAM, where the CPU expert
+set is ~28 GiB), and even there 32 GiB suffices and 64 GiB still buys nothing; the RAM lever that
+*does* pay on any box is SSD traffic, not tok/s.
+
 ## 1. Method
 
 ### 1.1 VRAM axis (reused measurement)
