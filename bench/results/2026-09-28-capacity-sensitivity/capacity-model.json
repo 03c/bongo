@@ -1,0 +1,884 @@
+{
+  "schema": "bongo.capacity-model.v1",
+  "constants": {
+    "total_expert_gib": 33.02001953125,
+    "non_expert_4k_gib": 6.42,
+    "non_expert_128k_gib": 6.86,
+    "safe_gpu_experts_128k_gib": 22.4,
+    "ssd_random_4k_qd1_mb_per_s": 7.5,
+    "ram_overhead_gib": 4.0
+  },
+  "vram_axis": [
+    {
+      "n_cpu_moe": 48,
+      "gpu_gib": 0.0,
+      "cpu_gib": 33.02001953125,
+      "fit": true,
+      "ctx4096": {
+        "prompt_tps": 52.92035700690263,
+        "output_tps": 2.9478996342770722
+      },
+      "ctx131072": {
+        "prompt_tps": 72.3543115546168,
+        "output_tps": 2.2623930596194013
+      },
+      "server_read_bytes_delta": 74078482432
+    },
+    {
+      "n_cpu_moe": 24,
+      "gpu_gib": 16.83349609375,
+      "cpu_gib": 16.1865234375,
+      "fit": true,
+      "ctx4096": {
+        "prompt_tps": 186.504,
+        "output_tps": 11.253
+      },
+      "ctx131072": {
+        "prompt_tps": 114.464,
+        "output_tps": 7.532
+      },
+      "server_read_bytes_delta": 2129502208
+    },
+    {
+      "n_cpu_moe": 16,
+      "gpu_gib": 22.39990234375,
+      "cpu_gib": 10.6201171875,
+      "fit": true,
+      "ctx4096": {
+        "prompt_tps": 231.502,
+        "output_tps": 16.114
+      },
+      "ctx131072": {
+        "prompt_tps": 133.431,
+        "output_tps": 7.623
+      },
+      "server_read_bytes_delta": 1642684416
+    },
+    {
+      "n_cpu_moe": 12,
+      "gpu_gib": 25.0244140625,
+      "cpu_gib": 7.99560546875,
+      "fit": false,
+      "ctx4096": {
+        "prompt_tps": 260.438,
+        "output_tps": 17.707
+      },
+      "ctx131072": {
+        "prompt_tps": null,
+        "output_tps": null
+      },
+      "server_read_bytes_delta": null
+    },
+    {
+      "n_cpu_moe": 0,
+      "gpu_gib": 33.02001953125,
+      "cpu_gib": 0.0,
+      "fit": false,
+      "ctx4096": null,
+      "ctx131072": null,
+      "server_read_bytes_delta": null
+    }
+  ],
+  "capacity": [
+    {
+      "run": "mem16g-ncmoe16",
+      "memory_max_gib": 16.0,
+      "n_cpu_moe": 16,
+      "fit": true,
+      "contexts": {
+        "4096": {
+          "prompt_tps": 231.254,
+          "output_tps": 15.608,
+          "ttft_ms": 17774.03,
+          "vram_peak_bytes": 30949109760.0,
+          "ram_peak_bytes": 9740984320.0
+        },
+        "131072": {
+          "prompt_tps": 133.521,
+          "output_tps": 8.003,
+          "ttft_ms": 980259.08,
+          "vram_peak_bytes": 31417565184.0,
+          "ram_peak_bytes": 11687878656.0
+        }
+      },
+      "read_bytes_delta": 1311301632,
+      "rchar_delta": 225795,
+      "majflt_delta": 8096,
+      "memory": {
+        "samples": 2108,
+        "samples_with_pid": 2108,
+        "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/bongo-cap-16g-16.scope",
+        "memory_max": "17179869184",
+        "memory_current_peak": 17179856896,
+        "vram_peak_bytes": 31417565184,
+        "vmrss_peak_kb": 13147016,
+        "vmhwm_kb": 16642244,
+        "majflt_last": 42595,
+        "minflt_last": 2528177,
+        "read_bytes_last": 59640938496,
+        "read_chars_last": 25715447,
+        "pgmajfault_last": 50275,
+        "memory_events": {
+          "max": 6342,
+          "oom": 0,
+          "oom_kill": 0,
+          "high": 0,
+          "low": 0
+        }
+      }
+    },
+    {
+      "run": "mem16g-ncmoe24",
+      "memory_max_gib": 16.0,
+      "n_cpu_moe": 24,
+      "fit": true,
+      "contexts": {
+        "4096": {
+          "prompt_tps": 186.3,
+          "output_tps": 14.29,
+          "ttft_ms": 22049.99,
+          "vram_peak_bytes": 24959578112.0,
+          "ram_peak_bytes": 15256416256.0
+        },
+        "131072": {
+          "prompt_tps": 112.915,
+          "output_tps": 6.988,
+          "ttft_ms": 1159171.76,
+          "vram_peak_bytes": 25428033536.0,
+          "ram_peak_bytes": 16709754880.0
+        }
+      },
+      "read_bytes_delta": 7340044288,
+      "rchar_delta": 225795,
+      "majflt_delta": 62725,
+      "memory": {
+        "samples": 2535,
+        "samples_with_pid": 2535,
+        "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/bongo-cap-16g-24.scope",
+        "memory_max": "17179869184",
+        "memory_current_peak": 17179869184,
+        "vram_peak_bytes": 25428033536,
+        "vmrss_peak_kb": 16330176,
+        "vmhwm_kb": 16693520,
+        "majflt_last": 119249,
+        "minflt_last": 2598668,
+        "read_bytes_last": 63268106240,
+        "read_chars_last": 25715027,
+        "pgmajfault_last": 120134,
+        "memory_events": {
+          "max": 15441,
+          "oom": 0,
+          "oom_kill": 0,
+          "high": 0,
+          "low": 0
+        }
+      }
+    },
+    {
+      "run": "uncapped-ncmoe16",
+      "memory_max_gib": "none",
+      "n_cpu_moe": 16,
+      "fit": true,
+      "contexts": {
+        "4096": {
+          "prompt_tps": 232.557,
+          "output_tps": 15.422,
+          "ttft_ms": 17673.03,
+          "vram_peak_bytes": 30949109760.0,
+          "ram_peak_bytes": 9760002048.0
+        },
+        "131072": {
+          "prompt_tps": 133.672,
+          "output_tps": 7.928,
+          "ttft_ms": 979144.26,
+          "vram_peak_bytes": 31417565184.0,
+          "ram_peak_bytes": 11302531072.0
+        }
+      },
+      "read_bytes_delta": 1234382848,
+      "rchar_delta": 225795,
+      "majflt_delta": 7501,
+      "memory": {
+        "samples": 2139,
+        "samples_with_pid": 2139,
+        "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/bongo-cap-noneg-16.scope",
+        "memory_max": "max",
+        "memory_current_peak": 27845214208,
+        "vram_peak_bytes": 31417565184,
+        "vmrss_peak_kb": 13305144,
+        "vmhwm_kb": 16446652,
+        "majflt_last": 49783,
+        "minflt_last": 2591141,
+        "read_bytes_last": 54249779200,
+        "read_chars_last": 25715447,
+        "pgmajfault_last": 52673,
+        "memory_events": {
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "high": 0,
+          "low": 0
+        }
+      }
+    },
+    {
+      "run": "uncapped-ncmoe24",
+      "memory_max_gib": "none",
+      "n_cpu_moe": 24,
+      "fit": true,
+      "contexts": {
+        "4096": {
+          "prompt_tps": 155.267,
+          "output_tps": 9.334,
+          "ttft_ms": 26448.28,
+          "vram_peak_bytes": 24959578112.0,
+          "ram_peak_bytes": 14988345344.0
+        },
+        "131072": {
+          "prompt_tps": 113.32,
+          "output_tps": 7.496,
+          "ttft_ms": 1154991.13,
+          "vram_peak_bytes": 25428033536.0,
+          "ram_peak_bytes": 17568956416.0
+        }
+      },
+      "read_bytes_delta": 5734645760,
+      "rchar_delta": 225795,
+      "majflt_delta": 56378,
+      "memory": {
+        "samples": 2708,
+        "samples_with_pid": 2708,
+        "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/bongo-cap-noneg-24.scope",
+        "memory_max": "max",
+        "memory_current_peak": 27308449792,
+        "vram_peak_bytes": 25428033536,
+        "vmrss_peak_kb": 19916132,
+        "vmhwm_kb": 19916132,
+        "majflt_last": 113052,
+        "minflt_last": 2618044,
+        "read_bytes_last": 53173092352,
+        "read_chars_last": 25715027,
+        "pgmajfault_last": 113886,
+        "memory_events": {
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "high": 0,
+          "low": 0
+        }
+      }
+    }
+  ],
+  "fit": {
+    "4096": {
+      "p": 2.859999999999983,
+      "A_ms_per_gib": 0.013052586989200235,
+      "T0_ms": 51.22817572344448,
+      "sse": 0.25129292258339053,
+      "anchors": [
+        {
+          "cpu_gib": 7.99560546875,
+          "t_ms": 56.4748404585757
+        },
+        {
+          "cpu_gib": 10.6201171875,
+          "t_ms": 62.05783790492739
+        },
+        {
+          "cpu_gib": 16.1865234375,
+          "t_ms": 88.8651915044877
+        },
+        {
+          "cpu_gib": 33.02001953125,
+          "t_ms": 339.2245748031496
+        }
+      ]
+    },
+    "131072": {
+      "p": 7.339999999999888,
+      "A_ms_per_gib": 2.212071276672739e-09,
+      "T0_ms": 131.10700501293738,
+      "sse": 2.056148245635325e-07,
+      "anchors": [
+        {
+          "cpu_gib": 10.6201171875,
+          "t_ms": 131.18194936376753
+        },
+        {
+          "cpu_gib": 16.1865234375,
+          "t_ms": 132.7668613913967
+        },
+        {
+          "cpu_gib": 33.02001953125,
+          "t_ms": 442.00984251968504
+        }
+      ]
+    }
+  },
+  "grid": {
+    "131072": [
+      {
+        "vram_gib": 12,
+        "ram_gib": 16,
+        "gpu_expert_budget_gib": 5.14,
+        "gpu_experts_resident_gib": 5.04,
+        "n_cpu_moe": 41,
+        "cpu_expert_gib": 27.98,
+        "static_coverage": 0.11835392968873207,
+        "ram_safe": false,
+        "modelled_output_tps": 4.48,
+        "ram_model": {
+          "cacheable_gib": 12.0,
+          "cpu_expert_bytes_over_cacheable_gib": 15.978515625,
+          "miss_fraction": 0.165326025593849,
+          "miss_bytes_per_token_mb": 92.5115358059331,
+          "naive_serialised_miss_ms_per_token": 12334.87144079108,
+          "naive_serialised_bound_factor": 56.249815522150115
+        }
+      },
+      {
+        "vram_gib": 12,
+        "ram_gib": 32,
+        "gpu_expert_budget_gib": 5.14,
+        "gpu_experts_resident_gib": 5.04,
+        "n_cpu_moe": 41,
+        "cpu_expert_gib": 27.98,
+        "static_coverage": 0.11835392968873207,
+        "ram_safe": true,
+        "modelled_output_tps": 4.48,
+        "ram_model": {
+          "cacheable_gib": 28.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 12,
+        "ram_gib": 64,
+        "gpu_expert_budget_gib": 5.14,
+        "gpu_experts_resident_gib": 5.04,
+        "n_cpu_moe": 41,
+        "cpu_expert_gib": 27.98,
+        "static_coverage": 0.11835392968873207,
+        "ram_safe": true,
+        "modelled_output_tps": 4.48,
+        "ram_model": {
+          "cacheable_gib": 60.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 24,
+        "ram_gib": 16,
+        "gpu_expert_budget_gib": 17.14,
+        "gpu_experts_resident_gib": 16.83,
+        "n_cpu_moe": 24,
+        "cpu_expert_gib": 16.19,
+        "static_coverage": 0.4734142640455975,
+        "ram_safe": false,
+        "modelled_output_tps": 7.53,
+        "ram_model": {
+          "cacheable_gib": 12.0,
+          "cpu_expert_bytes_over_cacheable_gib": 4.1865234375,
+          "miss_fraction": 0.165326025593849,
+          "miss_bytes_per_token_mb": 53.52107176207124,
+          "naive_serialised_miss_ms_per_token": 7136.142901609499,
+          "naive_serialised_bound_factor": 54.74955847209747
+        }
+      },
+      {
+        "vram_gib": 24,
+        "ram_gib": 32,
+        "gpu_expert_budget_gib": 17.14,
+        "gpu_experts_resident_gib": 16.83,
+        "n_cpu_moe": 24,
+        "cpu_expert_gib": 16.19,
+        "static_coverage": 0.4734142640455975,
+        "ram_safe": true,
+        "modelled_output_tps": 7.53,
+        "ram_model": {
+          "cacheable_gib": 28.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 24,
+        "ram_gib": 64,
+        "gpu_expert_budget_gib": 17.14,
+        "gpu_experts_resident_gib": 16.83,
+        "n_cpu_moe": 24,
+        "cpu_expert_gib": 16.19,
+        "static_coverage": 0.4734142640455975,
+        "ram_safe": true,
+        "modelled_output_tps": 7.53,
+        "ram_model": {
+          "cacheable_gib": 60.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 32,
+        "ram_gib": 16,
+        "gpu_expert_budget_gib": 22.4,
+        "gpu_experts_resident_gib": 22.4,
+        "n_cpu_moe": 16,
+        "cpu_expert_gib": 10.62,
+        "static_coverage": 0.6595741173991121,
+        "ram_safe": true,
+        "modelled_output_tps": 7.62,
+        "ram_model": {
+          "cacheable_gib": 12.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 32,
+        "ram_gib": 32,
+        "gpu_expert_budget_gib": 22.4,
+        "gpu_experts_resident_gib": 22.4,
+        "n_cpu_moe": 16,
+        "cpu_expert_gib": 10.62,
+        "static_coverage": 0.6595741173991121,
+        "ram_safe": true,
+        "modelled_output_tps": 7.62,
+        "ram_model": {
+          "cacheable_gib": 28.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 32,
+        "ram_gib": 64,
+        "gpu_expert_budget_gib": 22.4,
+        "gpu_experts_resident_gib": 22.4,
+        "n_cpu_moe": 16,
+        "cpu_expert_gib": 10.62,
+        "static_coverage": 0.6595741173991121,
+        "ram_safe": true,
+        "modelled_output_tps": 7.62,
+        "ram_model": {
+          "cacheable_gib": 60.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      }
+    ],
+    "4096": [
+      {
+        "vram_gib": 12,
+        "ram_gib": 16,
+        "gpu_expert_budget_gib": 5.58,
+        "gpu_experts_resident_gib": 5.04,
+        "n_cpu_moe": 41,
+        "cpu_expert_gib": 27.98,
+        "static_coverage": 0.11835392968873207,
+        "ram_safe": false,
+        "modelled_output_tps": 4.34,
+        "ram_model": {
+          "cacheable_gib": 12.0,
+          "cpu_expert_bytes_over_cacheable_gib": 15.978515625,
+          "miss_fraction": 0.165326025593849,
+          "miss_bytes_per_token_mb": 92.5115358059331,
+          "naive_serialised_miss_ms_per_token": 12334.87144079108,
+          "naive_serialised_bound_factor": 54.50366088615555
+        }
+      },
+      {
+        "vram_gib": 12,
+        "ram_gib": 32,
+        "gpu_expert_budget_gib": 5.58,
+        "gpu_experts_resident_gib": 5.04,
+        "n_cpu_moe": 41,
+        "cpu_expert_gib": 27.98,
+        "static_coverage": 0.11835392968873207,
+        "ram_safe": true,
+        "modelled_output_tps": 4.34,
+        "ram_model": {
+          "cacheable_gib": 28.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 12,
+        "ram_gib": 64,
+        "gpu_expert_budget_gib": 5.58,
+        "gpu_experts_resident_gib": 5.04,
+        "n_cpu_moe": 41,
+        "cpu_expert_gib": 27.98,
+        "static_coverage": 0.11835392968873207,
+        "ram_safe": true,
+        "modelled_output_tps": 4.34,
+        "ram_model": {
+          "cacheable_gib": 60.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 24,
+        "ram_gib": 16,
+        "gpu_expert_budget_gib": 17.58,
+        "gpu_experts_resident_gib": 17.55,
+        "n_cpu_moe": 23,
+        "cpu_expert_gib": 15.47,
+        "static_coverage": 0.49639963402437165,
+        "ram_safe": false,
+        "modelled_output_tps": 11.89,
+        "ram_model": {
+          "cacheable_gib": 12.0,
+          "cpu_expert_bytes_over_cacheable_gib": 3.46630859375,
+          "miss_fraction": 0.165326025593849,
+          "miss_bytes_per_token_mb": 51.13966660825359,
+          "naive_serialised_miss_ms_per_token": 6818.622214433813,
+          "naive_serialised_bound_factor": 82.03970086896223
+        }
+      },
+      {
+        "vram_gib": 24,
+        "ram_gib": 32,
+        "gpu_expert_budget_gib": 17.58,
+        "gpu_experts_resident_gib": 17.55,
+        "n_cpu_moe": 23,
+        "cpu_expert_gib": 15.47,
+        "static_coverage": 0.49639963402437165,
+        "ram_safe": true,
+        "modelled_output_tps": 11.89,
+        "ram_model": {
+          "cacheable_gib": 28.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 24,
+        "ram_gib": 64,
+        "gpu_expert_budget_gib": 17.58,
+        "gpu_experts_resident_gib": 17.55,
+        "n_cpu_moe": 23,
+        "cpu_expert_gib": 15.47,
+        "static_coverage": 0.49639963402437165,
+        "ram_safe": true,
+        "modelled_output_tps": 11.89,
+        "ram_model": {
+          "cacheable_gib": 60.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 32,
+        "ram_gib": 16,
+        "gpu_expert_budget_gib": 25.58,
+        "gpu_experts_resident_gib": 25.02,
+        "n_cpu_moe": 12,
+        "cpu_expert_gib": 8.0,
+        "static_coverage": 0.7242725230207222,
+        "ram_safe": true,
+        "modelled_output_tps": 17.79,
+        "ram_model": {
+          "cacheable_gib": 12.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 32,
+        "ram_gib": 32,
+        "gpu_expert_budget_gib": 25.58,
+        "gpu_experts_resident_gib": 25.02,
+        "n_cpu_moe": 12,
+        "cpu_expert_gib": 8.0,
+        "static_coverage": 0.7242725230207222,
+        "ram_safe": true,
+        "modelled_output_tps": 17.79,
+        "ram_model": {
+          "cacheable_gib": 28.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      },
+      {
+        "vram_gib": 32,
+        "ram_gib": 64,
+        "gpu_expert_budget_gib": 25.58,
+        "gpu_experts_resident_gib": 25.02,
+        "n_cpu_moe": 12,
+        "cpu_expert_gib": 8.0,
+        "static_coverage": 0.7242725230207222,
+        "ram_safe": true,
+        "modelled_output_tps": 17.79,
+        "ram_model": {
+          "cacheable_gib": 60.0,
+          "cpu_expert_bytes_over_cacheable_gib": 0.0,
+          "miss_fraction": 0.0,
+          "miss_bytes_per_token_mb": 0.0,
+          "naive_serialised_miss_ms_per_token": 0.0,
+          "naive_serialised_bound_factor": 1.0
+        }
+      }
+    ]
+  },
+  "look_one_out": [
+    {
+      "ctx": 4096,
+      "n_cpu_moe": 12,
+      "cpu_gib": 7.99560546875,
+      "measured_output_tps": 17.707,
+      "loo_output_tps": 17.96902347086268,
+      "loo_rel_error": 0.014797733713372091
+    },
+    {
+      "ctx": 4096,
+      "n_cpu_moe": 16,
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 16.114,
+      "loo_output_tps": 15.955286692096513,
+      "loo_rel_error": -0.009849404735229498
+    },
+    {
+      "ctx": 4096,
+      "n_cpu_moe": 24,
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 11.253,
+      "loo_output_tps": 11.550912792084844,
+      "loo_rel_error": 0.026474077320256296
+    },
+    {
+      "ctx": 4096,
+      "n_cpu_moe": 48,
+      "cpu_gib": 33.02001953125,
+      "measured_output_tps": 2.9478996342770722,
+      "loo_output_tps": 2.4440249068541444,
+      "loo_rel_error": -0.1709266901640956
+    },
+    {
+      "ctx": 131072,
+      "n_cpu_moe": 16,
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 7.623,
+      "loo_output_tps": 13.406366054519628,
+      "loo_rel_error": 0.7586732329161259
+    },
+    {
+      "ctx": 131072,
+      "n_cpu_moe": 24,
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 7.532,
+      "loo_output_tps": 4.83772097960394,
+      "loo_rel_error": -0.35771096925067175
+    },
+    {
+      "ctx": 131072,
+      "n_cpu_moe": 48,
+      "cpu_gib": 33.02001953125,
+      "measured_output_tps": 2.2623930596194013,
+      "loo_output_tps": 7.365300006172774,
+      "loo_rel_error": 2.2555350958386633
+    }
+  ],
+  "anchor_errors": [
+    {
+      "source": "sweep",
+      "ctx": 4096,
+      "n_cpu_moe": 12,
+      "ram_gib": null,
+      "cpu_gib": 7.99560546875,
+      "measured_output_tps": 17.707,
+      "modelled_output_tps": 17.788746792603224,
+      "rel_error": 0.004616637070267291
+    },
+    {
+      "source": "sweep",
+      "ctx": 4096,
+      "n_cpu_moe": 16,
+      "ram_gib": null,
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 16.114,
+      "modelled_output_tps": 16.01040486251584,
+      "rel_error": -0.006428890249730638
+    },
+    {
+      "source": "sweep",
+      "ctx": 4096,
+      "n_cpu_moe": 24,
+      "ram_gib": null,
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 11.253,
+      "modelled_output_tps": 11.272081812802504,
+      "rel_error": 0.001695708948947331
+    },
+    {
+      "source": "sweep",
+      "ctx": 4096,
+      "n_cpu_moe": 48,
+      "ram_gib": null,
+      "cpu_gib": 33.02001953125,
+      "measured_output_tps": 2.9478996342770722,
+      "modelled_output_tps": 2.947826503592416,
+      "rel_error": -2.480772540763711e-05
+    },
+    {
+      "source": "sweep",
+      "ctx": 131072,
+      "n_cpu_moe": 16,
+      "ram_gib": null,
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 7.623,
+      "modelled_output_tps": 7.622981415635836,
+      "rel_error": -2.437933118722344e-06
+    },
+    {
+      "source": "sweep",
+      "ctx": 131072,
+      "n_cpu_moe": 24,
+      "ram_gib": null,
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 7.532,
+      "modelled_output_tps": 7.532018236346513,
+      "rel_error": 2.4211824897608542e-06
+    },
+    {
+      "source": "sweep",
+      "ctx": 131072,
+      "n_cpu_moe": 48,
+      "ram_gib": null,
+      "cpu_gib": 33.02001953125,
+      "measured_output_tps": 2.2623930596194013,
+      "modelled_output_tps": 2.26239305123326,
+      "rel_error": -3.706756913531061e-09
+    },
+    {
+      "source": "capacity",
+      "run": "mem16g-ncmoe16",
+      "ctx": 4096,
+      "n_cpu_moe": 16,
+      "ram_gib": 16.0,
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 15.608,
+      "modelled_output_tps": 16.01040486251584,
+      "rel_error": 0.025781961975643305
+    },
+    {
+      "source": "capacity",
+      "run": "mem16g-ncmoe16",
+      "ctx": 131072,
+      "n_cpu_moe": 16,
+      "ram_gib": 16.0,
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 8.003,
+      "modelled_output_tps": 7.622981415635836,
+      "rel_error": -0.04748451635188853
+    },
+    {
+      "source": "capacity",
+      "run": "mem16g-ncmoe24",
+      "ctx": 4096,
+      "n_cpu_moe": 24,
+      "ram_gib": 16.0,
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 14.29,
+      "modelled_output_tps": 11.272081812802504,
+      "rel_error": -0.21119091582907593
+    },
+    {
+      "source": "capacity",
+      "run": "mem16g-ncmoe24",
+      "ctx": 131072,
+      "n_cpu_moe": 24,
+      "ram_gib": 16.0,
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 6.988,
+      "modelled_output_tps": 7.532018236346513,
+      "rel_error": 0.07785034864718267
+    },
+    {
+      "source": "capacity",
+      "run": "uncapped-ncmoe16",
+      "ctx": 4096,
+      "n_cpu_moe": 16,
+      "ram_gib": "none",
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 15.422,
+      "modelled_output_tps": 16.01040486251584,
+      "rel_error": 0.038153602808704494
+    },
+    {
+      "source": "capacity",
+      "run": "uncapped-ncmoe16",
+      "ctx": 131072,
+      "n_cpu_moe": 16,
+      "ram_gib": "none",
+      "cpu_gib": 10.6201171875,
+      "measured_output_tps": 7.928,
+      "modelled_output_tps": 7.622981415635836,
+      "rel_error": -0.03847358531334053
+    },
+    {
+      "source": "capacity",
+      "run": "uncapped-ncmoe24",
+      "ctx": 4096,
+      "n_cpu_moe": 24,
+      "ram_gib": "none",
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 9.334,
+      "modelled_output_tps": 11.272081812802504,
+      "rel_error": 0.20763679160086831
+    },
+    {
+      "source": "capacity",
+      "run": "uncapped-ncmoe24",
+      "ctx": 131072,
+      "n_cpu_moe": 24,
+      "ram_gib": "none",
+      "cpu_gib": 16.1865234375,
+      "measured_output_tps": 7.496,
+      "modelled_output_tps": 7.532018236346513,
+      "rel_error": 0.004804994176429091
+    }
+  ]
+}

@@ -181,8 +181,11 @@ run_one() {
 
   stop_server
   if [[ "$mem_gib" == "none" ]]; then
-    log "starting server UNCONSTRAINED (n-cpu-moe=$n_cpu_moe) as the same-protocol control"
-    ./bongo.sh \
+    # Still run inside a dedicated transient scope so the control does not share
+    # the agent's cgroup (and its memory pressure); just no MemoryMax.
+    log "starting server UNCONSTRAINED in an isolated scope (n-cpu-moe=$n_cpu_moe)"
+    systemd-run --user --scope --unit "$unit" -- \
+      ./bongo.sh \
         --tier "$tier" \
         --gguf-dir "$gguf_dir" \
         --llama-bin "$llama_bin_dir" \
@@ -314,7 +317,7 @@ PY
   io_rchar_after="$(pid_io "$pid" rchar)"
   io_read_after="$(pid_io "$pid" read_bytes)"
   majflt_after="$(pid_majflt "$pid")"
-  printf '{"mem_gib": %s, "n_cpu_moe": %s, "rchar_before": %s, "rchar_after": %s, "read_bytes_before": %s, "read_bytes_after": %s, "majflt_before": %s, "majflt_after": %s, "harness_exit": %s}\n' \
+  printf '{"mem_gib": "%s", "n_cpu_moe": %s, "rchar_before": %s, "rchar_after": %s, "read_bytes_before": %s, "read_bytes_after": %s, "majflt_before": %s, "majflt_after": %s, "harness_exit": %s}\n' \
     "$mem_gib" "$n_cpu_moe" "${io_rchar_before:-null}" "${io_rchar_after:-null}" \
     "${io_read_before:-null}" "${io_read_after:-null}" \
     "${majflt_before:-null}" "${majflt_after:-null}" "$rc" > "$run_dir/server-io.json"
