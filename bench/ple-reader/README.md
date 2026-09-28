@@ -31,6 +31,7 @@ read pool and a bounded LRU row cache, instead of one mmap page fault per row.
 | `ple-reader.patch` | the full patch against llama.cpp `4da633776` (`b11223`) |
 | `build-vulkan.sh` | container build (no host toolchain) |
 | `run-ab.sh` | engine A/B runner (baseline / M3.3 config, `--ple-reader off\|on`) |
+| `run-all.sh` | the full 2x2 matrix (`baseline`/`m33` x `off`/`on`) |
 | `ple_reader_selftest.cpp` | reader bytes == `pread`, straddling rows + duplicates |
 | `summarize-ab.py` | join the four `matrix.json` files into the off/on comparison table |
 
@@ -110,4 +111,6 @@ Summarise a (possibly partial) set of runs:
 ```sh
 python3 bench/ple-reader/summarize-ab.py \
   --md-out bench/results/2026-09-28-ple-reader-engine/summary.md
+# or run the whole matrix in one command:
+bench/ple-reader/run-all.sh
 ```
