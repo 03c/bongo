@@ -16,7 +16,11 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(dirname "${here}")"
 # shellcheck source=bench/gpu-lock.sh
 . "$here/gpu-lock.sh"
-scratch="${PAPERCLIP_RUN_SCRATCH_DIR:-${PAPERCLIP_SCRATCH_DIR:-$(mktemp -d)}}"
+# The server log is read after the server stops to aggregate the draft
+# acceptance, and the run is detached (it queues behind the single-GPU flock and
+# outlives the heartbeat that launched it). Keep it under BONGO_SPEC_SCRATCH
+# when set, because PAPERCLIP_RUN_SCRATCH_DIR is reaped when the run ends.
+scratch="${BONGO_SPEC_SCRATCH:-${PAPERCLIP_RUN_SCRATCH_DIR:-${PAPERCLIP_SCRATCH_DIR:-$(mktemp -d)}}}"
 mkdir -p "$scratch"
 
 BONGO_HOME="${BONGO_HOME:-$HOME/.bongo}"

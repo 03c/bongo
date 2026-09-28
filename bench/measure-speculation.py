@@ -516,6 +516,14 @@ def self_test():
 
     fields = draft_fields({"cache_n": 100, "draft_n": 10, "draft_n_accepted": 6}, None)
     assert fields["cache_n"] == 100 and abs(fields["draft_ratio"] - 0.6) < 1e-9, fields
+
+    # Workload classes: generic is the shipped corpus, docs is the repo text.
+    assert WORKLOADS == ("generic", "docs"), WORKLOADS
+    docs = load_docs_corpus()
+    assert isinstance(docs, str) and len(docs) > 1000, len(docs)
+    assert workload_corpus("docs") == docs
+    assert workload_corpus("generic") == CORPUS
+    assert workload_corpus("unknown") == CORPUS
     print("self-test: OK")
     return 0
 

@@ -14,6 +14,10 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(dirname "${here}")"
 out="${BONGO_SPEC_OUT:-$repo/bench/results/2026-09-28-speculation}"
+# The measurement is detached and queued behind the GPU lock, so its server
+# logs must survive the heartbeat that launched it.
+export BONGO_SPEC_SCRATCH="${BONGO_SPEC_SCRATCH:-$HOME/.bongo/m32b/scratch}"
+mkdir -p "$BONGO_SPEC_SCRATCH"
 workloads="${BONGO_SPEC_WORKLOADS:-generic,docs}"
 contexts="${BONGO_SPEC_CONTEXTS:-4096,131072}"
 repeats="${BONGO_SPEC_REPEATS:-2}"
