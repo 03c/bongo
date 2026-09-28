@@ -78,6 +78,16 @@ MODEL="${BONGO_MODEL:-bongo-iq2_xs}"
 
 log() { printf '[slot256 %s] %s\n' "$(date -u +%H:%M:%SZ)" "$*"; }
 
+# The slot file llama.cpp actually wrote: the filename verbatim, or a ".bin"
+# variant. Echoes nothing when neither exists, so callers can report absence.
+existing_slot_file() {
+  local p
+  for p in "$SLOT_DIR/ctx256-slot" "$SLOT_DIR/ctx256-slot.bin"; do
+    [[ -s "$p" ]] && { printf '%s' "$p"; return 0; }
+  done
+  return 1
+}
+
 server_pid() { cat "$BONGO_HOME_DIR/run/llama-server.pid" 2>/dev/null || true; }
 
 # start_server <stage-name>
@@ -130,7 +140,13 @@ measure() {
 }
 
 if (( PLAN_ONLY )); then
-  cat <<PLAN
+  if slot_path="$(existing_slot_file)"; then
+  slot_status="  found       $slot_path ($(stat -c%s "$slot_path") bytes) -- --restore-only can run now"
+else
+  slot_status="  found       no slot file yet -- run the full measurement first"
+fi
+
+cat <<PLAN
 plan (nothing started; no GPU taken)
   out         $OUT
   slot dir    $SLOT_DIR   (--slot-save-path, shared by both stages)
@@ -146,6 +162,7 @@ plan (nothing started; no GPU taken)
               turn ~50 min when the restored KV is not reused
   --restore-only  skip stage 1 and re-read the slot file already at
               $SLOT_DIR (resume after an interrupted run; no re-prefill)
+$slot_status
 PLAN
   exit 0
 fi
@@ -184,11 +201,11 @@ if (( RESTORE_ONLY )); then
   # Resuming an interrupted run: the prefill and save already happened, and the
   # slot file they produced is the input to the measurement. Refuse rather than
   # silently measure a cold slot, and never overwrite it.
-  if [[ ! -s "$SLOT_DIR/ctx256-slot" && ! -s "$SLOT_DIR/ctx256-slot.bin" ]]; then
+  if ! slot="$(existing_slot_file)"; then
     log "no saved slot in $SLOT_DIR; nothing to restore (run without --restore-only)"
     exit 10
   fi
-  log "=== restore-only: reusing the slot file already in $SLOT_DIR ==="
+  log "=== restore-only: reusing $slot ==="
   ls -l "$SLOT_DIR" >&2 || true
 else
   start_server save || exit 6
