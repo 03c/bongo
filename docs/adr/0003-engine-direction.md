@@ -73,15 +73,27 @@ This changes the target, not the direction:
 - **Primary metric is now per-turn TTFT under prefix reuse**, not the cold 128K prefill. Measured: a 512-token
   continuation over a 4K–31K cached prefix costs **3.9–5.1 s**, a full hit **0.19–0.30 s**, while a cold
   re-prefill of 31K costs 180 s and 128K costs 983 s. The harness had sent `cache_prompt: false`, so every
-  earlier number was cold; the cached path is the product path.
+  earlier number was cold; the cached path is the product path. The long-context points were then measured
+  ([BAS-132](/BAS/issues/BAS-132), `bench/results/2026-09-28-prefix-cache-longctx/`): the **512-token delta
+  turn costs 12.31 s at 128K cached (42.2 delta tok/s) and 10.87 s at 256K cached (48.2 delta tok/s)**, with
+  full hits at 0.53/0.66 s. **The `<=5 s` delta-turn target is not met at either long context**; the full
+  prefix is reused, so the whole cost is the delta prefill, and the rate falls from 96–133 tok/s at 4K–31K to
+  42–48 tok/s at 128K–256K. Closing that gap is the M3.1 (integer MMQ) and M3.2 (speculation) work, not a
+  cache-reuse fix.
 - **Prefix reuse and KV persistence become first-class engine requirements** (new milestone M3.0a below):
   `--cache-prompt` (on by default), `--slot-save-path` + slot save/restore for cross-idle/cross-restart
   sessions, `--cache-idle-slots`, and a harness mode that measures the cached path.
 - **Context target: 256K (measured, not assumed).** Fitting was measured directly (plan-review correction:
   the target is 256K, not 156K): **q8 KV at the shipped `--n-cpu-moe 16` reaches 31.79–31.82 GiB, within
   ~0.03 GiB of the 31.85 GiB device-loss point — unsafe**; **q8 KV at `n=18` sits at 30.35 GiB (safe)** and
-  **q4 KV at `n=16` sits at 30.10 GiB (safe)**. Recommended default: **q8 KV with `--n-cpu-moe 18`**; q4 KV
-  is the alternative. Milestone M3.5.
+  **q4 KV at `n=16` sits at 30.10 GiB (safe)**. **Shipped 256K default: q8 KV with `--n-cpu-moe 18`**; the
+  `--ctx 262144 --n-cpu-moe 18` recipe is recorded in
+  [`docs/bongo-sh.md`](../bongo-sh.md#long-context-256k--the-shipped-default). It was exercised end-to-end: a
+  256K cold prefill at 84.8 prompt tok/s with a 128K needle pass and a 30.92 GiB peak
+  (`bench/results/2026-09-28-ctx256-full/`), and the cached delta turn at 10.87 s / 30.86 GiB
+  (`bench/results/2026-09-28-prefix-cache-longctx/`). q4 KV at `n=16` is the documented alternative when
+  expert residency is worth more than KV precision. The Stage 0 Vulkan baseline (`--ctx 131072
+  --n-cpu-moe 16`) stays pinned and selectable. Milestone M3.5.
 - **The milestones are re-ordered** so the cheap, measured serving win ships before the kernel work:
   M3.0 backend A/B → **M3.0a prefix-cache serving + persistence** → M3.1 integer MMQ/MMVQ → M3.2 speculation
   → M3.3 placement → M3.4 PLE reader → M3.5 long-context/KV budget.

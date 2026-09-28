@@ -230,7 +230,13 @@ model load pays the shader/kernel compile (measured at ~27 s on the reference bo
 startup keeps that cost off the user's first turn. `--no-warmup` skips it for a cold-start A/B.
 
 See [`docs/research/agentic-prefix-cache.md`](research/agentic-prefix-cache.md) for the measured
-turn latency and the slot save/restore timings.
+turn latency and the slot save/restore timings, and
+[`bench/results/2026-09-28-prefix-cache-longctx/`](../bench/results/2026-09-28-prefix-cache-longctx/README.md)
+for the 128K/256K delta turn. The measured delta-turn TTFT is **12.31 s at 128K** (42.2 delta
+tok/s, peak VRAM 29.26 GiB) and **10.87 s at 256K** (48.2 delta tok/s, peak VRAM 30.86 GiB)
+against a `<=5 s` target: prefix reuse is complete (full hit 0.53/0.66 s), so the cost is the
+512-token delta prefill, and the gap is prompt-processing throughput — the M3.1 (integer MMQ)
+and M3.2 (speculation) levers.
 
 ## Tiers and MoE placement
 
@@ -245,6 +251,40 @@ layers; it is an estimate and is meant to be tuned by measurement (see
 [`docs/research/gguf-inventory.md`](research/gguf-inventory.md)). `--n-cpu-moe 0` keeps all
 experts on the GPU, and `--cpu-moe` (pass all experts to the CPU) is available by passing a
 large value.
+
+### Long context (256K) — the shipped default
+
+The per-tier `--n-cpu-moe` above is the default for a **131072** context. At the model's native
+**262144** limit that placement does not fit, so the 256K default is explicit:
+
+```sh
+./bongo.sh --ctx 262144 --n-cpu-moe 18      # q8 KV (the shipped KV default)
+```
+
+The fit was measured directly ([`bench/results/2026-09-28-ctx256-fit/`](../bench/results/2026-09-28-ctx256-fit/)):
+
+| 256K config | VRAM after load | verdict |
+| --- | ---: | --- |
+| q8 KV, `n=16` (tier default) | 31.79–31.82 GiB | **unsafe** — within ~0.03 GiB of the 31.85 GiB device-loss point |
+| **q8 KV, `n=18` (shipped)** | 30.35 GiB | **safe**, ~1.5 GiB margin, keeps KV precision |
+| q4 KV, `n=16` (alternative) | 30.10 GiB | safe, ~1.75 GiB margin, loses KV precision |
+
+**Shipped 256K default: q8 KV with `--n-cpu-moe 18`.** `q4 KV` with the tier default `n=16`
+is the documented alternative when expert residency is worth more than KV precision. This is a
+placement recommendation, not an automatic switch: `bongo.sh` does not change `--n-cpu-moe` on
+`--ctx`, so a 256K run must pass `--n-cpu-moe 18` explicitly. The pinned Stage 0 baseline
+(`--ctx 131072 --n-cpu-moe 16`) stays selectable and unchanged.
+
+The default was then exercised end-to-end:
+
+- cold prefill at 262144: **84.8 prompt tok/s**, 128K needle **pass**, peak VRAM **30.92 GiB**
+  ([`bench/results/2026-09-28-ctx256-full/`](../bench/results/2026-09-28-ctx256-full/));
+- the cached 512-token agentic turn at 256K: full hit **0.66 s**, **512-token delta turn 10.87 s**
+  at 48.2 delta tok/s, peak VRAM **30.86 GiB**
+  ([`bench/results/2026-09-28-prefix-cache-longctx/`](../bench/results/2026-09-28-prefix-cache-longctx/)).
+
+The product `<=5 s` delta-turn target is **not met** at 128K (12.31 s) or 256K (10.87 s); see
+[§ Prefix-cache serving](#prefix-cache-serving-the-agentic-path) and the ADR-0003 amendment.
 
 ## Generated config
 
