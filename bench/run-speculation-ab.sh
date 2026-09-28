@@ -42,6 +42,7 @@ spec_type="none"; spec_synth_len=""; spec_synth_rates=""; extra=()
 contexts="${BONGO_SPEC_CONTEXTS:-4096,131072}"
 max_tokens="${BONGO_SPEC_MAX_TOKENS:-128}"
 repeats="${BONGO_SPEC_REPEATS:-2}"
+workloads="${BONGO_SPEC_WORKLOADS:-generic}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -51,6 +52,7 @@ while [ $# -gt 0 ]; do
     --contexts) contexts="${2:?}"; shift 2;;
     --max-tokens) max_tokens="${2:?}"; shift 2;;
     --repeats) repeats="${2:?}"; shift 2;;
+    --workloads) workloads="${2:?}"; shift 2;;
     --) shift; extra+=("$@"); break;;
     *) extra+=("$1"); shift;;
   esac
@@ -107,13 +109,19 @@ done
 echo "server healthy; running measurement"
 
 note="engine=llama.cpp $REV (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=$N_CPU_MOE ctx=$CTX spec_type=$spec_type synth_len=${spec_synth_len:-none} flags=${flags[*]}"
-python3 "$here/measure-speculation.py" run \
-  --base-url "http://$HOST:$PORT/v1" --model bongo-iq2_xs --tier iq2_xs \
-  --label "$label" --spec-type "$spec_type" \
-  --spec-synth "${spec_synth_len:-${spec_synth_rates:-none}}" \
-  --contexts "$contexts" --max-tokens "$max_tokens" --repeats "$repeats" \
-  --context-limit-guard "$CTX" \
-  --server-log "$log" --server-note "$note" \
-  --out "$OUT_DIR/$label.json" "${extra[@]}"
+IFS=',' read -ra wl_list <<< "$workloads"
+for wl in "${wl_list[@]}"; do
+  wl="${wl// /}"
+  [ -n "$wl" ] || continue
+  echo "measuring workload=$wl"
+  python3 "$here/measure-speculation.py" run \
+    --base-url "http://$HOST:$PORT/v1" --model bongo-iq2_xs --tier iq2_xs \
+    --label "$label" --spec-type "$spec_type" --workload "$wl" \
+    --spec-synth "${spec_synth_len:-${spec_synth_rates:-none}}" \
+    --contexts "$contexts" --max-tokens "$max_tokens" --repeats "$repeats" \
+    --context-limit-guard "$CTX" \
+    --server-log "$log" --server-note "$note workload=$wl" \
+    --out "$OUT_DIR/$label-$wl.json" "${extra[@]}"
+done
 echo "note: $note"
-echo "saved $OUT_DIR/$label.json"
+echo "saved $OUT_DIR/$label-{$(echo "$workloads" | tr ',' ',')}.json"

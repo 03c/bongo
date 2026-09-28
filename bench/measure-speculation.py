@@ -58,6 +58,43 @@ MODEL = os.environ.get("BONGO_MODEL", "bongo-iq2_xs")
 SCHEMA_RUN = "bongo.speculation-run.v1"
 SCHEMA_CMP = "bongo.speculation-compare.v1"
 
+# Workload classes.  The n-gram drafter proposes the continuation that followed
+# the longest matching context suffix, so acceptance is dominated by how much
+# the generated tokens repeat the context, not by the drafter.
+#
+#   generic -> the shipped 5-sentence corpus, repeated to fill the context:
+#              pathological repetition, an upper bound on acceptance.
+#   docs    -> the repository's own markdown, concatenated in path order:
+#              largely non-repeating, a lower bound on acceptance.
+WORKLOADS = ("generic", "docs")
+
+
+def _repo_root():
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def load_docs_corpus():
+    """Concatenate the repo's markdown in deterministic path order."""
+    docs = os.path.join(_repo_root(), "docs")
+    parts = []
+    for root, dirs, files in os.walk(docs):
+        dirs.sort()
+        for name in sorted(files):
+            if name.endswith(".md"):
+                try:
+                    with open(os.path.join(root, name), errors="replace") as fh:
+                        parts.append(fh.read())
+                except OSError:
+                    continue
+    text = "\n\n".join(parts).strip()
+    return text or CORPUS
+
+
+def workload_corpus(name):
+    if name == "docs":
+        return load_docs_corpus()
+    return CORPUS
+
 DRAFT_RE = re.compile(
     r"draft acceptance\s*=\s*(?P<ratio>[0-9.]+)\s*"
     r"\(\s*(?P<acc>\d+)\s+accepted\s*/\s*(?P<gen>\d+)\s+generated\s*\)\s*,?\s*"
@@ -237,6 +274,7 @@ def run_measurement(args):
     props = props_res.json if isinstance(props_res.json, dict) else {}
 
     contexts = [int(x) for x in str(args.contexts).replace(" ", "").split(",") if x]
+    corpus = workload_corpus(args.workload)
 
     # Warm the server once so the first measured request is not the shader compile.
     warm = stream_measure(base_url, args.model, tk.size_to(args.warmup_tokens), 1, args.timeout)
@@ -251,6 +289,7 @@ def run_measurement(args):
         "label": args.label,
         "spec_type": args.spec_type,
         "spec_synth": args.spec_synth,
+        "workload": args.workload,
         "base_url": base_url,
         "model": args.model,
         "tier": args.tier,
@@ -276,7 +315,7 @@ def run_measurement(args):
         entry = {"context": ctx, "equiv": None, "decode": [], "summary": {}, "acceptance": None,
                  "acceptance_runs": []}
         hard_max = max(1, args.context_limit_guard - args.max_tokens if args.context_limit_guard else ctx)
-        prompt = tk.size_to(ctx, CORPUS, hard_max=hard_max)
+        prompt = tk.size_to(ctx, corpus, hard_max=hard_max)
         actual = tk.count(prompt)
         entry["prompt_tokens"] = actual
         print(f"== context {ctx} (actual prompt {actual} tokens) ==", flush=True)
@@ -395,6 +434,7 @@ def compare_runs(baseline, spec):
         "generated_at": now_iso(),
         "baseline_label": baseline.get("label"),
         "spec_label": spec.get("label"),
+        "workload": spec.get("workload") or baseline.get("workload"),
         "spec_type": spec.get("spec_type"),
         "contexts": results,
         "verdict": {
@@ -493,6 +533,8 @@ def parse_args(argv=None):
     r.add_argument("--base-url", default=BASE)
     r.add_argument("--model", default=MODEL)
     r.add_argument("--tier", default=os.environ.get("BONGO_TIER", "iq2_xs"))
+    r.add_argument("--workload", default="generic", choices=list(WORKLOADS),
+                   help="prompt class: generic (repetitive) or docs (diverse)")
     r.add_argument("--contexts", default="4096,131072")
     r.add_argument("--max-tokens", type=int, default=128)
     r.add_argument("--repeats", type=int, default=3)

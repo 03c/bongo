@@ -80,6 +80,10 @@ bongo_gpu_lock_acquire() {
   local rc=0
   if [[ "$timeout" == "0" ]]; then
     flock -n "$BONGO_GPU_LOCK_FD" || rc=$?
+  elif [[ "$timeout" == "-1" ]]; then
+    # Block until the holder exits.  `flock -w -1` is not a valid argument
+    # ("cannot set up timer"), so wait forever with a plain blocking flock.
+    flock "$BONGO_GPU_LOCK_FD" || rc=$?
   else
     flock -w "$timeout" "$BONGO_GPU_LOCK_FD" || rc=$?
   fi
