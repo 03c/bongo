@@ -48,6 +48,59 @@ def build_prompt(tk, tokens):
     return build_needle_document(filler)
 
 
+def _json_int(body, key):
+    """Read one integer out of a llama-server /slots response body ("" if absent)."""
+    try:
+        return json.loads(body).get(key)
+    except (TypeError, ValueError):
+        return None
+
+
+def run_delta_turn(tk, base, args):
+    """One agentic delta turn over the restored slot: a 131K-prefix hit, then the
+    same prefix plus a 512-token delta.
+
+    This measures *in-session* prefix reuse over a trimmed cache, not restore
+    itself, and at 256K its two cold prefills cost about an hour, so
+    `--skip-delta` drops it when only the save/restore numbers matter.
+    """
+    prefix_text = tk.size_to(args.delta_prefix, CORPUS, hard_max=args.delta_prefix)
+    delta_text = tk.size_to(
+        args.delta,
+        corpus="The reviewer noted the following delta. " + CORPUS,
+        seed=" | turn 1 ",
+    )
+    grow_text = prefix_text + delta_text
+    turn = {
+        "prefix_tokens_requested": args.delta_prefix,
+        "delta_tokens_requested": args.delta,
+        "prompt_tokens": tk.count(grow_text),
+    }
+    extra = {"cache_prompt": True, "ignore_eos": True}
+
+    hit = streaming_measure(base, args.model, prefix_text, args.max_tokens, args.timeout, extra=extra)
+    turn["prefix_hit"] = {
+        "prompt_tokens": hit.get("prompt_tokens"),
+        "cached_tokens": (hit.get("usage") or {}).get("prompt_tokens_details", {}).get("cached_tokens"),
+        "ttft_ms": hit.get("ttft_ms"),
+        "status": hit.get("status"),
+    }
+
+    grow = streaming_measure(base, args.model, grow_text, args.max_tokens, args.timeout, extra=extra)
+    turn["grow"] = {
+        "prompt_tokens": grow.get("prompt_tokens"),
+        "prompt_ms": grow.get("prompt_ms"),
+        "prompt_tps": grow.get("prompt_tps"),
+        "cached_tokens": (grow.get("usage") or {}).get("prompt_tokens_details", {}).get("cached_tokens"),
+        "ttft_ms": grow.get("ttft_ms"),
+        "output_ms": grow.get("output_ms"),
+        "output_tps": grow.get("output_tps"),
+        "wall_ms": grow.get("wall_ms"),
+        "status": grow.get("status"),
+    }
+    return turn
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["save", "restore"], required=True)
@@ -62,6 +115,12 @@ def main():
     ap.add_argument("--timeout", type=float, default=3600)
     ap.add_argument("--delta-prefix", type=int, default=131072)
     ap.add_argument("--delta", type=int, default=512)
+    ap.add_argument(
+        "--skip-delta",
+        action="store_true",
+        help="Skip the 128K-class delta turn. It exercises in-session prefix reuse over the "
+             "restored slot, not restore itself, and at 256K its two cold prefills cost ~1 h.",
+    )
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -185,53 +244,28 @@ def main():
         )
         record["verify_hit"] = rec
         record["verify_hit_prompt_tokens"] = rec.get("prompt_tokens")
+        record["verify_hit_cache_n"] = rec.get("cache_n")
         record["verify_hit_cached_tokens"] = (rec.get("usage") or {}).get("prompt_tokens_details", {}).get(
             "cached_tokens"
         )
+        record["verify_hit_prompt_ms"] = rec.get("prompt_ms")
         record["verify_hit_ttft_ms"] = rec.get("ttft_ms")
+        # A restored slot only helps if the next request reuses it instead of
+        # re-processing every token (see docs/bongo-sh.md "Slot KV persistence").
+        restored_n = ((record.get("restore") or {}).get("body") or "")
+        record["restore_n_restored"] = _json_int(restored_n, "n_restored")
+        record["restore_verified"] = bool(
+            record["verify_hit_cache_n"] and record["verify_hit_cache_n"] > 0
+        )
 
         # A 128K-class agentic delta turn over the restored (trimmed) cache.
         # The shorter prefix is a prefix of the 256K prompt, so the slot is
         # rewound to ~131K and only the 512-token suffix is prefilled.
-        prefix_text = tk.size_to(args.delta_prefix, CORPUS, hard_max=args.delta_prefix)
-        delta_seed = " | turn 1 "
-        delta_text = tk.size_to(
-            args.delta,
-            corpus="The reviewer noted the following delta. " + CORPUS,
-            seed=delta_seed,
+        record["delta_turn"] = (
+            {"skipped": True, "reason": "--skip-delta"}
+            if args.skip_delta
+            else run_delta_turn(tk, base, args)
         )
-        grow_text = prefix_text + delta_text
-        delta_turn = {
-            "prefix_tokens_requested": args.delta_prefix,
-            "delta_tokens_requested": args.delta,
-            "prompt_tokens": tk.count(grow_text),
-        }
-        hit = streaming_measure(
-            base, args.model, prefix_text, args.max_tokens, args.timeout,
-            extra={"cache_prompt": True, "ignore_eos": True},
-        )
-        delta_turn["prefix_hit"] = {
-            "prompt_tokens": hit.get("prompt_tokens"),
-            "cached_tokens": (hit.get("usage") or {}).get("prompt_tokens_details", {}).get("cached_tokens"),
-            "ttft_ms": hit.get("ttft_ms"),
-            "status": hit.get("status"),
-        }
-        grow = streaming_measure(
-            base, args.model, grow_text, args.max_tokens, args.timeout,
-            extra={"cache_prompt": True, "ignore_eos": True},
-        )
-        delta_turn["grow"] = {
-            "prompt_tokens": grow.get("prompt_tokens"),
-            "prompt_ms": grow.get("prompt_ms"),
-            "prompt_tps": grow.get("prompt_tps"),
-            "cached_tokens": (grow.get("usage") or {}).get("prompt_tokens_details", {}).get("cached_tokens"),
-            "ttft_ms": grow.get("ttft_ms"),
-            "output_ms": grow.get("output_ms"),
-            "output_tps": grow.get("output_tps"),
-            "wall_ms": grow.get("wall_ms"),
-            "status": grow.get("status"),
-        }
-        record["delta_turn"] = delta_turn
 
     out_path.write_text(json.dumps(record, indent=2))
     print(json.dumps(record, indent=2))
