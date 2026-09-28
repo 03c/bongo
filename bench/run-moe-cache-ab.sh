@@ -87,5 +87,23 @@ case "$only" in
   *) log "ERROR: --only must be baseline|lru|both"; exit 2;;
 esac
 
+# Acceptance comparison from the raw files (skipped on dry-run or a failed run)
+if (( ! dry_run )) && (( rc == 0 )); then
+  a_matrix="$out_root/ncmoe-48-moe-lru/matrix.json"
+  b_matrix="$out_root/ncmoe-16-stage0/matrix.json"
+  a_prefix="$out_root/ncmoe-48-moe-lru/prefix-cache/prefix-cache.json"
+  b_prefix="$out_root/ncmoe-16-stage0/prefix-cache/prefix-cache.json"
+  if [[ -f "$a_matrix" && -f "$b_matrix" ]]; then
+    args=(--a "$a_matrix" --b "$b_matrix" --out "$out_root")
+    [[ -f "$a_prefix" ]] && args+=(--a-prefix "$a_prefix")
+    [[ -f "$b_prefix" ]] && args+=(--b-prefix "$b_prefix")
+    [[ -f "$out_root/moe-cache-stats.json" ]] && args+=(--cache-stats "$out_root/moe-cache-stats.json")
+    log "comparing the A/B (${args[*]})"
+    python3 bench/compare-moe-cache-ab.py "${args[@]}" || log "comparison failed; raw matrices are still on disk"
+  else
+    log "matrix.json missing on one side; skipping the acceptance comparison"
+  fi
+fi
+
 log "done (rc=$rc); results in $out_root"
 exit $rc

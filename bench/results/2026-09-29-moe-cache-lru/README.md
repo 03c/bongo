@@ -63,7 +63,11 @@ Arc Pro B70 flock ([BAS-80](/BAS/issues/BAS-80)) through the same harness
 
 The engine also exposes `llama_moe_cache_stats()` and the periodic JSON
 `moe-cache-stats.json` snapshot (steps, hits, misses, hit rate, per-layer slots)
-so the measured run carries engine-side coverage.
+so the measured run carries engine-side coverage. `bench/run-moe-cache-ab.sh`
+ends by running `bench/compare-moe-cache-ab.py` on the two raw `matrix.json` and
+`prefix-cache.json` files, which writes `moe-cache-ab.json` + `moe-cache-ab.md`
+and evaluates the acceptance criteria (≥ +20% 4K decode or ≤ −15% turn TTFT,
+no long-context regression > 2%, needle on both sides).
 
 ```sh
 # build the engine, then the A/B
@@ -78,7 +82,8 @@ bench/run-moe-cache-ab.sh               # both configs, one session
   `--help` shows `--moe-expert-cache{,-inserts,-profile,-stats}`).
 - Profile: **generated** (16,735 cells, 22.40 GiB, coverage 0.9852).
 - A/B selector + harness: **wired** (`bench/run-moe-cache-ab.sh --dry-run`
-  verified).
+  verified; `bench/compare-moe-cache-ab.py` computes the acceptance verdict from
+  the raw matrices, covered by `tests/compare-moe-cache-ab.test.py`).
 - On-GPU A/B: **pending** — the single Arc holds the [BAS-130](/BAS/issues/BAS-130)
   warm-prefix run (`~/.bongo/gpu.lock.holder`). No result numbers are recorded
   here until that run completes.
