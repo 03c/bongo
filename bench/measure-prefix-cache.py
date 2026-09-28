@@ -34,11 +34,32 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from bench_lib import Tokenizer, CORPUS, now_iso, post_json, server_root  # noqa: E402
+from bench_lib import CORPUS, Tokenizer, get_json, now_iso, post_json, read_text, server_root  # noqa: E402
 from harness import streaming_measure  # noqa: E402
 
 BASE = os.environ.get("BONGO_BASE_URL", "http://127.0.0.1:8080/v1")
 MODEL = os.environ.get("BONGO_MODEL", "bongo-iq2_xs")
+
+
+def server_record(pid):
+    """Engine revision, props and the exact server argv, so a number is reproducible."""
+    root = server_root(BASE)
+    props_res = get_json(root, "/props", 15)
+    rec = {
+        "base_url": BASE,
+        "server_root": root,
+        "props": props_res.json if isinstance(props_res.json, dict) else None,
+        "props_status": props_res.status,
+        "pid": pid,
+        "flags": None,
+        "cmdline": None,
+    }
+    if pid:
+        raw = read_text(f"/proc/{pid}/cmdline")
+        if raw:
+            rec["flags"] = raw.split("\x00")
+        rec["cmdline"] = raw
+    return rec
 
 
 def make_delta(tk, tokens, tag):
@@ -129,6 +150,12 @@ def main():
         help="directory the server was started with --slot-save-path (for file size)",
     )
     ap.add_argument("--no-slot", dest="measure_slot", action="store_false", default=True)
+    ap.add_argument(
+        "--server-pid",
+        type=int,
+        default=int(os.environ.get("BONGO_SERVER_PID", "0")) or None,
+        help="llama-server pid (records the exact argv)",
+    )
     args = ap.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
@@ -145,6 +172,7 @@ def main():
         "delta_tokens": args.delta,
         "slot_id": args.slot_id,
         "slot_save_dir": args.slot_save_dir or None,
+        "server": server_record(args.server_pid),
         "runs": [],
         "slot": None,
     }
