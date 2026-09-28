@@ -122,7 +122,7 @@ For the two corpora with a decode tail the prefill uses `tokens[0 .. n-k)` and d
 
 `ffn_moe_topk-47` reports `ne1 = 1` in every prefill: llama.cpp only needs the final position's output from
 the last layer, so prefill evaluates layer 47's MoE for one token. Layer 47 is therefore nearly absent from
-the prefill counts (40 events of 4.6 M). This is why the prefill static-layer coverage is `31/47 = 0.6596`
+the prefill counts (40 events of 4.38 M). This is why the prefill static-layer coverage is `31/47 = 0.6596`
 rather than `32/48`: the layer rule reserves layer 47's 773 MB of experts but collects almost no hits from it.
 Decode runs all 48 layers per token, and the decode analysis recovers layer 47 (its top-10 share is 0.26-0.30,
 in line with the 0.23-0.25 mean of the other layers).
@@ -140,7 +140,7 @@ on the CPU, layers `N..47` resident.
 
 ### 1. The routing distribution is concentrated, but not trivially so
 
-Pooled over all 9,309 prefill tokens and 4.47 M `(layer, expert)` selections:
+Pooled over all 9,309 prefill tokens and 4.38 M `(layer, expert)` selections:
 
 - **23,014 of 24,576** `(layer, expert)` cells are touched at least once (93.6%).
 - Entropy **9.38 bits**, i.e. **~11,900 effective experts** of 24,576.
