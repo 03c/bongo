@@ -1,0 +1,31 @@
+# Quiescent-window PLE SSD measurement (raw console summary)
+
+Run: 2026-09-28 07:49 local, reference box.
+Command:
+
+    python3 bench/measure-ssd-ngram.py \
+      --inventory bench/results/2026-09-28-ssd-ngram-shard/raw/gguf-inventory-iq2xs.json \
+      --out bench/results/2026-09-28-ssd-ngram-shard/raw/ssd-ngram-latency.json \
+      --reads 4000 --tokens 1000
+
+This run completed before the co-resident `llama-bench` + `route_capture` workload
+(the one that produced `ssd-ngram-latency-run1..3.json`) started. The output JSON
+was afterwards overwritten by an instrumented, contended repeat; this file keeps
+the summary. The p50 == p99 signature of the QD1 row is the idle-device signature.
+
+```
+  direct_qd1               p50=   136.5us p99=    140.3us iops=     7861
+  direct_qd16              p50=   178.8us p99=    481.8us iops=    76348
+  buffered_warm            p50=     0.7us p99=      1.3us iops=     nan
+  buffered_cold_dontneed   p50=   103.6us p99=    138.4us iops=     nan
+  token_window_qd1         p50=  1654.7us p99=   1872.4us iops=     599
+  token_window_qd2         p50=   850.6us p99=    989.9us iops=    1149
+  token_window_qd4         p50=   518.3us p99=    676.7us iops=    1798
+  token_window_qd8         p50=   357.6us p99=    521.4us iops=    2288
+  token_window_qd16        p50=   259.1us p99=    416.7us iops=    2278
+```
+
+An independent, shorter quiescent run (`--reads 200 --tokens 50`, 256 MiB
+evict window) on the same day gave the same latencies: direct QD1 p50 138.0us,
+direct QD16 p50 166.4us, token window QD1 p50 2104.6us, token window QD16
+p50 262.5us.

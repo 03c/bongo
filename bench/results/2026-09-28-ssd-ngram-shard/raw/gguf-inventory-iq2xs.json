@@ -1,0 +1,5288 @@
+{
+ "source": {
+  "repo": null,
+  "files": [
+   "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf"
+  ],
+  "local": "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+  "requested": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf"
+ },
+ "gguf_version": 3,
+ "alignment": 32,
+ "metadata": {
+  "general.architecture": "qwen4exp",
+  "general.name": "Swift Flash Next",
+  "general.size_label": "512x56B",
+  "qwen4exp.ple.layers": [
+   1
+  ],
+  "qwen4exp.ple.ngram_size": 3,
+  "qwen4exp.ple.heads_per_ngram": 8,
+  "qwen4exp.ple.conv_kernel": 4,
+  "qwen4exp.ple.eos_token_id": 248044,
+  "qwen4exp.ple.image_token_id": 248056,
+  "qwen4exp.ple.layer_multipliers": [
+   23703573157769,
+   20109073645365,
+   8052911324071
+  ],
+  "qwen4exp.ple.head_offsets": [
+   0,
+   20000003,
+   40000026,
+   60000059,
+   80000106,
+   100000165,
+   120000228,
+   140000297,
+   160000374,
+   180000455,
+   200000548,
+   220000655,
+   240000802,
+   260000955,
+   280001114,
+   300001275
+  ],
+  "qwen4exp.ple.head_vocab_sizes": [
+   20000003,
+   20000023,
+   20000033,
+   20000047,
+   20000059,
+   20000063,
+   20000069,
+   20000077,
+   20000081,
+   20000093,
+   20000107,
+   20000147,
+   20000153,
+   20000159,
+   20000161,
+   20000171
+  ],
+  "general.quantization_version": 2,
+  "general.file_type": 20,
+  "split.no": 0,
+  "split.tensors.count": 1224,
+  "split.count": 2
+ },
+ "bytes_fetched": 10967802,
+ "range_requests": 1242967,
+ "shards": [
+  {
+   "file": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "bytes": 39788473344,
+   "header_bytes": 10967802,
+   "data_section_offset": 10967808,
+   "data_section_bytes": 39777505536,
+   "tensor_data_bytes": 39777505536,
+   "padding_bytes": 0,
+   "tensor_count": 342,
+   "split_no": 0,
+   "split_count": 2,
+   "split_tensors_count": 1224,
+   "bytes_fetched": 10967802,
+   "range_requests": 1242967,
+   "tensor_byte_bytes_by_bucket": {
+    "embed_head": 675430400,
+    "other": 907159296,
+    "ngram_table": 28800138240,
+    "experts": 9358540800,
+    "shared_experts": 36236800
+   }
+  }
+ ],
+ "tensor_count": 342,
+ "total_tensor_bytes": 39777505536,
+ "buckets": {
+  "embed_head": {
+   "count": 2,
+   "bytes": 675430400,
+   "types": {
+    "IQ4_XS": 2
+   }
+  },
+  "other": {
+   "count": 261,
+   "bytes": 907159296,
+   "types": {
+    "BF16": 108,
+    "F32": 108,
+    "IQ3_S": 6,
+    "IQ4_XS": 35,
+    "F16": 1,
+    "Q6_K": 3
+   }
+  },
+  "ngram_table": {
+   "count": 1,
+   "bytes": 28800138240,
+   "types": {
+    "IQ4_NL": 1
+   }
+  },
+  "experts": {
+   "count": 39,
+   "bytes": 9358540800,
+   "types": {
+    "Q2_0": 13,
+    "IQ2_S": 14,
+    "IQ2_XXS": 10,
+    "IQ1_M": 2
+   }
+  },
+  "shared_experts": {
+   "count": 39,
+   "bytes": 36236800,
+   "types": {
+    "IQ4_NL": 8,
+    "IQ3_S": 6,
+    "IQ4_XS": 15,
+    "Q6_K": 5,
+    "Q8_0": 2,
+    "Q2_0": 3
+   }
+  }
+ },
+ "classes": {
+  "attn_gate.weight": {
+   "count": 11,
+   "bytes": 85524480,
+   "types": {
+    "IQ3_S": 4,
+    "IQ4_XS": 7
+   },
+   "bucket": "other"
+  },
+  "attn_k.weight": {
+   "count": 3,
+   "bytes": 2846720,
+   "types": {
+    "Q6_K": 2,
+    "IQ4_XS": 1
+   },
+   "bucket": "other"
+  },
+  "attn_k_norm.weight": {
+   "count": 3,
+   "bytes": 3072,
+   "types": {
+    "F32": 3
+   },
+   "bucket": "other"
+  },
+  "attn_output.weight": {
+   "count": 3,
+   "bytes": 23470080,
+   "types": {
+    "IQ3_S": 1,
+    "IQ4_XS": 2
+   },
+   "bucket": "other"
+  },
+  "attn_q.weight": {
+   "count": 3,
+   "bytes": 50135040,
+   "types": {
+    "IQ4_XS": 3
+   },
+   "bucket": "other"
+  },
+  "attn_q_norm.weight": {
+   "count": 3,
+   "bytes": 3072,
+   "types": {
+    "F32": 3
+   },
+   "bucket": "other"
+  },
+  "attn_qkv.weight": {
+   "count": 11,
+   "bytes": 153190400,
+   "types": {
+    "IQ4_XS": 11
+   },
+   "bucket": "other"
+  },
+  "attn_v.weight": {
+   "count": 3,
+   "bytes": 2467840,
+   "types": {
+    "IQ4_XS": 2,
+    "Q6_K": 1
+   },
+   "bucket": "other"
+  },
+  "ffn_down_exps.weight": {
+   "count": 13,
+   "bytes": 3067084800,
+   "types": {
+    "Q2_0": 13
+   },
+   "bucket": "experts"
+  },
+  "ffn_down_shexp.weight": {
+   "count": 13,
+   "bytes": 12236800,
+   "types": {
+    "IQ4_NL": 8,
+    "Q8_0": 2,
+    "Q2_0": 3
+   },
+   "bucket": "shared_experts"
+  },
+  "ffn_gate_exps.weight": {
+   "count": 13,
+   "bytes": 3145728000,
+   "types": {
+    "IQ2_S": 7,
+    "IQ2_XXS": 5,
+    "IQ1_M": 1
+   },
+   "bucket": "experts"
+  },
+  "ffn_gate_inp.weight": {
+   "count": 13,
+   "bytes": 68157440,
+   "types": {
+    "F32": 13
+   },
+   "bucket": "other"
+  },
+  "ffn_gate_inp_shexp.weight": {
+   "count": 13,
+   "bytes": 133120,
+   "types": {
+    "F32": 13
+   },
+   "bucket": "other"
+  },
+  "ffn_gate_shexp.weight": {
+   "count": 13,
+   "bytes": 12403200,
+   "types": {
+    "IQ3_S": 2,
+    "Q6_K": 3,
+    "IQ4_XS": 8
+   },
+   "bucket": "shared_experts"
+  },
+  "ffn_up_exps.weight": {
+   "count": 13,
+   "bytes": 3145728000,
+   "types": {
+    "IQ2_S": 7,
+    "IQ2_XXS": 5,
+    "IQ1_M": 1
+   },
+   "bucket": "experts"
+  },
+  "ffn_up_shexp.weight": {
+   "count": 13,
+   "bytes": 11596800,
+   "types": {
+    "IQ4_XS": 7,
+    "IQ3_S": 4,
+    "Q6_K": 2
+   },
+   "bucket": "shared_experts"
+  },
+  "hc_attn_down.weight": {
+   "count": 13,
+   "bytes": 85196800,
+   "types": {
+    "BF16": 13
+   },
+   "bucket": "other"
+  },
+  "hc_attn_inject.weight": {
+   "count": 13,
+   "bytes": 1064960,
+   "types": {
+    "BF16": 13
+   },
+   "bucket": "other"
+  },
+  "hc_attn_norm.weight": {
+   "count": 13,
+   "bytes": 532480,
+   "types": {
+    "F32": 13
+   },
+   "bucket": "other"
+  },
+  "hc_attn_up.weight": {
+   "count": 13,
+   "bytes": 85196800,
+   "types": {
+    "BF16": 13
+   },
+   "bucket": "other"
+  },
+  "hc_ffn_down.weight": {
+   "count": 13,
+   "bytes": 85196800,
+   "types": {
+    "BF16": 13
+   },
+   "bucket": "other"
+  },
+  "hc_ffn_inject.weight": {
+   "count": 13,
+   "bytes": 1064960,
+   "types": {
+    "BF16": 13
+   },
+   "bucket": "other"
+  },
+  "hc_ffn_norm.weight": {
+   "count": 13,
+   "bytes": 532480,
+   "types": {
+    "F32": 13
+   },
+   "bucket": "other"
+  },
+  "hc_ffn_up.weight": {
+   "count": 13,
+   "bytes": 85196800,
+   "types": {
+    "BF16": 13
+   },
+   "bucket": "other"
+  },
+  "indexer.k_norm.weight": {
+   "count": 3,
+   "bytes": 1536,
+   "types": {
+    "F32": 3
+   },
+   "bucket": "other"
+  },
+  "indexer.k_proj.weight": {
+   "count": 3,
+   "bytes": 1966080,
+   "types": {
+    "BF16": 3
+   },
+   "bucket": "other"
+  },
+  "indexer.q_norm.weight": {
+   "count": 3,
+   "bytes": 1536,
+   "types": {
+    "F32": 3
+   },
+   "bucket": "other"
+  },
+  "indexer.q_proj.weight": {
+   "count": 3,
+   "bytes": 7864320,
+   "types": {
+    "BF16": 3
+   },
+   "bucket": "other"
+  },
+  "output.weight": {
+   "count": 1,
+   "bytes": 337715200,
+   "types": {
+    "IQ4_XS": 1
+   },
+   "bucket": "embed_head"
+  },
+  "output_hc_down.weight": {
+   "count": 1,
+   "bytes": 6553600,
+   "types": {
+    "BF16": 1
+   },
+   "bucket": "other"
+  },
+  "output_hc_norm.weight": {
+   "count": 1,
+   "bytes": 40960,
+   "types": {
+    "F32": 1
+   },
+   "bucket": "other"
+  },
+  "output_hc_up.weight": {
+   "count": 1,
+   "bytes": 6553600,
+   "types": {
+    "BF16": 1
+   },
+   "bucket": "other"
+  },
+  "per_layer_token_embd.weight": {
+   "count": 1,
+   "bytes": 28800138240,
+   "types": {
+    "IQ4_NL": 1
+   },
+   "bucket": "ngram_table"
+  },
+  "ple_conv1d.weight": {
+   "count": 1,
+   "bytes": 81920,
+   "types": {
+    "F16": 1
+   },
+   "bucket": "other"
+  },
+  "ple_key.weight": {
+   "count": 1,
+   "bytes": 52428800,
+   "types": {
+    "BF16": 1
+   },
+   "bucket": "other"
+  },
+  "ple_norm_conv.weight": {
+   "count": 1,
+   "bytes": 40960,
+   "types": {
+    "F32": 1
+   },
+   "bucket": "other"
+  },
+  "ple_norm_key.weight": {
+   "count": 1,
+   "bytes": 40960,
+   "types": {
+    "F32": 1
+   },
+   "bucket": "other"
+  },
+  "ple_norm_query.weight": {
+   "count": 1,
+   "bytes": 40960,
+   "types": {
+    "F32": 1
+   },
+   "bucket": "other"
+  },
+  "ple_value.weight": {
+   "count": 1,
+   "bytes": 13107200,
+   "types": {
+    "BF16": 1
+   },
+   "bucket": "other"
+  },
+  "ssm_a": {
+   "count": 10,
+   "bytes": 1920,
+   "types": {
+    "F32": 10
+   },
+   "bucket": "other"
+  },
+  "ssm_alpha.weight": {
+   "count": 10,
+   "bytes": 2457600,
+   "types": {
+    "BF16": 10
+   },
+   "bucket": "other"
+  },
+  "ssm_beta.weight": {
+   "count": 10,
+   "bytes": 2457600,
+   "types": {
+    "BF16": 10
+   },
+   "bucket": "other"
+  },
+  "ssm_conv1d.weight": {
+   "count": 10,
+   "bytes": 1638400,
+   "types": {
+    "F32": 10
+   },
+   "bucket": "other"
+  },
+  "ssm_dt.bias": {
+   "count": 10,
+   "bytes": 1920,
+   "types": {
+    "F32": 10
+   },
+   "bucket": "other"
+  },
+  "ssm_norm.weight": {
+   "count": 10,
+   "bytes": 5120,
+   "types": {
+    "F32": 10
+   },
+   "bucket": "other"
+  },
+  "ssm_out.weight": {
+   "count": 10,
+   "bytes": 81960960,
+   "types": {
+    "IQ4_XS": 9,
+    "IQ3_S": 1
+   },
+   "bucket": "other"
+  },
+  "token_embd.weight": {
+   "count": 1,
+   "bytes": 337715200,
+   "types": {
+    "IQ4_XS": 1
+   },
+   "bucket": "embed_head"
+  }
+ },
+ "tensors": [
+  {
+   "name": "output.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    248320
+   ],
+   "elements": 635699200,
+   "bytes": 337715200,
+   "offset": 0,
+   "bucket": "embed_head"
+  },
+  {
+   "name": "output_hc_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 337715200,
+   "bucket": "other"
+  },
+  {
+   "name": "output_hc_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 344268800,
+   "bucket": "other"
+  },
+  {
+   "name": "output_hc_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 344309760,
+   "bucket": "other"
+  },
+  {
+   "name": "per_layer_token_embd.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    160,
+    320001536
+   ],
+   "elements": 51200245760,
+   "bytes": 28800138240,
+   "offset": 350863360,
+   "bucket": "ngram_table"
+  },
+  {
+   "name": "token_embd.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    248320
+   ],
+   "elements": 635699200,
+   "bytes": 337715200,
+   "offset": 29151001600,
+   "bucket": "embed_head"
+  },
+  {
+   "name": "blk.0.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 6758400,
+   "offset": 29488716800,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 29495475200,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 29509401600,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.0.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 29745331200,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.0.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 29746252800,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.0.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 30014950400,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 30020193280,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 704000,
+   "offset": 30020203520,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.0.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 30020907520,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.0.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 30289605120,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.0.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 30290475520,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 30297029120,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 30297111040,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 30297152000,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 30303705600,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 30310259200,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 30310341120,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 30310382080,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 30316935680,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 30316935872,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 30317181632,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 30317427392,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 30317591232,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 30317591424,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.0.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 30317591936,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 6758400,
+   "offset": 30325947776,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 30332706176,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 30346632576,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.1.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 30582562176,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.1.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 30583483776,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.1.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 30799752576,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 30804995456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 1344000,
+   "offset": 30805005696,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.1.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 30806349696,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.1.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 31022618496,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.1.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31023488896,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 31030042496,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31030124416,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31030165376,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31036718976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 31043272576,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31043354496,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31043395456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ple_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F16",
+   "type_id": 1,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 31049949056,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ple_key.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 52428800,
+   "offset": 31050030976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ple_norm_conv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31102459776,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ple_norm_key.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31102500736,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ple_norm_query.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31102541696,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ple_value.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    2560
+   ],
+   "elements": 6553600,
+   "bytes": 13107200,
+   "offset": 31102582656,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 31115689856,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 31115690048,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 31115935808,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 31116181568,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 31116345408,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 31116345600,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.1.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 31116346112,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 31124701952,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 31133057792,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 31146984192,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.2.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 31382913792,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.2.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 31383835392,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.2.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 31652532992,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 31657775872,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 31657786112,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.2.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 31658656512,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.2.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 31927354112,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.2.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31928224512,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 31934778112,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31934860032,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31934900992,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31941454592,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 31948008192,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 31948090112,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 31948131072,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 31954684672,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 31954684864,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 31954930624,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 31955176384,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 31955340224,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 31955340416,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.2.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 31955340928,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.attn_k.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 1075200,
+   "offset": 31963696768,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.attn_k_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    256
+   ],
+   "elements": 256,
+   "bytes": 1024,
+   "offset": 31964771968,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.attn_output.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 6758400,
+   "offset": 31964772992,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.attn_q.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    12288
+   ],
+   "elements": 31457280,
+   "bytes": 16711680,
+   "offset": 31971531392,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.attn_q_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    256
+   ],
+   "elements": 256,
+   "bytes": 1024,
+   "offset": 31988243072,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.attn_v.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 696320,
+   "offset": 31988244096,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 31988940416,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.3.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q8_0",
+   "type_id": 8,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 1740800,
+   "offset": 32224870016,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.3.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 32226610816,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.3.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 32495308416,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 32500551296,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 32500561536,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.3.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 32501431936,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.3.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 32770129536,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.3.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 32770999936,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 32777553536,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 32777635456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 32777676416,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 32784230016,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 32790783616,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 32790865536,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 32790906496,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.indexer.k_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 32797460096,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.indexer.k_proj.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    128
+   ],
+   "elements": 327680,
+   "bytes": 655360,
+   "offset": 32797460608,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.indexer.q_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 32798115968,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.3.indexer.q_proj.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 2621440,
+   "offset": 32798116480,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 6758400,
+   "offset": 32800737920,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 32807496320,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 32821422720,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.4.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 33057352320,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.4.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 33058273920,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.4.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 33274542720,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 33279785600,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 33279795840,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.4.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 33280666240,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.4.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 704000,
+   "offset": 33496935040,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.4.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 33497639040,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 33504192640,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 33504274560,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 33504315520,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 33510869120,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 33517422720,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 33517504640,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 33517545600,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 33524099200,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 33524099392,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 33524345152,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 33524590912,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 33524754752,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 33524754944,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.4.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 33524755456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 6758400,
+   "offset": 33533111296,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 33539869696,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 33553796096,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.5.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 33789725696,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.5.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 33790647296,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.5.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 34059344896,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 34064587776,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 34064598016,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.5.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 34065468416,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.5.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 1344000,
+   "offset": 34334166016,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.5.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 34335510016,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 34342063616,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 34342145536,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 34342186496,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 34348740096,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 34355293696,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 34355375616,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 34355416576,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 34361970176,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 34361970368,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 34362216128,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 34362461888,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 34362625728,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 34362625920,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.5.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 34362626432,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 34370982272,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 34379338112,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 34393264512,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.6.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 460800,
+   "offset": 34629194112,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.6.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 34629654912,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.6.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 34898352512,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 34903595392,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 34903605632,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.6.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 34904476032,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.6.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 35173173632,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.6.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 35174044032,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 35180597632,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 35180679552,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 35180720512,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 35187274112,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 35193827712,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 35193909632,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 35193950592,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 35200504192,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 35200504384,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 35200750144,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 35200995904,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 35201159744,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 35201159936,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.6.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 35201160448,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.attn_k.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 1075200,
+   "offset": 35209516288,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.attn_k_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    256
+   ],
+   "elements": 256,
+   "bytes": 1024,
+   "offset": 35210591488,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.attn_output.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 35210592512,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.attn_q.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    12288
+   ],
+   "elements": 31457280,
+   "bytes": 16711680,
+   "offset": 35218948352,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.attn_q_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    256
+   ],
+   "elements": 256,
+   "bytes": 1024,
+   "offset": 35235660032,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.attn_v.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 1075200,
+   "offset": 35235661056,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 35236736256,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.7.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 460800,
+   "offset": 35472665856,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.7.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 35473126656,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.7.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 35741824256,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 35747067136,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 1344000,
+   "offset": 35747077376,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.7.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 35748421376,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.7.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 36017118976,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.7.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36017989376,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 36024542976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 36024624896,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36024665856,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36031219456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 36037773056,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 36037854976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36037895936,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.indexer.k_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 36044449536,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.indexer.k_proj.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    128
+   ],
+   "elements": 327680,
+   "bytes": 655360,
+   "offset": 36044450048,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.indexer.q_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 36045105408,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.7.indexer.q_proj.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 2621440,
+   "offset": 36045105920,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 36047727360,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 36056083200,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 36070009600,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.8.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 36305939200,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.8.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ1_M",
+   "type_id": 29,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 183500800,
+   "offset": 36306860800,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.8.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 36490361600,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 36495604480,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 36495614720,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.8.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ1_M",
+   "type_id": 29,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 183500800,
+   "offset": 36496485120,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.8.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 36679985920,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.8.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36680856320,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 36687409920,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 36687491840,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36687532800,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36694086400,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 36700640000,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 36700721920,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 36700762880,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 36707316480,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 36707316672,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 36707562432,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 36707808192,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 36707972032,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 36707972224,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.8.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 6758400,
+   "offset": 36707972736,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 36714731136,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 36723086976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 36737013376,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.9.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q8_0",
+   "type_id": 8,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 1740800,
+   "offset": 36972942976,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.9.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 36974683776,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.9.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 37190952576,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 37196195456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 704000,
+   "offset": 37196205696,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.9.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 37196909696,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.9.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 704000,
+   "offset": 37413178496,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.9.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 37413882496,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 37420436096,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 37420518016,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 37420558976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 37427112576,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 37433666176,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 37433748096,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 37433789056,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 37440342656,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 37440342848,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 37440588608,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 37440834368,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 37440998208,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 37440998400,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.9.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 37440998912,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 37449354752,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 37457710592,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 37471636992,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.10.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 37707566592,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.10.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 37708488192,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.10.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 37924756992,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 37929999872,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 37930010112,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.10.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 37930880512,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.10.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 704000,
+   "offset": 38147149312,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.10.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38147853312,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 38154406912,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 38154488832,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38154529792,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38161083392,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 38167636992,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 38167718912,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38167759872,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 38174313472,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 38174313664,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 38174559424,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 38174805184,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 38174969024,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 38174969216,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.10.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 38174969728,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.attn_k.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 696320,
+   "offset": 38183325568,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.attn_k_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    256
+   ],
+   "elements": 256,
+   "bytes": 1024,
+   "offset": 38184021888,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.attn_output.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 38184022912,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.attn_q.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    12288
+   ],
+   "elements": 31457280,
+   "bytes": 16711680,
+   "offset": 38192378752,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.attn_q_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    256
+   ],
+   "elements": 256,
+   "bytes": 1024,
+   "offset": 38209090432,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.attn_v.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 696320,
+   "offset": 38209091456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 38209787776,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.11.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 460800,
+   "offset": 38445717376,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.11.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 38446178176,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.11.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 38662446976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 38667689856,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 870400,
+   "offset": 38667700096,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.11.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_XXS",
+   "type_id": 16,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 216268800,
+   "offset": 38668570496,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.11.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 1344000,
+   "offset": 38884839296,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.11.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38886183296,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 38892736896,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 38892818816,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38892859776,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38899413376,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 38905966976,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 38906048896,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 38906089856,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.indexer.k_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 38912643456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.indexer.k_proj.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    128
+   ],
+   "elements": 327680,
+   "bytes": 655360,
+   "offset": 38912643968,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.indexer.q_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 38913299328,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.11.indexer.q_proj.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 2621440,
+   "offset": 38913299840,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 38915921280,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 38924277120,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ffn_down_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q2_0",
+   "type_id": 42,
+   "dims": [
+    640,
+    2560,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 235929600,
+   "offset": 38938203520,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.12.ffn_down_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_NL",
+   "type_id": 20,
+   "dims": [
+    640,
+    2560
+   ],
+   "elements": 1638400,
+   "bytes": 921600,
+   "offset": 39174133120,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.12.ffn_gate_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 39175054720,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.12.ffn_gate_inp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560,
+    512
+   ],
+   "elements": 1310720,
+   "bytes": 5242880,
+   "offset": 39443752320,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ffn_gate_inp_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    2560
+   ],
+   "elements": 2560,
+   "bytes": 10240,
+   "offset": 39448995200,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ffn_gate_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "Q6_K",
+   "type_id": 14,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 1344000,
+   "offset": 39449005440,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.12.ffn_up_exps.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ2_S",
+   "type_id": 22,
+   "dims": [
+    2560,
+    640,
+    512
+   ],
+   "elements": 838860800,
+   "bytes": 268697600,
+   "offset": 39450349440,
+   "bucket": "experts"
+  },
+  {
+   "name": "blk.12.ffn_up_shexp.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ3_S",
+   "type_id": 21,
+   "dims": [
+    2560,
+    640
+   ],
+   "elements": 1638400,
+   "bytes": 704000,
+   "offset": 39719047040,
+   "bucket": "shared_experts"
+  },
+  {
+   "name": "blk.12.hc_attn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 39719751040,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_attn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 39726304640,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_attn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 39726386560,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_attn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 39726427520,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_ffn_down.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    320
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 39732981120,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_ffn_inject.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    10240,
+    4
+   ],
+   "elements": 40960,
+   "bytes": 81920,
+   "offset": 39739534720,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_ffn_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    10240
+   ],
+   "elements": 10240,
+   "bytes": 40960,
+   "offset": 39739616640,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.hc_ffn_up.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    320,
+    10240
+   ],
+   "elements": 3276800,
+   "bytes": 6553600,
+   "offset": 39739657600,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_a",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 39746211200,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_alpha.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 39746211392,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_beta.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "BF16",
+   "type_id": 30,
+   "dims": [
+    2560,
+    48
+   ],
+   "elements": 122880,
+   "bytes": 245760,
+   "offset": 39746457152,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_conv1d.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    4,
+    10240
+   ],
+   "elements": 40960,
+   "bytes": 163840,
+   "offset": 39746702912,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_dt.bias",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    48
+   ],
+   "elements": 48,
+   "bytes": 192,
+   "offset": 39746866752,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_norm.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "F32",
+   "type_id": 0,
+   "dims": [
+    128
+   ],
+   "elements": 128,
+   "bytes": 512,
+   "offset": 39746866944,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.12.ssm_out.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    6144,
+    2560
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 39746867456,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.13.attn_gate.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    6144
+   ],
+   "elements": 15728640,
+   "bytes": 8355840,
+   "offset": 39755223296,
+   "bucket": "other"
+  },
+  {
+   "name": "blk.13.attn_qkv.weight",
+   "shard": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+   "type": "IQ4_XS",
+   "type_id": 23,
+   "dims": [
+    2560,
+    10240
+   ],
+   "elements": 26214400,
+   "bytes": 13926400,
+   "offset": 39763579136,
+   "bucket": "other"
+  }
+ ],
+ "layout_problems": [],
+ "notes": []
+}
