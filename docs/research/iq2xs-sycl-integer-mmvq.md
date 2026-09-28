@@ -63,7 +63,7 @@ Upstream `master` (fetched 2026-09-28, `4364bf723`) still has the same `return f
 
 ## 2. What is implemented (`tools/patches/iq2xs-sycl-integer-mmvq.patch`)
 
-A ~70-line change, two files, no new header:
+A ~70-line change in one file, no new header:
 
 - `ggml/src/ggml-sycl/mmvq.cpp`
   - `vec_dot_iq2_xs_q8_1_mmvq(...)`: binds `iq2xs_grid` / `ksigns64` to the raw
