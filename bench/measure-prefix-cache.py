@@ -34,7 +34,16 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from bench_lib import CORPUS, Tokenizer, get_json, now_iso, post_json, read_text, server_root  # noqa: E402
+from bench_lib import (  # noqa: E402
+    CORPUS,
+    MemorySampler,
+    Tokenizer,
+    get_json,
+    now_iso,
+    post_json,
+    read_text,
+    server_root,
+)
 from harness import build_needle_document, streaming_measure  # noqa: E402
 
 BASE = os.environ.get("BONGO_BASE_URL", "http://127.0.0.1:8080/v1")
@@ -88,6 +97,19 @@ def run_case(tk, label, prompt, cache_prompt, max_tokens=4, timeout=900):
         f"wall_ms={rec.get('wall_ms')}",
         flush=True,
     )
+    return rec
+
+
+def measured_run(sampler, tk, label, prompt, cache_prompt, timeout, max_tokens=4):
+    """``run_case`` plus the VRAM/RAM peak over that case's own window.
+
+    The sampler is optional so the script still runs against the mock server
+    (selftest), where there is no ``llama-server`` process to attribute bytes to.
+    """
+    t0 = time.time()
+    rec = run_case(tk, label, prompt, cache_prompt, max_tokens=max_tokens, timeout=timeout)
+    if sampler is not None:
+        rec["memory"] = sampler.window_peak(t0, time.time())
     return rec
 
 
@@ -202,12 +224,32 @@ def main():
         action="store_true",
         help="Run the needle correctness check at the largest prefix size after the slot restore cycle.",
     )
+    ap.add_argument(
+        "--timeout",
+        type=int,
+        default=int(os.environ.get("BONGO_CASE_TIMEOUT", "7200")),
+        help="Per-request timeout in seconds. A 128K/256K cold prefill runs for "
+        "25-50 min, so the 900 s run_case default is not enough at long context.",
+    )
+    ap.add_argument(
+        "--cached-only",
+        action="store_true",
+        help="Skip the explicit cold (cache_prompt=false) case and prime the "
+        "prefix with cache_prompt=true instead. The prime request pays the same "
+        "full prefill, so this changes the reported labels, not the runtime.",
+    )
     args = ap.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
-    tk = Tokenizer(BASE, timeout=900)
+    tk = Tokenizer(BASE, timeout=args.timeout)
     if not tk.available:
         tk.count("warmup")
+
+    # Attribute VRAM to the server serving this run. ``--server-pid`` is set by
+    # run-prefix-cache.sh; without it the sampler discovers llama-server by argv.
+    sampler = MemorySampler(server_pids=[args.server_pid] if args.server_pid else None)
+    sampler.start()
+    run_start = time.time()
 
     prefixes = [int(x) for x in args.prefixes.split(",") if x.strip()]
     results = {
@@ -223,8 +265,9 @@ def main():
         "slot": None,
     }
 
-    # One warmup so the first measured request is not the first touch.
-    run_case(tk, "warmup", tk.size_to(256), False, max_tokens=1, timeout=300)
+    # One warmup so the first measured request is not the first touch. It uses
+    # cache_prompt=false so it cannot seed the slot for a later hit.
+    measured_run(sampler, tk, "warmup", tk.size_to(256), False, args.timeout, max_tokens=1)
 
     for p in prefixes:
         p_text = tk.size_to(p)
@@ -234,10 +277,28 @@ def main():
         real_grow = tk.count(grow_text)
         print(f"\n== prefix target {p} (actual {real_p}); with delta actual {real_grow} ==", flush=True)
 
-        results["runs"].append({"prefix_target": p, **run_case(tk, f"cold_p{p}", p_text, False)})
-        results["runs"].append({"prefix_target": p, **run_case(tk, f"hit_p{p}", p_text, True)})
-        results["runs"].append({"prefix_target": p, **run_case(tk, f"grow_p{p}_d{args.delta}", grow_text, True)})
-        results["runs"].append({"prefix_target": p, **run_case(tk, f"grow_p{p}_repeat", grow_text, True)})
+        if not args.cached_only:
+            results["runs"].append(
+                {"prefix_target": p, **measured_run(sampler, tk, f"cold_p{p}", p_text, False, args.timeout)}
+            )
+        else:
+            # The product path never pays an explicit cold pass: the first
+            # request primes the slot with cache_prompt=true and is the prefill.
+            results["runs"].append(
+                {"prefix_target": p, **measured_run(sampler, tk, f"prime_p{p}", p_text, True, args.timeout)}
+            )
+        results["runs"].append(
+            {"prefix_target": p, **measured_run(sampler, tk, f"hit_p{p}", p_text, True, args.timeout)}
+        )
+        results["runs"].append(
+            {
+                "prefix_target": p,
+                **measured_run(sampler, tk, f"grow_p{p}_d{args.delta}", grow_text, True, args.timeout),
+            }
+        )
+        results["runs"].append(
+            {"prefix_target": p, **measured_run(sampler, tk, f"grow_p{p}_repeat", grow_text, True, args.timeout)}
+        )
 
     flags = []
     if args.server_pid:
@@ -254,13 +315,26 @@ def main():
         p_text = tk.size_to(p)
         real_p = tk.count(p_text)
         print(f"\n== slot save/restore at prefix {p} (actual {real_p}) ==", flush=True)
-        results["slot"] = measure_slot(tk, args.slot_id, p_text, real_p, args.slot_save_dir, timeout=900)
+        results["slot"] = measure_slot(tk, args.slot_id, p_text, real_p, args.slot_save_dir, timeout=args.timeout)
         # correctness: the needle must still be retrievable after the restore cycle
         if args.needle and args.measure_slot:
             print(f"\n== needle correctness after restore at prefix {p} (actual {real_p}) ==", flush=True)
             results["needle_after_restore"] = check_needle(
-                tk, p_text, real_p, max_tokens=32, timeout=1200
+                tk, p_text, real_p, max_tokens=32, timeout=args.timeout
             )
+
+    sampler.stop()
+    results["cached_only"] = bool(args.cached_only)
+    results["request_timeout_s"] = args.timeout
+    results["memory"] = sampler.window_peak(run_start, time.time())
+    results["memory"]["vram_method"] = sampler.vram_method
+    case_peaks = [
+        (r.get("memory") or {}).get("vram_peak_bytes")
+        for r in results["runs"]
+        if (r.get("memory") or {}).get("vram_peak_bytes")
+    ]
+    if case_peaks:
+        results["memory"]["vram_peak_bytes"] = max(case_peaks)
 
     suffix = "json" if args.out.endswith(".json") else ""
     path = args.out if suffix else os.path.join(args.out, "prefix-cache.json")

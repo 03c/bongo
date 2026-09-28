@@ -235,4 +235,26 @@ print("prefix-cache slot assertions OK")
 PY
 echo "PASS: slot save/restore timed and restore verified"
 
+# ---- 9. cached-only delta turn (no cold pass, VRAM window recorded) --------
+BONGO_BASE_URL="http://127.0.0.1:${cache_port}/v1" BONGO_MODEL=bongo-mock \
+  python3 "${here}/measure-prefix-cache.py" \
+  --prefixes 1024 --delta 64 --no-slot --cached-only --timeout 1234 \
+  --out "${work}/pcache-cached" >/dev/null || fail "cached-only run exited non-zero"
+python3 - "${work}/pcache-cached/prefix-cache.json" <<'PY' || fail "cached-only assertions"
+import json, sys
+d = json.load(open(sys.argv[1]))
+labels = {r["label"]: r for r in d["runs"]}
+assert "cold_p1024" not in labels, labels.keys()
+assert labels["prime_p1024"]["cache_prompt"] is True, labels["prime_p1024"]
+assert labels["prime_p1024"]["prompt_tokens"] > 0, labels["prime_p1024"]
+assert labels["hit_p1024"]["cache_n"] > 0, labels["hit_p1024"]
+assert labels["grow_p1024_d64"]["cache_n"] > 0, labels["grow_p1024_d64"]
+assert d["cached_only"] is True, d["cached_only"]
+assert d["request_timeout_s"] == 1234, d["request_timeout_s"]
+assert "memory" in d and "vram_method" in d["memory"], d.get("memory")
+assert all("memory" in r for r in d["runs"]), "per-case memory window missing"
+print("cached-only assertions OK")
+PY
+echo "PASS: --cached-only primes the prefix and records a per-case VRAM window"
+
 echo "ALL SELFTESTS PASSED"
