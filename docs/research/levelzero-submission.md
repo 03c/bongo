@@ -129,9 +129,11 @@ the serial path is nil.
 
 Note what this does *not* say: it does not say a graph is useless. The capture/append cost of
 ~1 µs/node is paid every token by an engine that enqueues its kernels per token, so a captured
-graph can still recover ~2.8 ms/token on ~2,000 nodes (a 43-node layer × 48 layers). But that is
+graph can still recover the capture cost on ~2,000 nodes (a 43-node layer × 48 layers). But that is
 a different, smaller claim than Strata's 1.51x, and it can be had with **one command list per
 token** rather than 96 submissions, without needing the device-wait machinery at all.
+[BAS-71](/BAS/issues/BAS-71) measured it: on 2,064 nodes the saving is **1.76 ms/token**, the
+lower end of the 0.88–1.36 µs/node range, not the ~2.8 ms upper bound derived above.
 
 ---
 
@@ -241,12 +243,15 @@ store to reach a running kernel and that does not happen on this stack by any pa
 
 What *is* worth keeping from the mechanism is the capture itself, for a different reason: an
 engine that enqueues ~2,000 kernels per token pays ~0.9–1.4 µs each at append time, and a captured
-list pays that once. That is a ~2.8 ms/token argument for "one command list per token", not for
+list pays that once. That is a per-token argument for "one command list per token", not for
 96 per-layer graphs, and it needs no doorbell.
 
-**Next experiment.** Build one captured command list per token on the B70 — 2,000+ nodes, one
-submission, no device wait — and compare it against the same kernels appended per token, using the
-same harness. That directly measures the ~2.8 ms/token claim §2.1 derives rather than extrapolates,
-and it is the form of the mechanism that is actually available here. It belongs with
-[BAS-68](/BAS/issues/BAS-68) (Arc/SYCL kernel feasibility), since it needs a real kernel sequence
-rather than the probe's single `k_store` node.
+**Measured on the B70 (BAS-71).** One captured command list per token was built and compared with
+the same kernels appended per token
+([raw](../../bench/results/2026-09-28-per-token-command-list/README.md), [BAS-71](/BAS/issues/BAS-71)).
+At 2,064 nodes a captured list costs **0.129 ms/token** (one replayed submission) versus
+**1.89 ms/token** rebuilt, so the capture saving is **1.76 ms/token** — the mechanism holds, at the
+lower end of the 0.88–1.36 µs/node range rather than the ~1.4 µs upper bound. The per-node delta is
+flat at 0.85–0.86 µs/node through 4,128 nodes; cold equals warm except a one-time ~3.6 ms first
+launch. Caveat: the replayed list used fixed arguments; a real token needs per-token argument
+values, so the saving is realisable only if those can be repointed without re-appending the nodes.

@@ -1,0 +1,15 @@
+[probe] init: loading /home/cchild/.bongo/runtime/usr/lib64/libze_loader.so.1
+[probe] device: Intel(R) Arc(TM) Pro B70 Graphics (api 1.15, init=zeInitDrivers)
+[probe] N=43: reps=1000 warmup=50
+[probe] N=344: reps=1000 warmup=50
+[probe] N=2064: reps=1000 warmup=50
+[probe] N=4128: reps=1000 warmup=50
+{
+ "wrote": "bench/results/2026-09-28-per-token-command-list/raw/per-token-command-list.json",
+ "series": [
+  "43",
+  "344",
+  "2064",
+  "4128"
+ ]
+}
