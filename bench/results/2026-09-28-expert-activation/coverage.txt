@@ -1,0 +1,60 @@
+wrote /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-28-expert-activation/analysis.json
+
+tier=iq2_xs total expert bytes = 33.02 GiB
+  doc    tokens= 3971 events=1866380
+  code   tokens= 3794 events=1783190
+  chat   tokens=  536 events=251930
+  convo  tokens= 1008 events=473770
+  decode[doc] tokens=256 events=122880
+  decode[chat] tokens=128 events=61440
+
+budget sweep on pooled corpus (coverage = fraction of routed events served):
+   GiB  hot_count  hot_dens  static_ctg  layer_grdy  arrival  random  ncpu
+  4.00     0.4771    0.4788      0.0851      0.1277   0.1276  0.1209    43
+  8.00     0.6929    0.6943      0.2128      0.2766   0.2647  0.2410    37
+ 12.00     0.8347    0.8354      0.3192      0.3830   0.4004  0.3640    32
+ 16.00     0.9225    0.9229      0.4468      0.5106   0.5265  0.4855    26
+ 20.00     0.9702    0.9703      0.5745      0.6170   0.6568  0.6079    20
+ 22.40     0.9852    0.9852      0.6596      0.7021   0.7322  0.6789    16
+ 25.00     0.9942    0.9942      0.7234      0.7660   0.8171  0.7558    13
+ 28.00     0.9988    0.9988      0.8298      0.8723   0.9138  0.8438     8
+ 33.02     1.0000    1.0000      0.9787      1.0000   1.0000  0.9999     1
+
+pooled: touched 23014/24576 cells (0.936), entropy 9.381 bits, effective experts 11859
+top-N coverage: {'0.50': 3233, '0.80': 8112, '0.90': 11025, '0.95': 13428, '0.99': 17619}
+
+leave-one-out (hot_count @ 22.40 GiB), rows=train, cols=test:
+             doc     code     chat    convo
+doc      0.9957   0.8900   0.9636   0.9614
+code     0.9215   0.9897   0.9038   0.8839
+chat     0.8724   0.6972   1.0000   0.9925
+convo    0.8976   0.7335   0.9997   1.0000
+
+leave-one-corpus-out (train=all others), coverage on held-out corpus:
+  doc     12.00:0.7311  16.00:0.8603  22.40:0.9632  25.00:0.9807  static22.4=0.6596
+  code    12.00:0.5785  16.00:0.7196  22.40:0.8807  25.00:0.9213  static22.4=0.6596
+  chat    12.00:0.8118  16.00:0.9149  22.40:0.9853  25.00:0.9946  static22.4=0.6596
+  convo   12.00:0.7641  16.00:0.8868  22.40:0.9771  25.00:0.9903  static22.4=0.6596
+
+temporal (mean overlap of adjacent-token top-10, same layer):
+  doc    persist=0.3481 static_top10_predictor=0.1477
+  code   persist=0.3423 static_top10_predictor=0.1445
+  chat   persist=0.3394 static_top10_predictor=0.1505
+  convo  persist=0.3347 static_top10_predictor=0.1329
+  pooled persist=0.3437 static_top10_predictor=0.1449
+
+decode[doc] (teacher-forced, 256 tokens):
+  spearman(prefill,decode)=0.708 top10_overlap=0.319
+  decode persist=0.3092 static_top10_predictor=0.2322
+  budget 16.00 GiB: prefill->decode=0.9327 decode->prefill=0.8653 decode->decode=1.0000
+  budget 22.40 GiB: prefill->decode=0.9715 decode->prefill=0.8653 decode->decode=1.0000
+  static22.40 on decode=0.6667 (n_cpu=16)
+  layer47 decode top10_share=0.3004 vs mean(0..46)=0.2307
+
+decode[chat] (teacher-forced, 128 tokens):
+  spearman(prefill,decode)=0.713 top10_overlap=0.431
+  decode persist=0.3291 static_top10_predictor=0.2515
+  budget 16.00 GiB: prefill->decode=0.9551 decode->prefill=0.8408 decode->decode=1.0000
+  budget 22.40 GiB: prefill->decode=0.9679 decode->prefill=0.8408 decode->decode=1.0000
+  static22.40 on decode=0.6667 (n_cpu=16)
+  layer47 decode top10_share=0.2609 vs mean(0..46)=0.2513
