@@ -1,0 +1,79 @@
+{
+  "schema": "bongo.slot-restore-256k.v1",
+  "started_at": "2026-09-28T14:12:14Z",
+  "finished_at": "2026-09-28T15:15:28Z",
+  "gpu_lock_wait_s": 1290,
+  "runner_rc": 9,
+  "engine": {
+    "revision": "b11223",
+    "commit": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+    "backend": "Vulkan",
+    "binary": "/home/cchild/.bongo/llama/b11223/vulkan/llama-server"
+  },
+  "server_flags": [
+    "--model",
+    "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+    "--ctx-size",
+    "262144",
+    "--jinja",
+    "--flash-attn",
+    "on",
+    "--cache-type-k",
+    "q8_0",
+    "--cache-type-v",
+    "q8_0",
+    "--n-gpu-layers",
+    "99",
+    "--n-cpu-moe",
+    "18",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8080",
+    "--parallel",
+    "1",
+    "--alias",
+    "bongo-iq2_xs",
+    "--metrics",
+    "--cache-prompt",
+    "--slot-save-path",
+    "/home/cchild/.bongo/slot-restore-256k/run/slots",
+    "--device",
+    "Vulkan1"
+  ],
+  "placement": {
+    "ctx": 262144,
+    "n_cpu_moe": 18,
+    "n_gpu_layers": 99,
+    "cache_type_k": "q8_0",
+    "cache_type_v": "q8_0",
+    "flash_attn": "on"
+  },
+  "slot_dir": "/home/cchild/.bongo/slot-restore-256k/run/slots",
+  "save": {
+    "elapsed_ms": 1560.7578754425049,
+    "file_bytes": null,
+    "n_past_after_prefill": null,
+    "prefill_prompt_tokens": 261997,
+    "prefill_ms": 2348797.212,
+    "prefill_tps": 111.54517668083814,
+    "body": "{\"id_slot\":0,\"filename\":\"ctx256-slot\",\"n_saved\":262028,\"n_written\":3980332632,\"timings\":{\"save_ms\":1558.638}}",
+    "erase_elapsed_ms": 45.68910598754883,
+    "n_past_after_erase": null
+  },
+  "restore": {
+    "elapsed_ms": null,
+    "file_bytes_before": null,
+    "n_past_after_restore": null,
+    "n_restored": null,
+    "body": null
+  },
+  "reuse": {
+    "prompt_n": null,
+    "cache_n": null,
+    "cached_tokens": null,
+    "prompt_ms": null,
+    "ttft_ms": null,
+    "restore_verified": null
+  }
+}

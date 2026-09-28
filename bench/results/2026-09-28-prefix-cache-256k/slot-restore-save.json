@@ -1,0 +1,61 @@
+{
+  "schema": "bongo.slot-restore.v1",
+  "generated_at": "2026-09-28T14:13:02+00:00",
+  "stage": "save",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "ctx": 262144,
+  "planned_prompt_tokens": 261997,
+  "filename": "ctx256-slot",
+  "slots_http_status": 200,
+  "slot_n_past_before": null,
+  "prefill": {
+    "status": 200,
+    "wall_ms": 2354579.88,
+    "prompt_tokens": 261997,
+    "prompt_ms": 2348797.212,
+    "prompt_tps": 111.54517668083814,
+    "output_tokens": 32,
+    "output_ms": 5548.934,
+    "output_tps": 5.586658626683972,
+    "cache_n": 0,
+    "cached_tokens": 0,
+    "usage": {
+      "completion_tokens": 32,
+      "prompt_tokens": 261997,
+      "total_tokens": 262029,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where",
+    "ttft_ms": 2349033.39,
+    "ttfb_ms": 30233.7,
+    "stream_total_ms": 2354579.88,
+    "stream_error": null,
+    "stream_text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where"
+  },
+  "prefill_prompt_tokens": 261997,
+  "prefill_ms": 2348797.212,
+  "prefill_tps": 111.54517668083814,
+  "prefill_ttft_ms": 2349033.39,
+  "slot_n_past_after_prefill": null,
+  "save": {
+    "status": 200,
+    "body": "{\"id_slot\":0,\"filename\":\"ctx256-slot\",\"n_saved\":262028,\"n_written\":3980332632,\"timings\":{\"save_ms\":1558.638}}"
+  },
+  "save_elapsed_ms": 1560.7578754425049,
+  "slot_file": "/home/cchild/.bongo/slot-restore-256k/run/slots/ctx256-slot.bin",
+  "slot_file_bytes": null,
+  "erase": {
+    "status": 200,
+    "body": "{\"id_slot\":0,\"n_erased\":262028}"
+  },
+  "erase_elapsed_ms": 45.68910598754883,
+  "slot_n_past_after_erase": null,
+  "slot_file_bytes_observed": 3980332632,
+  "slot_file_bytes_note": "slot_file_bytes was null in this record: the script appended '.bin' to the filename, but llama.cpp action=save writes the filename verbatim. slot_file_bytes_observed is the post-run stat of the same file and equals n_written in the save response.",
+  "slot_tokens_before_save": 262028,
+  "slot_tokens_note": "slot_tokens_before_save is n_saved and slot_tokens_erased is n_erased, both from the server's action=save and action=erase response bodies. Tokens *remaining* after the erase is before_save - erased = 0. The slot_n_past_* fields were null because this build's /slots reports n_prompt_tokens*, not n_past (fixed in measure-slot-restore.py).",
+  "slot_tokens_erased": 262028
+}

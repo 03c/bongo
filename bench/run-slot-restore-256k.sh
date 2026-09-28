@@ -28,6 +28,15 @@
 # measurements serialise instead of corrupting each other.  It is safe to launch
 # detached: `setsid nohup ./bench/run-slot-restore-256k.sh >> <log> 2>&1 &`.
 #
+# If the run is interrupted (agent harness reaper, reboot, OOM) the saved slot
+# file is still on disk and the whole ~40 min prefill is already paid for, so
+# the restore can be re-run on its own:
+#
+#   ./bench/run-slot-restore-256k.sh --restore-only
+#
+# That is still a genuine restore: the slot file is read by a server process
+# that never saw the original prefill, which is the property being measured.
+#
 # Environment overrides: BONGO_LLAMA_REV, BONGO_PORT, BONGO_CTX, BONGO_N_CPU_MOE,
 # BONGO_GGUF_DIR, BONGO_RUNTIME_DIR, BONGO_OUT, BONGO_SLOT_DIR,
 # BONGO_GPU_LOCK_TIMEOUT, BONGO_SR_SKIP_DELTA (default 1 at 256K).
@@ -39,10 +48,12 @@ repo="$(dirname "$here")"
 . "$here/gpu-lock.sh"
 
 PLAN_ONLY=0
+RESTORE_ONLY=0
 for arg in "$@"; do
   case "$arg" in
     --plan) PLAN_ONLY=1;;
-    -h|--help) sed -n '2,32p' "$0"; exit 0;;
+    --restore-only) RESTORE_ONLY=1;;
+    -h|--help) sed -n '2,45p' "$0"; exit 0;;
     *) echo "unknown argument: $arg" >&2; exit 2;;
   esac
 done
@@ -133,6 +144,8 @@ plan (nothing started; no GPU taken)
               $( [[ "$SKIP_DELTA" == 1 ]] && echo '--skip-delta' || echo '(with the 131K delta turn)')
   expect      cold prefill ~50 min; save ~1 s; restore ~1-3 s; post-restore
               turn ~50 min when the restored KV is not reused
+  --restore-only  skip stage 1 and re-read the slot file already at
+              $SLOT_DIR (resume after an interrupted run; no re-prefill)
 PLAN
   exit 0
 fi
@@ -167,19 +180,31 @@ fi
 
 START_ISO="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 rc=0
-start_server save || exit 6
-measure save || { rc=7; stop_server; exit "$rc"; }
-stop_server
+if (( RESTORE_ONLY )); then
+  # Resuming an interrupted run: the prefill and save already happened, and the
+  # slot file they produced is the input to the measurement. Refuse rather than
+  # silently measure a cold slot, and never overwrite it.
+  if [[ ! -s "$SLOT_DIR/ctx256-slot" && ! -s "$SLOT_DIR/ctx256-slot.bin" ]]; then
+    log "no saved slot in $SLOT_DIR; nothing to restore (run without --restore-only)"
+    exit 10
+  fi
+  log "=== restore-only: reusing the slot file already in $SLOT_DIR ==="
+  ls -l "$SLOT_DIR" >&2 || true
+else
+  start_server save || exit 6
+  measure save || { rc=7; stop_server; exit "$rc"; }
+  stop_server
+fi
 start_server restore || exit 8
 measure restore --skip-delta || rc=9
 stop_server
 END_ISO="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 cp "$OUT/bongo-config-restore.json" "$OUT/bongo-config.json" 2>/dev/null || true
-python3 - "$OUT" "$START_ISO" "$END_ISO" "$LOCK_WAIT_S" "$CTX" "$N_CPU_MOE" "$REV" "$SLOT_DIR" "$rc" <<'PY'
+python3 - "$OUT" "$START_ISO" "$END_ISO" "$LOCK_WAIT_S" "$CTX" "$N_CPU_MOE" "$REV" "$SLOT_DIR" "$rc" "$RESTORE_ONLY" <<'PY'
 import json, pathlib, sys
 
-out, start, end, lock_wait, ctx, n_cpu_moe, rev, slot_dir, rc = sys.argv[1:10]
+out, start, end, lock_wait, ctx, n_cpu_moe, rev, slot_dir, rc, restore_only = sys.argv[1:11]
 out = pathlib.Path(out)
 
 
@@ -201,6 +226,7 @@ summary = {
     "finished_at": end,
     "gpu_lock_wait_s": int(lock_wait),
     "runner_rc": int(rc),
+    "restore_only_resume": bool(int(restore_only)),
     "engine": {
         "revision": rev,
         "commit": (config.get("llama_cpp") or {}).get("commit"),
@@ -212,14 +238,32 @@ summary = {
     "slot_dir": slot_dir,
     "save": {
         "elapsed_ms": (save or {}).get("save_elapsed_ms"),
-        "file_bytes": (save or {}).get("slot_file_bytes"),
-        "n_past_after_prefill": (save or {}).get("slot_n_past_after_prefill"),
+        "file_bytes": (save or {}).get("slot_file_bytes") or (save or {}).get("slot_file_bytes_observed"),
+        "n_past_after_prefill": (save or {}).get("slot_n_past_after_prefill")
+        or (save or {}).get("slot_tokens_before_save"),
+        "n_erased": (save or {}).get("slot_tokens_erased"),
         "prefill_prompt_tokens": (save or {}).get("prefill_prompt_tokens"),
         "prefill_ms": (save or {}).get("prefill_ms"),
         "prefill_tps": (save or {}).get("prefill_tps"),
         "body": ((save or {}).get("save") or {}).get("body"),
         "erase_elapsed_ms": (save or {}).get("erase_elapsed_ms"),
-        "n_past_after_erase": (save or {}).get("slot_n_past_after_erase"),
+        # Tokens *remaining* after the erase. The /slots read was null in this run
+        # (field-name bug, fixed since), so derive it: what the slot held minus
+        # what the server reported erasing. n_erased alone is the opposite number.
+        "n_past_after_erase": next(
+            (
+                v
+                for v in (
+                    (save or {}).get("slot_n_past_after_erase"),
+                    ((save or {}).get("slot_tokens_before_save") or 0)
+                    - ((save or {}).get("slot_tokens_erased") or 0)
+                    if save
+                    else None,
+                )
+                if v is not None
+            ),
+            None,
+        ),
     },
     "restore": {
         "elapsed_ms": (restore or {}).get("restore_elapsed_ms"),

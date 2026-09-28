@@ -57,6 +57,23 @@ class Handler(BaseHTTPRequestHandler):
             )
         elif path == "/health":
             self._send(200, {"status": "ok"})
+        elif path == "/slots":
+            # Field names follow the b11223 Vulkan build, which reports
+            # n_prompt_tokens{,_processed,_cache} and no longer the older
+            # `n_past`. Scripts that read only `n_past` see None here too.
+            self._send(
+                200,
+                [
+                    {
+                        "id": 0,
+                        "n_ctx": self.server.ctx,
+                        "is_processing": False,
+                        "n_prompt_tokens": len(self.server.cache_tokens),
+                        "n_prompt_tokens_processed": len(self.server.cache_tokens),
+                        "n_prompt_tokens_cache": len(self.server.cache_tokens),
+                    }
+                ],
+            )
         else:
             self._error(404, "not found")
 
@@ -112,8 +129,9 @@ class Handler(BaseHTTPRequestHandler):
                 srv.cache_tokens = json.load(fh).get("tokens", [])
             self._send(200, {"n_restored": len(srv.cache_tokens)})
         elif action == "erase":
+            n_erased = len(srv.cache_tokens)
             srv.cache_tokens = []
-            self._send(200, {"n_erased": 0})
+            self._send(200, {"n_erased": n_erased})
         else:
             self._error(400, "Invalid action")
 

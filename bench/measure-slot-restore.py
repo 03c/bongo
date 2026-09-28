@@ -56,6 +56,53 @@ def _json_int(body, key):
         return None
 
 
+def slot_filled_tokens(slot):
+    """Tokens currently held in a ``/slots`` entry, across llama.cpp field names.
+
+    Older builds report ``n_past``. The b11223 Vulkan build used for the 256K
+    run instead reports ``n_prompt_tokens`` (the whole prompt) alongside
+    ``n_prompt_tokens_processed``/``n_prompt_tokens_cache``, so reading only
+    ``n_past`` silently yielded ``None`` and made the save/restore records look
+    like they had lost the KV. Prefer the explicit occupancy fields and fall
+    back to ``n_past``.
+    """
+    if not isinstance(slot, dict):
+        return None
+    for key in ("n_prompt_tokens_cache", "n_prompt_tokens", "n_past"):
+        value = slot.get(key)
+        if isinstance(value, int):
+            return value
+    return None
+
+
+def slot_file_candidates(save_dir, filename):
+    """Every path llama.cpp might have written ``filename`` to, most likely first.
+
+    ``action=save`` writes the filename **verbatim** under the slot-save
+    directory, so ``ctx256-slot`` lands as ``ctx256-slot`` — not as the
+    ``ctx256-slot.bin`` this script used to assume. Probe both so a renamed or
+    suffixed server build still resolves, and report which one matched.
+    """
+    base = Path(save_dir) if save_dir else Path(".")
+    name = Path(filename)
+    seen, paths = set(), []
+    for candidate in (name, name.with_suffix(".bin") if not name.suffix else name.parent / (name.name + ".bin")):
+        resolved = base / candidate
+        if str(resolved) not in seen:
+            seen.add(str(resolved))
+            paths.append(resolved)
+    return paths
+
+
+def resolve_slot_file(save_dir, filename):
+    """First existing slot file for ``filename``, or the verbatim path if none."""
+    candidates = slot_file_candidates(save_dir, filename)
+    for path in candidates:
+        if path.exists():
+            return path
+    return candidates[0]
+
+
 def run_delta_turn(tk, base, args):
     """One agentic delta turn over the restored slot: a 131K-prefix hit, then the
     same prefix plus a 512-token delta.
@@ -148,9 +195,22 @@ def main():
 
     status, before = slots(base, args.timeout)
     record["slots_http_status"] = status
-    record["slot_n_past_before"] = (before or [{}])[args.slot].get("n_past") if isinstance(before, list) else None
+    record["slot_n_past_before"] = slot_filled_tokens(
+        before[args.slot] if isinstance(before, list) and len(before) > args.slot else None
+    )
 
-    save_path = Path(os.environ.get("BONGO_SLOT_SAVE_PATH", ".")) / Path(args.filename).with_suffix(".bin")
+    save_dir = os.environ.get("BONGO_SLOT_SAVE_PATH", ".")
+    save_path = resolve_slot_file(save_dir, args.filename)
+
+    def checkpoint():
+        """Persist the record now, so a killed run keeps the numbers it already has.
+
+        The post-restore verify turn is a full 256K prefill (~40 min) when the
+        restored KV is *not* reused. Losing the whole record to a signal at that
+        point would throw away the restore timing this task exists to measure, so
+        each expensive step rewrites the file as it completes.
+        """
+        out_path.write_text(json.dumps(record, indent=2))
 
     if args.stage == "save":
         # Populate the slot with the full 256K needle prompt first, so the save
@@ -170,8 +230,8 @@ def main():
             record["prefill_tps"] = pre.get("prompt_tps")
             record["prefill_ttft_ms"] = pre.get("ttft_ms")
         status, populated = slots(base, args.timeout)
-        record["slot_n_past_after_prefill"] = (
-            (populated or [{}])[args.slot].get("n_past") if isinstance(populated, list) else None
+        record["slot_n_past_after_prefill"] = slot_filled_tokens(
+            populated[args.slot] if isinstance(populated, list) and len(populated) > args.slot else None
         )
 
         t0 = time.time()
@@ -194,6 +254,7 @@ def main():
         record["save_elapsed_ms"] = (time.time() - t0) * 1000.0
         record["slot_file"] = str(save_path)
         record["slot_file_bytes"] = save_path.stat().st_size if save_path.exists() else None
+        checkpoint()
 
         t0 = time.time()
         try:
@@ -208,10 +269,11 @@ def main():
             record["erase"] = {"status": None, "error": repr(exc)}
         record["erase_elapsed_ms"] = (time.time() - t0) * 1000.0
         status, after = slots(base, args.timeout)
-        record["slot_n_past_after_erase"] = (
-            (after or [{}])[args.slot].get("n_past") if isinstance(after, list) else None
+        record["slot_n_past_after_erase"] = slot_filled_tokens(
+            after[args.slot] if isinstance(after, list) and len(after) > args.slot else None
         )
     else:
+        record["slot_file"] = str(save_path)
         record["slot_file_bytes_before_restore"] = save_path.stat().st_size if save_path.exists() else None
         t0 = time.time()
         try:
@@ -230,9 +292,12 @@ def main():
             record["restore"] = {"status": None, "error": repr(exc)}
         record["restore_elapsed_ms"] = (time.time() - t0) * 1000.0
         status, after = slots(base, args.timeout)
-        record["slot_n_past_after_restore"] = (
-            (after or [{}])[args.slot].get("n_past") if isinstance(after, list) else None
+        record["slot_n_past_after_restore"] = slot_filled_tokens(
+            after[args.slot] if isinstance(after, list) and len(after) > args.slot else None
         )
+        # The restore timing is the deliverable; checkpoint before the ~40 min
+        # verify turn so a signal there cannot discard it.
+        checkpoint()
 
         rec = streaming_measure(
             base,
@@ -266,8 +331,9 @@ def main():
             if args.skip_delta
             else run_delta_turn(tk, base, args)
         )
+        checkpoint()
 
-    out_path.write_text(json.dumps(record, indent=2))
+    checkpoint()
     print(json.dumps(record, indent=2))
     print(f"\nwrote {out_path}")
 
