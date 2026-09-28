@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 120584.04,
+  "prompt_tokens": 4097,
+  "prompt_ms": 77418.223,
+  "prompt_tps": 52.92035700690263,
+  "output_tokens": 128,
+  "output_ms": 43081.521,
+  "output_tps": 2.9478996342770722,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 4097,
+    "total_tokens": 4225,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain",
+  "ttft_ms": 77499.06,
+  "ttfb_ms": 30081.91,
+  "stream_total_ms": 120584.04,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 6874058752.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 26430013440.0,
+    "system_ram_process_hwm_bytes": 26438639616.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 481
+  }
+}
