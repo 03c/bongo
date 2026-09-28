@@ -108,8 +108,11 @@ llama-server `b11223` already has the necessary machinery; bongo now exposes and
 - `--slot-save-path PATH` + `/slots/{id}?action=save|restore|erase` persists a slot KV to disk.
   `bongo.sh` enables the endpoint by default under `$BONGO_HOME/run/slots` and records the path;
   `bench/measure-prefix-cache.py` times save -> erase -> restore and re-sends the prompt to
-  prove the restored KV is reused. Saving is explicit; no KV file is written unless a client
-  asks for it.
+  check whether the restored KV is reused. Saving is explicit; no KV file is written unless a
+  client asks for it. Measured on the 31K point, q8 KV: **save 585,931,732 B in 128 ms**,
+  **restore the same bytes in 264 ms** (erase 9 ms). **The restored KV was not reused**: the
+  follow-up request re-prefilled all 31,743 tokens (179.7 s) with `cache_prompt: true`, because
+  this hybrid model needs a context checkpoint that the slot file does not carry (see §5).
 - `--cache-idle-slots` saves idle slots to the **in-RAM** prompt cache on a new task, bounded by
   the engine's prompt-cache budget (`--cache-ram`, default 8192 MiB); `--ctx-checkpoints N`
   bounds the context checkpoints a slot may keep. Both default to the engine value and are
@@ -124,6 +127,16 @@ llama-server `b11223` already has the necessary machinery; bongo now exposes and
 - Prefix sizes measured to 31K; 256K is extrapolated from the 4K→31K trend plus the model geometry.
 - The diffusion/attention-over-cache cost at 256K is not measured; a 128K-class prefix test is the
   confirmation experiment and needs a `--ctx-size 163840` server (~20 min per cold prefill).
-- Slot save/restore was not timed here; it is standard llama.cpp behaviour and is gated as a measurement.
+- Slot save/restore was timed at 31K q8 (see §4): the bytes round-trip fast, but the restored KV
+  is **not** reused on this hybrid `qwen4exp` model. Save writes the slot tokens + sequence state
+  but not the server's context checkpoints, so the next request forces a full re-prefill
+  (*"forcing full prompt re-processing due to lack of cache data (likely due to SWA or
+  hybrid/recurrent memory)"*). `--ctx-checkpoints` and `--cache-idle-slots` do not fix it, and
+  `--swa-full` is disabled for a model with no SWA layers. In-session prefix reuse is unaffected;
+  making restart survival a latency win needs engine work to persist checkpoints.
+- The 256K q8 slot save/restore was **not** run: the cold 256K prefill is ~50 min and the single GPU
+  was held by the [BAS-72](/BAS/issues/BAS-72) backend A/B for the whole window. It is delegated to a
+  follow-up; the 31K point already shows restore is not a hit, so a 256K number sizes the
+  persistence cost, not a product win.
 - The lever multipliers are the research's estimates; the whole point of M3.1/M3.2 is to replace them with
   Arc measurements.

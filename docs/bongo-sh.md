@@ -138,6 +138,29 @@ The endpoint is only available when a slot-save path is set; `--no-slot-save-pat
 engine default (disabled). The file lives *inside* the directory given to `--slot-save-path`.
 Saving is explicit: `bongo.sh` never writes a KV file on its own.
 
+**On this model a restored slot is not reused.** `Swift-1.5-Qwen3.8-Flash-Next` is a hybrid
+`qwen4exp` GGUF: 36 Gated-DeltaNet (linear/recurrent) layers and 12 full-attention layers, with no
+SWA layers. `save` writes the slot's tokens plus its sequence state (KV + recurrent state), and
+`restore` reads them back and reports `n_restored`; the bytes round-trip and are fast (see the
+timings below). But the engine also needs a *context checkpoint* to resume a prefix on
+hybrid/recurrent memory, and the server does not persist its checkpoint list in the slot file.
+The next request therefore re-prefills the whole prompt and the log shows *"forcing full prompt
+re-processing due to lack of cache data (likely due to SWA or hybrid/recurrent memory)"*.
+
+Consequences and things that do **not** fix it on this model:
+
+- `--ctx-checkpoints N` only bounds the in-RAM checkpoint list; the checkpoints are still not
+  written to the slot file.
+- `--cache-idle-slots` keeps an idle slot in the **in-RAM** prompt cache; it does not survive a
+  process restart.
+- `--swa-full` is rejected by the engine here (`swa_full is not supported by this model`), because
+  this GGUF has no sliding-window layers.
+
+So `--slot-save-path` persists the KV *bytes* cheaply, but on this model it does not turn a
+restore into a cache hit. **In-session prefix reuse (no restart) is unaffected and remains the
+product path.** Making restart survival a latency win needs the engine to persist context
+checkpoints (engine work, tracked separately), or a non-hybrid model tier.
+
 `--cache-idle-slots` (engine default: on) saves an idle slot to the **in-RAM** prompt cache when a
 new task starts, so a second slot can reuse it without touching the disk. It needs the engine's
 prompt-cache RAM budget (`--cache-ram`, default 8192 MiB). `--ctx-checkpoints N` bounds the number
