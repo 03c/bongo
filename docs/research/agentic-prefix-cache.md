@@ -2,8 +2,8 @@
 
 Measured 2026-09-28 on the reference box for [BAS-62](/BAS/issues/BAS-62), answering the plan-review
 comment: the workload is **agentic coding** (a small first prompt that grows), so per-turn
-prompt-processing must come from **prefix reuse**, and the context target is **≥156K up to the model's
-262144 native limit** with **quantized KV**.
+prompt-processing must come from **prefix reuse**, and the context target is **256K** (the model's
+262144 native limit) with **quantized KV**.
 
 - Method: `bench/measure-prefix-cache.py` (new). Raw: `bench/results/2026-09-28-prefix-cache/` and
   `bench/results/2026-09-28-prefix-cache-31k/`.
@@ -36,10 +36,10 @@ Reading the table:
 - The first request after server start is slow (255 tokens took 27 s; a second server start took 3.6 s) —
   shader/kernel warmup. **Warm the server once at startup** so the user's first turn is not the compile.
 
-Extrapolation to the target context (model, not measured): a 512-token delta at 156K stays in the
+Extrapolation to the target context (model, not measured): a 512-token delta at 256K stays in the
 ~4–8 s band if the delta rate holds at ~90–120 tok/s and the attention-over-cache term grows slowly;
-the cold re-prefill of 156K is **~20 min** at the measured 128K rate (133 tok/s). Losing the cache on a
-156K session is therefore catastrophic for latency; keeping/persisting it is the product feature.
+the cold re-prefill of 256K is **~30+ min** at the measured 128K rate (133 tok/s). Losing the cache on a
+256K session is therefore catastrophic for latency; keeping/persisting it is the product feature.
 
 ## 2. Envelope the CEO asked for
 
@@ -66,7 +66,7 @@ MMQ or speculation on this model):
 | M3.3 placement (`-ot`, dynamic LRU) | +18–27% prefill | +25–37% 4K decode |
 
 A reasonable *working target* to hold the build to: **512-token turn TTFT ≤ 3 s at 16K context and ≤ 5 s at
-156K**, and **4K decode ≥ 25 tok/s**. These are gates, not forecasts; M3.0/M3.1 measure the real multipliers.
+256K**, and **4K decode ≥ 25 tok/s**. These are gates, not forecasts; M3.0/M3.1 measure the real multipliers.
 
 ## 3. Long context and KV budget
 
@@ -76,28 +76,33 @@ f16 / 12 KiB/token q8**, plus the linear-attention state (constant ~0.15–0.2 G
 | Context | KV f16 | KV q8_0 | KV q4_0 (est.) |
 | ---: | ---: | ---: | ---: |
 | 128K | 3.0 GiB | ~1.5–2.0 GiB | ~0.9 GiB |
-| 156K | 3.7 GiB | ~1.8–2.3 GiB | ~1.1 GiB |
 | 256K (262144) | 6.0 GiB | ~3.0–3.8 GiB | ~1.5–1.9 GiB |
 
 Numbers include the estimated indexer KV; the 128K q8 row was cross-checked against
 [gguf-inventory §6](gguf-inventory.md) and the measured VRAM after load.
 
 Budget consequence: the shipped `--n-cpu-moe 16` peaks at **29.26 GiB of 31.92 GiB usable** and is the
-128K-safe ceiling (`n=12` device-loses at 31.85 GiB). So:
+128K-safe ceiling (`n=12` device-loses at 31.85 GiB). The 256K fit was then **measured directly**
+(`bench/results/2026-09-28-ctx256-fit/`):
 
-- **156K with q8 KV fits** (~+0.3 GiB over 128K) with slim headroom.
-- **256K with q8 KV probably does not fit at n=16** (+~1.8 GiB); either move ~1 GiB of experts to the CPU
-  (`n≈18`, a ~1% prefill cost) or use **q4 KV** (~no net increase vs 128K q8). This is a measured choice,
-  not a guess — hence the M3.5 milestone.
-- Flash attention is required for quantized KV and is already on.
+| 256K config | VRAM after load | Verdict |
+| --- | ---: | --- |
+| q8 KV, `n=16` | **31.79–31.82 GiB** | **unsafe** — within ~0.03 GiB of the 31.85 GiB device-loss point; loaded and served a tiny request, but any real prefill would likely lose the device |
+| q8 KV, `n=18` | **30.35 GiB** | **safe**, ~1.5 GiB margin; keeps KV precision; costs 2 more layers of CPU experts |
+| q4 KV, `n=16` | **30.10 GiB** | safe, ~1.75 GiB margin; loses KV precision |
+
+So **256K is reachable on this box, but not at the shipped placement and not with the naive KV choice.**
+The recommended default is **q8 KV with `--n-cpu-moe 18`**; q4 KV is the alternative if expert residency is
+worth more than KV precision. A full 256K prefill was not run (~30+ min); the fit test loads the full KV
+budget and is the risk it retires.
 
 ## 4. Serving model for the workload
 
 llama-server `b11223` already has the necessary machinery; bongo must expose and validate it:
 
 - `--cache-prompt` is **on by default**; in-session turns reuse the slot KV (measured above).
-- `--slot-save-path PATH` + `/slots/{id}?action=save|restore` persists a slot KV to disk. A 156K q8 KV is
-  ~2.3 GiB, so save/restore is ~1–3 s at SSD bandwidth versus ~20 min to re-prefill. This is the
+- `--slot-save-path PATH` + `/slots/{id}?action=save|restore` persists a slot KV to disk. A 256K q8 KV is
+  ~3–4 GiB, so save/restore is ~2–4 s at SSD bandwidth versus ~30 min to re-prefill. This is the
   cross-idle/cross-restart feature that makes long agentic sessions usable.
 - `--cache-idle-slots` saves idle slots on a new task; `--ctx-checkpoints N` bounds checkpoint memory.
 - The benchmark harness must gain a `cache_prompt` mode so the product metric is measured, not the
@@ -106,8 +111,8 @@ llama-server `b11223` already has the necessary machinery; bongo must expose and
 ## 5. Limits of this study
 
 - One user turn pattern (append a suffix), one model tier (IQ2_XS), one backend (Vulkan), one box.
-- Prefix sizes measured to 31K; 156K/256K are extrapolated from the 4K→31K trend plus the model geometry.
-- The diffusion/attention-over-cache cost at 156K is not measured; a 128K-class prefix test is the
+- Prefix sizes measured to 31K; 256K is extrapolated from the 4K→31K trend plus the model geometry.
+- The diffusion/attention-over-cache cost at 256K is not measured; a 128K-class prefix test is the
   confirmation experiment and needs a `--ctx-size 163840` server (~20 min per cold prefill).
 - Slot save/restore was not timed here; it is standard llama.cpp behaviour and is gated as a measurement.
 - The lever multipliers are the research's estimates; the whole point of M3.1/M3.2 is to replace them with

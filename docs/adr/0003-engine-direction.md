@@ -62,8 +62,8 @@ is bongo-specific (per-expert layout, residency policy, PLE reader).
 ## Amendment (2026-09-28) — workload profile from the plan review
 
 The CEO rejected the first plan revision with the workload definition that the milestones must serve:
-**agentic coding** — a small first prompt that grows over a session; **context up to 156K, ideally the model's
-262144 native limit**; **quantized KV**; and a request for a projected tokens-per-second and
+**agentic coding** — a small first prompt that grows over a session; **context target 256K** (the model's
+262144 native limit); **quantized KV**; and a request for a projected tokens-per-second and
 prompt-processing envelope before the build starts. The rejection is recorded on
 [BAS-62](/BAS/issues/BAS-62); the measurement is in
 [`docs/research/agentic-prefix-cache.md`](../research/agentic-prefix-cache.md).
@@ -77,9 +77,11 @@ This changes the target, not the direction:
 - **Prefix reuse and KV persistence become first-class engine requirements** (new milestone M3.0a below):
   `--cache-prompt` (on by default), `--slot-save-path` + slot save/restore for cross-idle/cross-restart
   sessions, `--cache-idle-slots`, and a harness mode that measures the cached path.
-- **Context target: ≥156K, up to 262144.** KV q8 is the default; 156K q8 (~2.3 GiB) fits the current
-  `--n-cpu-moe 16` budget, while 256K q8 (+~1.8 GiB) likely needs a ~1 GiB expert rebalance (`n≈18`) or q4
-  KV. This is a new gated milestone (M3.5).
+- **Context target: 256K (measured, not assumed).** Fitting was measured directly (plan-review correction:
+  the target is 256K, not 156K): **q8 KV at the shipped `--n-cpu-moe 16` reaches 31.79–31.82 GiB, within
+  ~0.03 GiB of the 31.85 GiB device-loss point — unsafe**; **q8 KV at `n=18` sits at 30.35 GiB (safe)** and
+  **q4 KV at `n=16` sits at 30.10 GiB (safe)**. Recommended default: **q8 KV with `--n-cpu-moe 18`**; q4 KV
+  is the alternative. Milestone M3.5.
 - **The milestones are re-ordered** so the cheap, measured serving win ships before the kernel work:
   M3.0 backend A/B → **M3.0a prefix-cache serving + persistence** → M3.1 integer MMQ/MMVQ → M3.2 speculation
   → M3.3 placement → M3.4 PLE reader → M3.5 long-context/KV budget.

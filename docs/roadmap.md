@@ -80,8 +80,9 @@ See [ADR-0003](adr/0003-engine-direction.md). Milestones, in measured expected-v
 - [ ] M3.3 Placement: cheapest-layer-first byte-budget `-ot`, then a dynamic VRAM LRU over RAM-pinned experts
   (R4 profile as initialisation only, held-out A/B required).
 - [ ] M3.4 PLE/n-gram second-shard reader: direct reads, parallel prefetch, bounded row cache.
-- [ ] M3.5 Long context: ≥156K up to 262144 with quantized KV; decide q8-versus-q4 and the expert rebalance
-  (`n≈18`) against the measured VRAM ceiling.
+- [ ] M3.5 Long context: **256K** (the model's 262144 native limit) with quantized KV. Measured fit: q8 KV at
+  `n=18` = 30.35 GiB (safe), q4 KV at `n=16` = 30.10 GiB (safe), q8 KV at `n=16` = 31.82 GiB (unsafe, within
+  0.03 GiB of device loss). Default to q8 KV + `--n-cpu-moe 18`; validate with a real 256K prefill + needle.
 - Deferred: Level Zero command-list capture (R1c); a from-scratch engine only if M3.1–M3.3 measurably miss the
   target and a new ADR names the unfixable gap.
 
