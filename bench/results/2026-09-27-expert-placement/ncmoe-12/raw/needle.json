@@ -1,0 +1,10 @@
+{
+  "context": 131072,
+  "needle": "VAULT-COORD-7391-QXZ",
+  "status": "fail",
+  "prompt_tokens": null,
+  "answer": "",
+  "http_status": 500,
+  "error": "{\"error\":{\"code\":500,\"message\":\"decode() failed: vk::Queue::submit: ErrorDeviceLost\",\"type\":\"server_error\"}}",
+  "folded_into_context": 131072
+}

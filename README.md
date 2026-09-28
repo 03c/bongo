@@ -32,6 +32,7 @@ runtime on the reference box; the script detects this and falls back to **Vulkan
 
 - [`docs/research/intel-arc-b70.md`](docs/research/intel-arc-b70.md) — hardware, model, memory budget, runtime options.
 - [`docs/research/gguf-inventory.md`](docs/research/gguf-inventory.md) — exact tensor inventory (1,224 tensors, all three tiers) and the 32 GB VRAM / 30 GiB RAM buffer-placement plan.
+- [`docs/research/expert-placement.md`](docs/research/expert-placement.md) — the `--n-cpu-moe` sweep on the B70, the VRAM feasibility edge, and the Stage 1 adaptive-cache go/no-go.
 - [`tools/gguf-inventory.py`](tools/gguf-inventory.py) — the header-range-read inventory tool (no weight download).
 - [`docs/adr/0001-runtime-architecture.md`](docs/adr/0001-runtime-architecture.md) — the staged runtime decision.
 - [`docs/adr/0002-baseline-engine.md`](docs/adr/0002-baseline-engine.md) — why llama.cpp SYCL is the baseline.
