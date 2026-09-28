@@ -137,6 +137,7 @@ PY
 
 log "harness at contexts=$contexts (reader=$reader)"
 python3 bench/harness.py --repo-root "$repo" --tier "$tier" --contexts "$contexts" \
+  --base-url "$base_url" \
   --repeats 1 --max-tokens 128 --needle-context 131072 --hash-mode none \
   --server-pid "$pid" --out-dir "$out_dir" >> "$out_dir/harness.log" 2>&1
 rc=$?
