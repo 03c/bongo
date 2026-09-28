@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlparse
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -59,7 +61,8 @@ class Handler(BaseHTTPRequestHandler):
             self._error(404, "not found")
 
     def do_POST(self):
-        path = self.path.rstrip("/")
+        parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/")
         try:
             if path == "/tokenize":  # root only, like llama-server
                 obj = self._read_json()
@@ -70,11 +73,49 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/v1/completions":
                 self._completions()
                 return
+            if path.startswith("/slots/"):
+                self._slots(parsed)
+                return
             self._error(404, "not found")
         except json.JSONDecodeError:
             self._error(400, "invalid JSON body")
         except Exception as exc:  # noqa: BLE001
             self._error(500, f"{type(exc).__name__}: {exc}")
+
+    def _slots(self, parsed):
+        """Minimal /slots/{id}?action=save|restore|erase, saving the cached tokens."""
+        srv = self.server
+        if not srv.slot_dir:
+            self._error(501, "This server does not support slots action. Start it with `--slot-save-path`")
+            return
+        try:
+            slot_id = int(parsed.path.rsplit("/", 1)[-1])
+        except ValueError:
+            self._error(400, "Invalid slot ID")
+            return
+        action = (parse_qs(parsed.query).get("action") or [""])[0]
+        obj = self._read_json() if int(self.headers.get("Content-Length", "0") or 0) else {}
+        filename = os.path.basename(str(obj.get("filename", "")))
+        path = os.path.join(srv.slot_dir, filename) if filename else None
+        if action == "save":
+            if not filename:
+                self._error(400, "Invalid filename")
+                return
+            with open(path, "w") as fh:
+                json.dump({"slot_id": slot_id, "tokens": srv.cache_tokens}, fh)
+            self._send(200, {"n_saved": len(srv.cache_tokens)})
+        elif action == "restore":
+            if not filename or not os.path.isfile(path):
+                self._error(400, "Invalid filename")
+                return
+            with open(path) as fh:
+                srv.cache_tokens = json.load(fh).get("tokens", [])
+            self._send(200, {"n_restored": len(srv.cache_tokens)})
+        elif action == "erase":
+            srv.cache_tokens = []
+            self._send(200, {"n_erased": 0})
+        else:
+            self._error(400, "Invalid action")
 
     def _completions(self):
         srv = self.server
@@ -94,16 +135,29 @@ class Handler(BaseHTTPRequestHandler):
             self._error(400, "max_tokens must be a non-negative integer")
             return
         stream = bool(obj.get("stream", False))
-        prompt_n = max(1, len(prompt.split()))
+        tokens = prompt.split()
+        total = len(tokens)
 
-        if srv.fail_above is not None and prompt_n > srv.fail_above:
+        # Emulate llama-server prefix reuse: cache_n is the common token prefix
+        # with the prompt currently held by the slot. cache_prompt defaults to
+        # true, matching the server default (--cache-prompt is on by default).
+        cache_prompt = bool(obj.get("cache_prompt", True))
+        cache_n = 0
+        if cache_prompt:
+            cached = srv.cache_tokens
+            while cache_n < total and cache_n < len(cached) and tokens[cache_n] == cached[cache_n]:
+                cache_n += 1
+        srv.cache_tokens = tokens
+        prompt_n = total - cache_n
+        if prompt_n + max_tokens > srv.ctx:
+            self._error(400, f"the prompt is too long ({total} + {max_tokens} > n_ctx {srv.ctx})")
+            return
+
+        if srv.fail_above is not None and total > srv.fail_above:
             self._error(
                 500,
-                f"failed to process prompt: out of memory (prompt_n={prompt_n} > fail_above={srv.fail_above})",
+                f"failed to process prompt: out of memory (prompt_n={total} > fail_above={srv.fail_above})",
             )
-            return
-        if prompt_n + max_tokens > srv.ctx:
-            self._error(400, f"the prompt is too long ({prompt_n} + {max_tokens} > n_ctx {srv.ctx})")
             return
 
         prefill_ms = (prompt_n / srv.prefill_tps) * 1000.0
@@ -114,13 +168,20 @@ class Handler(BaseHTTPRequestHandler):
 
         timings = {
             "prompt_n": prompt_n,
+            "cache_n": cache_n,
             "prompt_ms": prefill_ms,
-            "prompt_per_token_ms": prefill_ms / prompt_n,
-            "prompt_per_second": srv.prefill_tps,
+            "prompt_per_token_ms": (prefill_ms / prompt_n) if prompt_n else 0.0,
+            "prompt_per_second": srv.prefill_tps if prompt_n else 0.0,
             "predicted_n": max_tokens,
             "predicted_ms": decode_ms,
             "predicted_per_token_ms": decode_ms / max_tokens if max_tokens else None,
             "predicted_per_second": srv.decode_tps,
+        }
+        usage = {
+            "prompt_tokens": total,
+            "completion_tokens": max_tokens,
+            "total_tokens": total + max_tokens,
+            "prompt_tokens_details": {"cached_tokens": cache_n},
         }
 
         if not stream:
@@ -131,7 +192,7 @@ class Handler(BaseHTTPRequestHandler):
                     "object": "text_completion",
                     "model": srv.model_id,
                     "choices": [{"index": 0, "text": text, "finish_reason": "length"}],
-                    "usage": {"prompt_tokens": prompt_n, "completion_tokens": max_tokens, "total_tokens": prompt_n + max_tokens},
+                    "usage": usage,
                     "timings": timings,
                 },
             )
@@ -156,7 +217,7 @@ class Handler(BaseHTTPRequestHandler):
             "id": "cmpl-mock",
             "object": "text_completion",
             "choices": [{"index": 0, "text": "", "finish_reason": "length"}],
-            "usage": {"prompt_tokens": prompt_n, "completion_tokens": max_tokens, "total_tokens": prompt_n + max_tokens},
+            "usage": usage,
             "timings": timings,
         }
         self.wfile.write(f"data: {json.dumps(final)}\n\n".encode())
@@ -174,10 +235,13 @@ def main():
     ap.add_argument("--decode-tps", type=float, default=1000.0)
     ap.add_argument("--max-ttft-delay", type=float, default=0.05)
     ap.add_argument("--model-id", default="bongo-mock")
+    ap.add_argument("--slot-save-path", default=None)
     ap.add_argument("--needle-ok", dest="needle_ok", action="store_true", default=True)
     ap.add_argument("--needle-fail", dest="needle_ok", action="store_false")
     args = ap.parse_args()
 
+    if args.slot_save_path:
+        os.makedirs(args.slot_save_path, exist_ok=True)
     httpd = ThreadingHTTPServer((args.host, args.port), Handler)
     httpd.ctx = args.ctx
     httpd.fail_above = args.fail_above
@@ -186,6 +250,8 @@ def main():
     httpd.max_ttft_delay = args.max_ttft_delay
     httpd.model_id = args.model_id
     httpd.needle_ok = args.needle_ok
+    httpd.slot_dir = args.slot_save_path
+    httpd.cache_tokens = []
     print(f"mock listening on http://{args.host}:{args.port}/v1 ctx={args.ctx}", flush=True)
     httpd.serve_forever()
 
