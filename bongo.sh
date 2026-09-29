@@ -70,7 +70,7 @@ FLASH_ATTN="on"
 CACHE_TYPE_K="q8_0"
 CACHE_TYPE_V="q8_0"
 PARALLEL=1
-NO_MMAP=0
+LOAD_MODE=""             # "" = engine default (auto/mmap); --load-mode MODE or --no-mmap sets it
 DRY_RUN=0
 DETACH=0
 FORCE=0
@@ -193,7 +193,11 @@ Serving:
   --n-cpu-moe N          MoE layers with experts on CPU (explicit placement)
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
-  --no-mmap              Pass --no-mmap (only if measurement shows thrashing)
+  --load-mode MODE       Model loading mode: auto (default), none, mmap, mlock, mmap+mlock, dio
+  --no-mmap              Alias for --load-mode none: read the model into anonymous RAM instead of
+                         an mmap. Measured M4.1 (BAS-144): removes in-turn page-cache re-reads of the
+                         host-resident MoE experts (~0.5 GiB/turn) and their page-fault CPU. Keep the
+                         default unless the measurement shows the mmap thrashing.
   --detach               Start the server in the background and exit
   --no-keep-alive        Let llama-server exit when idle
 
@@ -256,7 +260,8 @@ parse_args() {
       --n-cpu-moe) N_CPU_MOE="${2:?--n-cpu-moe needs a value}"; shift 2;;
       --n-gpu-layers) N_GPU_LAYERS="${2:?--n-gpu-layers needs a value}"; shift 2;;
       --threads) THREADS="${2:?--threads needs a value}"; shift 2;;
-      --no-mmap) NO_MMAP=1; shift;;
+      --load-mode) LOAD_MODE="${2:?--load-mode needs a value}"; shift 2;;
+      --no-mmap) LOAD_MODE="none"; shift;;
       # The published GGUF has no MTP/NextN head and llama.cpp qwen4exp cannot convert or run one;
       # speculation is the n-gram/PLE table. Refuse the flag with an actionable message.
       --mtp) die "--mtp is not supported for this model: the published GGUF has no MTP head and llama.cpp qwen4exp cannot run one. Speculation uses the lazy-read n-gram/PLE table. See docs/research/intel-arc-b70.md section 2.1.";;
@@ -301,6 +306,12 @@ validate_args() {
   (( CTX >= 131072 )) || die "Context $CTX is below the 131072 acceptance minimum. Use --ctx 131072 or higher."
   [[ "$PORT" =~ ^[0-9]+$ ]] || die "--port must be an integer."
   [[ "$N_GPU_LAYERS" =~ ^[0-9]+$ ]] || die "--n-gpu-layers must be an integer."
+  if [[ -n "$LOAD_MODE" ]]; then
+    case "$LOAD_MODE" in
+      auto|none|mmap|mlock|mmap+mlock|dio) ;;
+      *) die "Unknown --load-mode '$LOAD_MODE'. Use auto|none|mmap|mlock|mmap+mlock|dio.";;
+    esac
+  fi
   if [[ -n "$CTX_CHECKPOINTS" ]]; then
     [[ "$CTX_CHECKPOINTS" =~ ^[0-9]+$ ]] || die "--ctx-checkpoints must be an integer (got '$CTX_CHECKPOINTS')."
   fi
@@ -938,7 +949,7 @@ build_server_flags() {
     "--metrics"
   )
   if [[ -n "$THREADS" ]]; then SERVER_FLAGS+=(--threads "$THREADS"); fi
-  if (( NO_MMAP )); then SERVER_FLAGS+=(--no-mmap); fi
+  if [[ -n "$LOAD_MODE" ]]; then SERVER_FLAGS+=(--load-mode "$LOAD_MODE"); fi
   if (( KEEP_ALIVE == 0 )); then SERVER_FLAGS+=(--no-keep-alive); fi
   # Prefix-cache serving: explicit in the config so the cached path is the
   # reproducible product path (not the engine default that a reader has to know).

@@ -148,9 +148,16 @@ reset_cache_state() {
   CACHE_PROMPT=1; CACHE_IDLE_SLOTS=""; CTX_CHECKPOINTS=""; SLOT_SAVE_PATH=""; SLOT_SAVE_PATH_SET=0; WARMUP=1
   TIER=iq2_xs; MODEL_SHARDS=(/m/model.gguf); N_GPU_LAYERS=99; N_CPU_MOE=16; CTX=131072
   HOST=127.0.0.1; PORT=8080; PARALLEL=1; SELECTED_BACKEND=Vulkan; SERVER_BIN=""
-  FLASH_ATTN=on; CACHE_TYPE_K=q8_0; CACHE_TYPE_V=q8_0; THREADS=""; NO_MMAP=0; KEEP_ALIVE=1
+  FLASH_ATTN=on; CACHE_TYPE_K=q8_0; CACHE_TYPE_V=q8_0; THREADS=""; LOAD_MODE=""; KEEP_ALIVE=1
 }
 flags_have() { local needle="$1" f; for f in "${SERVER_FLAGS[@]}"; do [[ "$f" == "$needle" ]] && return 0; done; return 1; }
+flags_pair() {
+  local a="$1" b="$2" i
+  for ((i = 0; i < ${#SERVER_FLAGS[@]} - 1; i++)); do
+    [[ "${SERVER_FLAGS[i]}" == "$a" && "${SERVER_FLAGS[i + 1]}" == "$b" ]] && return 0
+  done
+  return 1
+}
 
 reset_cache_state
 validate_args; build_server_flags
@@ -168,6 +175,25 @@ validate_args; build_server_flags
 t_check "M3.0a emits --no-cache-idle-slots" flags_have --no-cache-idle-slots
 t_check "M3.0a emits --ctx-checkpoints" flags_have --ctx-checkpoints
 t_check "M3.0a emits --cache-prompt with idle/checkpoint overrides" flags_have --cache-prompt
+
+# --- M4.1: the host-expert RAM load mode is selectable and default-off -------
+# The pinned b11223 llama-server rejects --no-mmap; --load-mode none is the
+# supported spelling of the same request (BAS-144).
+reset_cache_state
+validate_args; build_server_flags
+if flags_have --load-mode; then t_bad "M4.1 default omits --load-mode"; else t_ok "M4.1 default omits --load-mode"; fi
+
+reset_cache_state; parse_args --no-mmap
+validate_args; build_server_flags
+t_check "M4.1 --no-mmap maps to load mode none" test "$LOAD_MODE" = none
+t_check "M4.1 --no-mmap emits --load-mode none" flags_pair --load-mode none
+
+reset_cache_state; parse_args --load-mode mmap+mlock
+validate_args; build_server_flags
+t_check "M4.1 --load-mode passes the mode through" flags_pair --load-mode mmap+mlock
+
+reset_cache_state; LOAD_MODE=bogus
+if (validate_args) >/dev/null 2>&1; then t_bad "M4.1 invalid load mode is rejected"; else t_ok "M4.1 invalid load mode is rejected"; fi
 
 # --- M3.0: setup_runtime_env puts the IGC/LLVM libs on the link path -------
 # Without usr/lib64/llvm15/lib the Level Zero probe aborts in gmm_helper and
