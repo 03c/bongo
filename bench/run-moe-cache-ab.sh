@@ -8,8 +8,17 @@
 #             online LRU; counters dumped to moe-cache-stats.json
 #
 # Both runs go through bench/sweep-byte-budget-placement.sh so the protocol
-# (4K + 128K prefill/decode, VRAM, needle, prefix-cache path) is identical, and
-# serialise on the shared single-GPU flock (BAS-80).
+# (4K + 128K prefill/decode, VRAM, needle, prefix-cache path) is identical.  This
+# wrapper takes the shared single-GPU flock (BAS-80) once for the whole A/B, so
+# the two configs and the gap between them are one measurement session and
+# nothing else can overlap.  `BONGO_GPU_LOCK_TIMEOUT` controls the wait: 0 (the
+# default) fails fast when the GPU is busy, -1 queues until the holder exits.
+#
+# The run is long (two 128K prefills), so launch it detached with a blocking
+# lock wait instead of polling:
+#
+#   BONGO_GPU_LOCK_TIMEOUT=-1 setsid nohup bench/run-moe-cache-ab.sh \
+#       > bench/results/2026-09-29-moe-cache-lru/ab-run.log 2>&1 &
 #
 # Usage:
 #   bench/run-moe-cache-ab.sh                 # build the profile if missing, run both
@@ -24,6 +33,8 @@ set -uo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
+# shellcheck source=bench/gpu-lock.sh
+. "$repo/bench/gpu-lock.sh"
 
 tier="${BONGO_SWEEP_TIER:-iq2_xs}"
 budget_gib="${BONGO_BUDGET_GIB:-22.40}"
@@ -80,6 +91,16 @@ run_lru() {
 }
 
 rc=0
+
+# One measurement session: hold the single GPU for both configs (BAS-80).  The
+# sweep script inherits the lock via BONGO_GPU_LOCK_HELD so it does not take it
+# a second time.
+if (( ! dry_run )); then
+  bongo_gpu_lock_acquire "run-moe-cache-ab ($only)" || exit 3
+  trap 'bongo_gpu_lock_release' EXIT INT TERM
+  export BONGO_GPU_LOCK_HELD=1
+fi
+
 case "$only" in
   baseline) run_baseline || rc=$?;;
   lru)      run_lru || rc=$?;;
