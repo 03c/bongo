@@ -1,0 +1,12 @@
+{
+  "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf:39788473344:1790550068:none": {
+    "sha256": null,
+    "hash_mode": "none",
+    "size_bytes": 39788473344
+  },
+  "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00002-of-00002.gguf:28363693824:1790550320:none": {
+    "sha256": null,
+    "hash_mode": "none",
+    "size_bytes": 28363693824
+  }
+}
