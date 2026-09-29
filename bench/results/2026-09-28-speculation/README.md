@@ -72,15 +72,26 @@ texts to match byte for byte.
 | generic | 131 072 | **no** — diverges at char 23 |
 | docs | 131 072 | **no** — diverges at char 8 |
 
-The 128K divergence is not a rejected-draft leak: each divergence is early in the
-model's `<think>` reasoning, and the reference verify core proves the
-accept-longest-greedy-prefix contract exactly (`bench/spec_verify_core.py`,
-40 traces). The leading explanation under test is **prefix-cache contamination**:
-the 128K equivalence request is issued after the 4K decode, so it reuses a KV
-prefix built by the spec leg's *batched* verification, whose floating-point
-accumulation order differs from a sequential decode. A clean-slate equivalence
-re-test (`cache_prompt=false`, full prefill on both legs, no prior speculative
-decode) is queued; its result goes here.
+The 128K divergence is **not** a rejected-draft leak and **not** prefix-cache
+contamination. The reference verify core proves the accept-longest-greedy-prefix
+contract exactly (`bench/spec_verify_core.py`, 40 traces), and a clean-slate
+re-test (`bench/run-speculation-equiv.sh`, `cache_prompt=false`, full prefill on
+both legs, no prior speculative decode) **still diverges at char 23** —
+`bench/results/2026-09-28-speculation/equiv/equiv-compare-generic.json`.
+
+The cause is engine-level floating-point non-determinism across cache and
+batching states, not a verify-core fault. The non-speculative leg alone is not
+bit-stable: the same prompt and `--spec-type none` produced
+
+- `cache_prompt=true` (reusing a prefix built by the 4K decode): `"The user has sent a massive block of repeated text ..."`
+- `cache_prompt=false` (fresh full prefill): `"The user has sent a very long text that consists ..."`
+
+Batched prompt processing and batched verify forwards accumulate in a different
+order from a sequential decode, so a near-tie can flip. At 128K it flips; at 4K
+it does not. Practical reading: **do not rely on bit-exact greedy equality at
+long context on this engine.** The mathematical contract still holds — every
+committed token is the target's own greedy token given the prefix that produced
+it — but bit-equality across configurations is not guaranteed.
 
 ## Reproduce
 
@@ -97,3 +108,4 @@ BONGO_GPU_LOCK_TIMEOUT=-1 ./bench/run-speculation-m32b.sh
 - `baseline-generic.json`, `baseline-docs.json` — spec-off (`--spec-type none`)
 - `spec-generic.json`, `spec-docs.json` — spec-on (`--spec-type ngram-map-k4v`)
 - `compare-generic.json`, `compare-docs.json` — per-workload verdict
+- `equiv/equiv-baseline-generic.json`, `equiv/equiv-spec-generic.json`, `equiv/equiv-compare-generic.json` — clean-slate (`cache_prompt=false`) equivalence re-test

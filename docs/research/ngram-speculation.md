@@ -104,7 +104,9 @@ repeated-corpus echo is the only positive case and still only 1.22x. Cause: deco
 the CPU-resident MoE expert FFN, which a verify batch does not share, so *S* drafts cost about *S*
 token-forwards; and the engine's `ngram-*` drafter has no acceptance-adaptive window, so a
 low-acceptance workload pays for rejected drafts. Greedy equivalence is byte-exact at 4K and diverges
-at 128K under prefix caching (see the results README); speculation is not enabled in `bongo.sh`.
+at 128K even from a clean full prefill; the non-speculative leg is itself not bit-stable across cache
+states, so this is engine floating-point batching, not a verify-core fault (the reference core is
+exact). Speculation is not enabled in `bongo.sh`.
 
 ## 5. Limits
 

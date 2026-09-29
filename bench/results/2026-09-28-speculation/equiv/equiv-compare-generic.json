@@ -1,0 +1,43 @@
+{
+  "schema": "bongo.speculation-compare.v1",
+  "generated_at": "2026-09-29T02:27:51+00:00",
+  "baseline_label": "equiv-baseline",
+  "spec_label": "equiv-spec",
+  "workload": "generic",
+  "spec_type": "ngram-map-k4v",
+  "contexts": [
+    {
+      "context": 4096,
+      "status": "ok",
+      "equiv_equal": true,
+      "equiv_len": 325,
+      "output_tps_baseline": null,
+      "output_tps_spec": null,
+      "speedup": null,
+      "ttft_baseline_ms": null,
+      "ttft_spec_ms": null,
+      "acceptance": null
+    },
+    {
+      "context": 131072,
+      "status": "ok",
+      "equiv_equal": false,
+      "equiv_len": 314,
+      "equiv_divergence_index": 23,
+      "equiv_baseline_excerpt": "\n\n<think>\nThe user has sent a very long text that consists of the same paragraph repeated many, many ti",
+      "equiv_spec_excerpt": "\n\n<think>\nThe user has pasted a paragraph repeated many, many times. The text describes a mountain road",
+      "output_tps_baseline": null,
+      "output_tps_spec": null,
+      "speedup": null,
+      "ttft_baseline_ms": null,
+      "ttft_spec_ms": null,
+      "acceptance": null
+    }
+  ],
+  "verdict": {
+    "outputs_identical": false,
+    "speedups_at_acceptance_ge_0.5": {},
+    "min_speedup_at_acceptance_ge_0.5": null,
+    "low_acceptance_regressions": []
+  }
+}
