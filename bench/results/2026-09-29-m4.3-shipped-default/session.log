@@ -1,0 +1,27 @@
+[m4.3 07:19:15Z] turns: shipped_default (16K), shipped_default_128k, stage0_optout (16K)
+[warm-prefix 07:19:15Z] shipped_default: starting llama-server (ctx=131072 perf=0) flags: --load-mode none
+[warm-prefix 07:20:30Z] shipped_default: server healthy after 75s; pid=4098245
+[warm-prefix 07:20:42Z] shipped_default: profiling prefixes=16384 deltas=512
+[warm-prefix 07:20:42Z] shipped_default: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 07:21:46Z] shipped_default: profile exit 0
+[warm-prefix 07:21:47Z] shipped_default_128k: starting llama-server (ctx=131072 perf=0) flags: --load-mode none
+[warm-prefix 07:23:02Z] shipped_default_128k: server healthy after 75s; pid=4101719
+[warm-prefix 07:23:14Z] shipped_default_128k: profiling prefixes=128000 deltas=512
+[warm-prefix 07:23:14Z] shipped_default_128k: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 07:35:58Z] shipped_default_128k: profile exit 0
+[warm-prefix 07:35:59Z] stage0_optout: starting llama-server (ctx=131072 perf=0) flags: 
+[warm-prefix 07:36:44Z] stage0_optout: server healthy after 45s; pid=4119836
+[warm-prefix 07:37:14Z] stage0_optout: profiling prefixes=16384 deltas=512
+[warm-prefix 07:37:14Z] stage0_optout: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 07:38:49Z] stage0_optout: profile exit 0
+[warm-prefix 07:38:49Z] done; results in bench/results/2026-09-29-m4.3-shipped-default/turns
+[m4.3 07:38:49Z] ctx256: starting llama-server (n_cpu_moe=18, load-mode none, upload levers)
+[m4.3 07:40:05Z] ctx256: healthy after 75s
+ctx256 fit: status=200 vram_peak_gib=30.647
+[m4.3 07:40:09Z] needle: shipped_default
+bench/run-needle-check.sh: line 96: local: can only be used in a function
+[needle 07:40:09Z] shipped_default: starting llama-server flags: --load-mode none env: <none>
+bench/run-needle-check.sh: line 99: env_flags: unbound variable
+[needle 07:40:09Z] shipped_default: server failed to become healthy
+[needle 07:40:09Z] done (rc=3); results in bench/results/2026-09-29-m4.3-shipped-default/needle
+[m4.3 07:40:09Z] done (rc=3); results in bench/results/2026-09-29-m4.3-shipped-default

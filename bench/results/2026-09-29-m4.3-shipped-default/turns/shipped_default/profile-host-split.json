@@ -1,0 +1,2110 @@
+{
+  "schema": "bongo.warm-prefix-host-split.v1",
+  "generated_at": "2026-09-29T07:20:42+00:00",
+  "label": "shipped_default",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "deltas": [
+    512
+  ],
+  "prefixes": [
+    16384
+  ],
+  "clk_tck": 100,
+  "server_n_threads": null,
+  "server": {
+    "base_url": "http://127.0.0.1:8080/v1",
+    "server_root": "http://127.0.0.1:8080",
+    "props": {
+      "default_generation_settings": {
+        "params": {
+          "seed": 4294967295,
+          "temperature": 1.0,
+          "dynatemp_range": 0.0,
+          "dynatemp_exponent": 1.0,
+          "top_k": 20,
+          "top_p": 0.949999988079071,
+          "min_p": 0.05000000074505806,
+          "top_n_sigma": -1.0,
+          "xtc_probability": 0.0,
+          "xtc_threshold": 0.10000000149011612,
+          "typical_p": 1.0,
+          "repeat_last_n": 64,
+          "repeat_penalty": 1.0,
+          "presence_penalty": 0.0,
+          "frequency_penalty": 0.0,
+          "dry_multiplier": 0.0,
+          "dry_base": 1.75,
+          "dry_allowed_length": 2,
+          "dry_penalty_last_n": 64,
+          "mirostat": 0,
+          "mirostat_tau": 5.0,
+          "mirostat_eta": 0.10000000149011612,
+          "adaptive_target": -1.0,
+          "adaptive_decay": 0.8999999761581421,
+          "max_tokens": -1,
+          "n_predict": -1,
+          "n_keep": 0,
+          "n_discard": 0,
+          "ignore_eos": false,
+          "stream": false,
+          "n_probs": 0,
+          "min_keep": 0,
+          "chat_format": "Content-only",
+          "reasoning_format": "none",
+          "reasoning_in_content": false,
+          "generation_prompt": "",
+          "samplers": [
+            "penalties",
+            "dry",
+            "top_n_sigma",
+            "top_k",
+            "typ_p",
+            "top_p",
+            "min_p",
+            "xtc",
+            "temperature"
+          ],
+          "speculative.types": "none",
+          "timings_per_token": false,
+          "post_sampling_probs": false,
+          "backend_sampling": false,
+          "lora": []
+        },
+        "n_ctx": 131072
+      },
+      "total_slots": 1,
+      "model_alias": "bongo-iq2_xs",
+      "model_ftype": "IQ2_XS - 2.3125 bpw",
+      "model_path": "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+      "modalities": {
+        "vision": false,
+        "video": false,
+        "audio": false
+      },
+      "media_marker": "<__media_vgVwXEOjR6djtG8XQTfzM2ZaEEdvUqER__>",
+      "endpoint_slots": true,
+      "endpoint_props": false,
+      "endpoint_metrics": true,
+      "ui": true,
+      "ui_settings": {},
+      "chat_template": "{%- set image_count = namespace(value=0) %}\n{%- set video_count = namespace(value=0) %}\n{%- macro render_content(content, do_vision_count, is_system_content=false) %}\n    {%- if content is string %}\n        {{- content }}\n    {%- elif content is iterable and content is not mapping %}\n        {%- for item in content %}\n            {%- if 'image' in item or 'image_url' in item or item.type == 'image' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain images.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set image_count.value = image_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Picture ' ~ image_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|image_pad|><|vision_end|>' }}\n            {%- elif 'video' in item or item.type == 'video' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain videos.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set video_count.value = video_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Video ' ~ video_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|video_pad|><|vision_end|>' }}\n            {%- elif 'text' in item %}\n                {{- item.text }}\n            {%- else %}\n                {{- raise_exception('Unexpected item type in content.') }}\n            {%- endif %}\n        {%- endfor %}\n    {%- elif content is none or content is undefined %}\n        {{- '' }}\n    {%- else %}\n        {{- raise_exception('Unexpected content type.') }}\n    {%- endif %}\n{%- endmacro %}\n{%- if not messages %}\n    {{- raise_exception('No messages provided.') }}\n{%- endif %}\n{%- set reasoning_instructions = '' %}\n{%- if enable_thinking is undefined or enable_thinking is true %}\n    {%- set resolved_reasoning_effort = reasoning_effort|default('xhigh') %}\n    {%- if resolved_reasoning_effort not in ('xhigh', 'medium', 'low') %}\n        {{- raise_exception('Unexpected reasoning effort ' ~ reasoning_effort ~ '. Supported types are xhigh (default), medium, and low.') }}\n    {%- endif %}\n    {%- if resolved_reasoning_effort == 'xhigh' %}\n        {%- set reasoning_instructions = 'Reasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.' %}\n    {%- elif resolved_reasoning_effort == 'low' %}\n        {%- set reasoning_instructions = 'Reasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration.' %}\n    {%- endif %}\n{%- endif %}\n{%- if tools and tools is iterable and tools is not mapping %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if reasoning_instructions %}\n        {{- reasoning_instructions + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou have access to the following functions:\\n\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\" }}\n    {{- '\\n\\nIf you choose to call a function ONLY reply in the following format with NO suffix:\\n\\n<tool_call>\\n<function=example_function_name>\\n<parameter=example_parameter_1>\\nvalue_1\\n</parameter>\\n<parameter=example_parameter_2>\\nThis is the value for the second parameter\\nthat can span\\nmultiple lines\\n</parameter>\\n</function>\\n</tool_call>\\n\\n<IMPORTANT>\\nReminder:\\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\\n- Required parameters MUST be specified\\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\\n</IMPORTANT>' }}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '\\n\\n' + content }}\n        {%- endif %}\n    {%- endif %}\n    {{- '<|im_end|>\\n' }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '<|im_start|>system\\n' + (reasoning_instructions + '\\n\\n' if reasoning_instructions else '')  + content + '<|im_end|>\\n' }}\n        {%- elif reasoning_instructions %}\n            {{- '<|im_start|>system\\n' + reasoning_instructions + '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- elif reasoning_instructions %}\n        {{- '<|im_start|>system\\n' + reasoning_instructions + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- if ns.multi_step_tool and message.role == \"user\" %}\n        {%- set content = render_content(message.content, false)|trim %}\n        {%- if not(content.startswith('<tool_response>') and content.endswith('</tool_response>')) %}\n            {%- set ns.multi_step_tool = false %}\n            {%- set ns.last_query_index = index %}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if ns.multi_step_tool %}\n    {{- raise_exception('No user query found in messages.') }}\n{%- endif %}\n{%- for message in messages %}\n    {%- set content = render_content(message.content, true)|trim %}\n    {%- if message.role == \"system\" %}\n        {%- if not loop.first %}\n            {{- raise_exception('System message must be at the beginning.') }}\n        {%- endif %}\n    {%- elif message.role == \"user\" %}\n        {{- '<|im_start|>' + message.role + '\\n' + content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is string %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- endif %}\n        {%- set reasoning_content = reasoning_content|trim %}\n        {%- if preserve_thinking is undefined or preserve_thinking is true or loop.index0 > ns.last_query_index %}\n            {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content + '\\n</think>\\n\\n' + content }}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls and message.tool_calls is iterable and message.tool_calls is not mapping %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if tool_call.function is defined %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {%- if loop.first %}\n                    {%- if content|trim %}\n                        {{- '\\n\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- else %}\n                        {{- '<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- endif %}\n                {%- else %}\n                    {{- '\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                {%- endif %}\n                {%- if tool_call.arguments is defined and tool_call.arguments != '' %}\n                    {%- for args_name, args_value in tool_call.arguments|items %}\n                        {{- '<parameter=' + args_name + '>\\n' }}\n                        {%- set args_value = args_value | string if args_value is string else args_value | tojson | safe %}\n                        {{- args_value }}\n                        {{- '\\n</parameter>\\n' }}\n                    {%- endfor %}\n                {%- endif %}\n                {{- '</function>\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.previtem and loop.previtem.role != \"tool\" %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- content }}\n        {{- '\\n</tool_response>' }}\n        {%- if not loop.last and loop.nextitem.role != \"tool\" %}\n            {{- '<|im_end|>\\n' }}\n        {%- elif loop.last %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- else %}\n        {{- raise_exception('Unexpected message role.') }}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- else %}\n        {{- '<think>\\n' }}\n    {%- endif %}\n{%- endif %}",
+      "chat_template_caps": {
+        "supports_object_arguments": true,
+        "supports_parallel_tool_calls": true,
+        "supports_preserve_reasoning": true,
+        "supports_reasoning_effort": true,
+        "supports_string_content": true,
+        "supports_system_role": true,
+        "supports_tool_calls": true,
+        "supports_tools": true,
+        "supports_typed_content": true
+      },
+      "bos_token": "<|endoftext|>",
+      "eos_token": "<|im_end|>",
+      "build_info": "b1-4da633776",
+      "is_sleeping": false,
+      "cors_proxy_enabled": false
+    },
+    "props_status": 200,
+    "pid": 4098245,
+    "flags": [
+      "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server",
+      "--model",
+      "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+      "--ctx-size",
+      "131072",
+      "--jinja",
+      "--cache-type-k",
+      "q8_0",
+      "--cache-type-v",
+      "q8_0",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "8080",
+      "--parallel",
+      "1",
+      "--alias",
+      "bongo-iq2_xs",
+      "--metrics",
+      "--device",
+      "Vulkan1",
+      "--spec-type",
+      "none",
+      "--flash-attn",
+      "on",
+      "--n-cpu-moe",
+      "16",
+      "--n-gpu-layers",
+      "99",
+      "--load-mode",
+      "none"
+    ]
+  },
+  "flags_note": "engine=llama.cpp b11223 backend=Vulkan tier=iq2_xs ctx=131072 flags=--load-mode none note=bongo.sh default (BAS-158): M4.2 patched engine + --load-mode none + upload levers",
+  "warmup": {
+    "status": 200,
+    "wall_ms": 1263.4,
+    "prompt_tokens": 255,
+    "prompt_ms": 1184.427,
+    "prompt_tps": 215.29397759422912,
+    "output_tokens": 1,
+    "output_ms": 0.001,
+    "output_tps": 0.0,
+    "cache_n": 0,
+    "cached_tokens": 0,
+    "usage": {
+      "completion_tokens": 1,
+      "prompt_tokens": 255,
+      "total_tokens": 256,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": "\n\n",
+    "ttft_ms": 1263.26,
+    "ttfb_ms": 1263.23,
+    "stream_total_ms": 1263.4,
+    "stream_error": null,
+    "stream_text": "\n\n",
+    "client_wall_ms": 1263.45,
+    "label": "warmup",
+    "cache_prompt": false,
+    "max_tokens": 1,
+    "ts": 1790666443.661287,
+    "proc": {
+      "wall_ms": 1263.83,
+      "cpu_total_ms": 1110.0,
+      "majflt": 16,
+      "minflt": 101412,
+      "io": {
+        "rchar": 102662,
+        "read_bytes": 180224,
+        "cancelled_write_bytes": 0,
+        "wchar": 797,
+        "syscw": 21,
+        "syscr": 5,
+        "write_bytes": 0
+      },
+      "threads": [
+        {
+          "tid": 4098245,
+          "comm": "llama-server",
+          "cpu_ms": 550.0,
+          "minflt": 101397,
+          "majflt": 16,
+          "new": false
+        },
+        {
+          "tid": 4099780,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099781,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099782,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099783,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099784,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099785,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099786,
+          "comm": "llama-server",
+          "cpu_ms": 80.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098250,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098251,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098252,
+          "comm": "llama-s:disk$0",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098253,
+          "comm": "llama-s:disk$0",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098254,
+          "comm": "llama-s:disk$0",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098255,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098256,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098257,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098258,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098259,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098260,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098261,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098262,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098263,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098264,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098265,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 15,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098266,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098267,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098268,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098269,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098270,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4098277,
+          "comm": "llama-:traceq0",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        },
+        {
+          "tid": 4099788,
+          "comm": "llama-server",
+          "cpu_ms": 0.0,
+          "minflt": 0,
+          "majflt": 0,
+          "new": false
+        }
+      ]
+    },
+    "rss_kb": "2429260 kB"
+  },
+  "points": [
+    {
+      "prefix_target": 16384,
+      "prefix_tokens": 16384,
+      "cases": [
+        {
+          "status": 200,
+          "wall_ms": 57111.37,
+          "prompt_tokens": 16384,
+          "prompt_ms": 57038.486,
+          "prompt_tps": 287.2446509186797,
+          "output_tokens": 1,
+          "output_ms": 0.001,
+          "output_tps": 0.0,
+          "cache_n": 0,
+          "cached_tokens": 0,
+          "usage": {
+            "completion_tokens": 1,
+            "prompt_tokens": 16384,
+            "total_tokens": 16385,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "\n\n",
+          "ttft_ms": 57111.24,
+          "ttfb_ms": 30080.03,
+          "stream_total_ms": 57111.37,
+          "stream_error": null,
+          "stream_text": "\n\n",
+          "client_wall_ms": 57111.51,
+          "label": "cold_p16384",
+          "cache_prompt": false,
+          "max_tokens": 1,
+          "ts": 1790666500.8192346,
+          "proc": {
+            "wall_ms": 57112.02,
+            "cpu_total_ms": 22620.0,
+            "majflt": 27,
+            "minflt": 70590,
+            "io": {
+              "rchar": 0,
+              "read_bytes": 69632,
+              "cancelled_write_bytes": 0,
+              "wchar": 2074,
+              "syscw": 48,
+              "syscr": 0,
+              "write_bytes": 12288
+            },
+            "threads": [
+              {
+                "tid": 4098245,
+                "comm": "llama-server",
+                "cpu_ms": 22050.0,
+                "minflt": 69791,
+                "majflt": 18,
+                "new": false,
+                "role": "main"
+              },
+              {
+                "tid": 4099780,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 1,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099781,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 2,
+                "majflt": 1,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099782,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 1,
+                "majflt": 1,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099783,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 3,
+                "majflt": 1,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099784,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 3,
+                "majflt": 2,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099785,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 1,
+                "majflt": 1,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099786,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 3,
+                "majflt": 2,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098255,
+                "comm": "llama-server",
+                "cpu_ms": 10.0,
+                "minflt": 786,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098250,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098251,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098252,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098253,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098254,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098256,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098257,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098258,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098259,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098260,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098261,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098262,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098263,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098264,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098265,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098266,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098267,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098268,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098269,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098270,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098277,
+                "comm": "llama-:traceq0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099788,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              }
+            ],
+            "cpu_main_ms": 22050.0,
+            "cpu_workers_ms": 0,
+            "cpu_other_ms": 570.0
+          },
+          "rss_kb": "2267808 kB"
+        },
+        {
+          "status": 200,
+          "wall_ms": 255.17,
+          "prompt_tokens": 4,
+          "prompt_ms": 241.939,
+          "prompt_tps": 16.533093052380973,
+          "output_tokens": 1,
+          "output_ms": 0.001,
+          "output_tps": 0.0,
+          "cache_n": 16380,
+          "cached_tokens": 16380,
+          "usage": {
+            "completion_tokens": 1,
+            "prompt_tokens": 16384,
+            "total_tokens": 16385,
+            "prompt_tokens_details": {
+              "cached_tokens": 16380
+            }
+          },
+          "text": "\n\n",
+          "ttft_ms": 255.08,
+          "ttfb_ms": 255.06,
+          "stream_total_ms": 255.17,
+          "stream_error": null,
+          "stream_text": "\n\n",
+          "client_wall_ms": 255.32,
+          "label": "hit_p16384",
+          "cache_prompt": true,
+          "max_tokens": 1,
+          "ts": 1790666501.0753682,
+          "proc": {
+            "wall_ms": 255.67,
+            "cpu_total_ms": 710.0,
+            "majflt": 0,
+            "minflt": 29442,
+            "io": {
+              "rchar": 0,
+              "read_bytes": 0,
+              "cancelled_write_bytes": 0,
+              "wchar": 805,
+              "syscw": 21,
+              "syscr": 0,
+              "write_bytes": 0
+            },
+            "threads": [
+              {
+                "tid": 4098245,
+                "comm": "llama-server",
+                "cpu_ms": 140.0,
+                "minflt": 28834,
+                "majflt": 0,
+                "new": false,
+                "role": "main"
+              },
+              {
+                "tid": 4099780,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099781,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099782,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099783,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099784,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099785,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099786,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098256,
+                "comm": "llama-server",
+                "cpu_ms": 10.0,
+                "minflt": 608,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098250,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098251,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098252,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098253,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098254,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098255,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098257,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098258,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098259,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098260,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098261,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098262,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098263,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098264,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098265,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098266,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098267,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098268,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098269,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098270,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098277,
+                "comm": "llama-:traceq0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099788,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              }
+            ],
+            "cpu_main_ms": 140.0,
+            "cpu_workers_ms": 0,
+            "cpu_other_ms": 570.0
+          },
+          "rss_kb": "2270240 kB"
+        },
+        {
+          "status": 200,
+          "wall_ms": 2730.23,
+          "prompt_tokens": 510,
+          "prompt_ms": 2716.111,
+          "prompt_tps": 187.7684674889944,
+          "output_tokens": 1,
+          "output_ms": 0.001,
+          "output_tps": 0.0,
+          "cache_n": 16384,
+          "cached_tokens": 16384,
+          "usage": {
+            "completion_tokens": 1,
+            "prompt_tokens": 16894,
+            "total_tokens": 16895,
+            "prompt_tokens_details": {
+              "cached_tokens": 16384
+            }
+          },
+          "text": "\n\n",
+          "ttft_ms": 2730.12,
+          "ttfb_ms": 2730.1,
+          "stream_total_ms": 2730.23,
+          "stream_error": null,
+          "stream_text": "\n\n",
+          "client_wall_ms": 2730.37,
+          "label": "grow_p16384_d512",
+          "cache_prompt": true,
+          "max_tokens": 1,
+          "ts": 1790666503.8240175,
+          "proc": {
+            "wall_ms": 2730.68,
+            "cpu_total_ms": 1710.0,
+            "majflt": 412,
+            "minflt": 58513,
+            "io": {
+              "rchar": 0,
+              "read_bytes": 1687552,
+              "cancelled_write_bytes": 0,
+              "wchar": 805,
+              "syscw": 21,
+              "syscr": 0,
+              "write_bytes": 0
+            },
+            "threads": [
+              {
+                "tid": 4098245,
+                "comm": "llama-server",
+                "cpu_ms": 1070.0,
+                "minflt": 57723,
+                "majflt": 412,
+                "new": false,
+                "role": "main"
+              },
+              {
+                "tid": 4099780,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099781,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099782,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099783,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099784,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099785,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099786,
+                "comm": "llama-server",
+                "cpu_ms": 90.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098261,
+                "comm": "llama-server",
+                "cpu_ms": 10.0,
+                "minflt": 790,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098250,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098251,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098252,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098253,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098254,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098255,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098256,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098257,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098258,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098259,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098260,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098262,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098263,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098264,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098265,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098266,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098267,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098268,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098269,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098270,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098277,
+                "comm": "llama-:traceq0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099788,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              }
+            ],
+            "cpu_main_ms": 1070.0,
+            "cpu_workers_ms": 0,
+            "cpu_other_ms": 640.0
+          },
+          "rss_kb": "2508856 kB",
+          "delta_target": 512,
+          "prompt_real_tokens": 16894
+        },
+        {
+          "status": 200,
+          "wall_ms": 274.64,
+          "prompt_tokens": 4,
+          "prompt_ms": 257.766,
+          "prompt_tps": 15.517950389112604,
+          "output_tokens": 1,
+          "output_ms": 0.001,
+          "output_tps": 0.0,
+          "cache_n": 16380,
+          "cached_tokens": 16380,
+          "usage": {
+            "completion_tokens": 1,
+            "prompt_tokens": 16384,
+            "total_tokens": 16385,
+            "prompt_tokens_details": {
+              "cached_tokens": 16380
+            }
+          },
+          "text": "\n\n",
+          "ttft_ms": 274.57,
+          "ttfb_ms": 274.54,
+          "stream_total_ms": 274.64,
+          "stream_error": null,
+          "stream_text": "\n\n",
+          "client_wall_ms": 274.81,
+          "label": "hit2_p16384",
+          "cache_prompt": true,
+          "max_tokens": 1,
+          "ts": 1790666504.0995307,
+          "proc": {
+            "wall_ms": 275.15,
+            "cpu_total_ms": 720.0,
+            "majflt": 0,
+            "minflt": 29620,
+            "io": {
+              "rchar": 0,
+              "read_bytes": 0,
+              "cancelled_write_bytes": 0,
+              "wchar": 805,
+              "syscw": 21,
+              "syscr": 0,
+              "write_bytes": 0
+            },
+            "threads": [
+              {
+                "tid": 4098245,
+                "comm": "llama-server",
+                "cpu_ms": 150.0,
+                "minflt": 28834,
+                "majflt": 0,
+                "new": false,
+                "role": "main"
+              },
+              {
+                "tid": 4099780,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099781,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099782,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099783,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099784,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099785,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099786,
+                "comm": "llama-server",
+                "cpu_ms": 80.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098262,
+                "comm": "llama-server",
+                "cpu_ms": 10.0,
+                "minflt": 786,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098250,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098251,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098252,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098253,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098254,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098255,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098256,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098257,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098258,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098259,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098260,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098261,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098263,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098264,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098265,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098266,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098267,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098268,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098269,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098270,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098277,
+                "comm": "llama-:traceq0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099788,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              }
+            ],
+            "cpu_main_ms": 150.0,
+            "cpu_workers_ms": 0,
+            "cpu_other_ms": 570.0
+          },
+          "rss_kb": "2281448 kB"
+        },
+        {
+          "status": 200,
+          "wall_ms": 2719.25,
+          "prompt_tokens": 4,
+          "prompt_ms": 245.638,
+          "prompt_tps": 16.284125420333986,
+          "output_tokens": 32,
+          "output_ms": 2460.046,
+          "output_tps": 12.601390380505082,
+          "cache_n": 16380,
+          "cached_tokens": 16380,
+          "usage": {
+            "completion_tokens": 32,
+            "prompt_tokens": 16384,
+            "total_tokens": 16416,
+            "prompt_tokens_details": {
+              "cached_tokens": 16380
+            }
+          },
+          "text": "\n\n<think>\n\n</think>\n\nThe text provided appears to be a repetitive loop of a short descriptive paragraph. Here is the single, clean version of that paragraph:\n\n",
+          "ttft_ms": 259.21,
+          "ttfb_ms": 259.17,
+          "stream_total_ms": 2719.25,
+          "stream_error": null,
+          "stream_text": "\n\n<think>\n\n</think>\n\nThe text provided appears to be a repetitive loop of a short descriptive paragraph. Here is the sin",
+          "client_wall_ms": 2719.4,
+          "label": "decode_p16384",
+          "cache_prompt": true,
+          "max_tokens": 32,
+          "ts": 1790666506.8195279,
+          "proc": {
+            "wall_ms": 2719.65,
+            "cpu_total_ms": 10150.0,
+            "majflt": 513,
+            "minflt": 30049,
+            "io": {
+              "rchar": 264048,
+              "read_bytes": 2408448,
+              "cancelled_write_bytes": 0,
+              "wchar": 805,
+              "syscw": 21,
+              "syscr": 18,
+              "write_bytes": 4096
+            },
+            "threads": [
+              {
+                "tid": 4098245,
+                "comm": "llama-server",
+                "cpu_ms": 1390.0,
+                "minflt": 29277,
+                "majflt": 513,
+                "new": false,
+                "role": "main"
+              },
+              {
+                "tid": 4099780,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099781,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099782,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099783,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099784,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099785,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099786,
+                "comm": "llama-server",
+                "cpu_ms": 1250.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098263,
+                "comm": "llama-server",
+                "cpu_ms": 10.0,
+                "minflt": 772,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098250,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098251,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098252,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098253,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098254,
+                "comm": "llama-s:disk$0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098255,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098256,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098257,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098258,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098259,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098260,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098261,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098262,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098264,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098265,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098266,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098267,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098268,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098269,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098270,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4098277,
+                "comm": "llama-:traceq0",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              },
+              {
+                "tid": 4099788,
+                "comm": "llama-server",
+                "cpu_ms": 0.0,
+                "minflt": 0,
+                "majflt": 0,
+                "new": false,
+                "role": "other"
+              }
+            ],
+            "cpu_main_ms": 1390.0,
+            "cpu_workers_ms": 0,
+            "cpu_other_ms": 8760.0
+          },
+          "rss_kb": "2286588 kB",
+          "decode_tokens_requested": 32
+        }
+      ],
+      "worker_tids": []
+    }
+  ]
+}

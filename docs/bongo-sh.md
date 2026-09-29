@@ -39,6 +39,10 @@ Run `./bongo.sh --help` for the full list. The most-used options:
 | `--gguf-dir DIR` | — | Use an existing download instead of downloading |
 | `--ctx N` | `131072` | Context size (must be >= 131072) |
 | `--backend NAME` | `auto` | `auto`, `sycl`, `vulkan`, or `cpu` (see [Backends](#backends)) |
+| `--engine MODE` | `m42` | `m42` (pinned llama.cpp + the M4.2 host-expert upload patch) or `stage0` (stock prebuilt). `--engine stage0` is the no-rebuild opt-out. See [The M4.2 host-expert upload](#the-m42-host-expert-upload-the-shipped-default) |
+| `--m42-upload` / `--no-m42-upload` | `--m42-upload` | Turn the host-expert upload levers on/off while keeping the selected engine |
+| `--load-mode MODE` | `none` | Model load mode. `none` is the default when the upload levers are on; `auto`/`mmap`/`mlock`/`mmap+mlock`/`dio` are selectable, and the Stage 0 opt-out omits it |
+| `--no-mmap` | — | Alias for `--load-mode none` |
 | `--n-cpu-moe N` | per tier | Explicit number of MoE layers kept on the CPU |
 | `--port N` / `--host H` | `8080` / `127.0.0.1` | Bind address |
 | `--runtime MODE` | `auto` | `system`, `user`, `dir`, or `auto` |
@@ -121,6 +125,60 @@ abort came from two bugs in `bongo.sh`'s own `setup_runtime_env()`.
 `llama-ls-sycl-device` now reports `[level_zero:gpu:0] Intel Arc Pro B70 Graphics` (Level Zero NEO
 `1.15.38646+6`, oneAPI 2025.3.3) from a clean environment, and `./bongo.sh --check --backend sycl`
 passes. Fixed in `5cc7df4`.
+
+## The M4.2 host-expert upload (the shipped default)
+
+M4.2 ([BAS-155](/BAS/issues/BAS-155)) located the dominant remaining term of the cached
+turn — the per-batch host→VRAM upload of the host-resident MoE expert weights — and fixed
+its root cause: `ggml_backend_vk_host_buffer_type()` hard-coded `vk_instance.devices[0]`,
+which on this box is the AMD iGPU, so every used-expert copy staged through a CPU memcpy and
+a per-copy `ggml_vk_synchronize`. M4.3 ([BAS-158](/BAS/issues/BAS-158)) ships that fix as
+the default:
+
+- **Engine.** The default selects a pinned llama.cpp Vulkan build with
+  [`tools/patches/m4.2-vulkan-host-expert-upload.patch`](../tools/patches/m4.2-vulkan-host-expert-upload.patch).
+  The tree is cached at `$BONGO_HOME/engine/llama.cpp-pin` (`$BONGO_ENGINE_DIR`); when it is
+  missing, bongo.sh clones llama.cpp at the pinned commit and builds it with
+  `BONGO_APPLY_M42_PATCH=1 tools/build-llama-vulkan.sh` in the Vulkan build container (docker).
+  `--llama-bin DIR` still overrides the selection. If the selected engine is not patched the
+  upload levers are turned off automatically, so a measurement never silently runs half a config.
+- **Flags/env (set by default, no user action).** `--load-mode none`, and
+  `GGML_VK_HOST_BUFT_PER_DEVICE=1` plus `GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1` on the server.
+  They are recorded in `bongo-config.json` (`llama_cpp.engine`, `server.env`) and
+  `bongo-config.env` (`BONGO_SERVER_ENV`).
+
+**Opt-out (no rebuild).** The M4.2 patch is environment-gated, so the opt-out restores the
+Stage 0 Vulkan baseline with the same binary:
+
+```sh
+./bongo.sh --engine stage0          # stock prebuilt, no --load-mode, no upload env
+# or, keeping the patched engine but turning only the levers off:
+./bongo.sh --no-m42-upload
+```
+
+`--engine stage0` is the documented Stage 0 baseline (`--ctx 131072 --n-cpu-moe 16`). It is
+also selectable via `BONGO_ENGINE=stage0`.
+
+**Measured (2026-09-29, shipped default, 512-token cached delta turn, raw in
+[`bench/results/2026-09-29-m4.3-shipped-default/`](../bench/results/2026-09-29-m4.3-shipped-default/)):**
+
+| leg | shipped default | vs M4.1 frozen | target |
+| --- | ---: | ---: | --- |
+| 16K delta turn | **2 716 ms** | −23.9% | `≤3 s` met |
+| 128K delta turn | **4 669 ms** | −14.80% | `≤5 s` met |
+| 16K/128K cold prefill | 57.0 s / 752.0 s | — | no regression vs M4.2 |
+
+The `--engine stage0` opt-out measured 5 638 ms on the same 16K turn with a 566 MB in-turn
+disk read (vs 1.7 MB on the default), so the default is the fast path and the opt-out is a
+real, measured return to the Stage 0 behaviour. Details:
+[`docs/research/m4.3-shipped-default.md`](research/m4.3-shipped-default.md).
+
+The shipped default is also **cheaper in anonymous RAM** than the Stage 0 baseline: the
+host-resident expert set lives in the device-local pinned host buffer, so the server's VmRSS
+is 2.3–2.5 GiB on the default vs 9.5–10.6 GiB on the `mmap` opt-out. During the 128K run
+MemAvailable stayed around 10 GiB and swap was untouched, and the 256K default
+(`--ctx 262144 --n-cpu-moe 18`) with the levers loaded in 75 s at a 30.65 GiB VRAM peak
+(≈1.2 GiB below the device-loss point) and served a request.
 
 ## Prefix-cache serving (the agentic path)
 

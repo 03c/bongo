@@ -1,0 +1,12 @@
+warmup prefill status=200
+warmup                       status=200 prompt_n=255 cache_n=0 prompt_ms=2305.271 wall_ms=2385.16 cpu_ms=2070.0 read_bytes=89534464 majflt=569
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                  status=200 prompt_n=16384 cache_n=0 prompt_ms=82937.954 wall_ms=83021.68 cpu_ms=48930.0 read_bytes=320348160 majflt=855
+   worker tids (0): []
+hit_p16384                   status=200 prompt_n=4 cache_n=16380 prompt_ms=249.284 wall_ms=262.42 cpu_ms=770.0 read_bytes=4096 majflt=1
+grow_p16384_d512             status=200 prompt_n=510 cache_n=16384 prompt_ms=5637.614 wall_ms=5650.72 cpu_ms=2920.0 read_bytes=566386688 majflt=1583
+hit2_p16384                  status=200 prompt_n=4 cache_n=16380 prompt_ms=258.033 wall_ms=272.37 cpu_ms=770.0 read_bytes=4096 majflt=1
+decode_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=249.68 wall_ms=3107.29 cpu_ms=11340.0 read_bytes=126164992 majflt=1506
+
+wrote bench/results/2026-09-29-m4.3-shipped-default/turns/stage0_optout/profile-host-split.json

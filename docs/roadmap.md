@@ -89,9 +89,10 @@ See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements a
 - [x] M3.6 Warm-prefix profile: the cached turn is **80.1% host/CPU**, the MoE expert matmul 3.4%
   ([BAS-130](/BAS/issues/BAS-130)).
 
-**Target status.** The turn targets are **met** with the M4.2 levers on: 512-token turn 2.72 s at 16K (target
-<=3 s) and 4.66 s at 128K (target <=5 s); 256K is met. **4K decode ~18 tok/s (target >=25) is not met** and is
-the last open target. Umbrella [BAS-62](/BAS/issues/BAS-62) stays open on the remaining M4 items.
+**Target status.** The turn targets are **met on the shipped default** since M4.3: 512-token turn 2.72 s at
+16K (target <=3 s) and 4.67 s at 128K (target <=5 s), with the M4.2-patched engine and the upload
+levers on by default; 256K is met. **4K decode ~18 tok/s (target >=25) is not met** and is the last open
+target (M4.4). Umbrella [BAS-62](/BAS/issues/BAS-62) stays open on M4.4.
 
 ## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
 
@@ -111,8 +112,12 @@ CPU workers 0%).
   type was pinned to `devices[0]` (the AMD iGPU), so every copy staged through CPU and synchronised. Device-local
   host buffer + transfer queue: **16K -23.7% (2721.8 ms), 128K -14.95% (4661.0 ms)**, needle pass. Env-gated,
   default off.
-- [ ] M4.3 Ship the M4.2 upload fix as the `bongo.sh` default (reproducible build + opt-out) and confirm the turn
-  targets on the shipped configuration.
+- [x] M4.3 ([BAS-158](/BAS/issues/BAS-158)) Shipped the M4.2 upload fix as the `bongo.sh` default
+  (patched engine + `--load-mode none` + the two `GGML_VK` levers, built/selected reproducibly) with a
+  no-rebuild `--engine stage0` opt-out. Shipped default: **16K 2 716 ms (−23.9%), 128K 4 669 ms
+  (−14.80%)**, cold prefill within 0.05% of M4.2, needle pass, 256K fit 30.65 GiB. Corrects the RAM
+  premise: the default's VmRSS is 2.4 GiB (the ~10 GiB set is the `mmap` opt-out's working set).
+  ([doc](research/m4.3-shipped-default.md), [raw](../bench/results/2026-09-29-m4.3-shipped-default/))
 - [ ] M4.4 Decode `>=25 tok/s`: profile the GPU decode path (now MoE-matmul-bound) and land a lever, or measure
   the ceiling for a re-baseline.
 - Deferred: Level Zero command-list capture (R1c).

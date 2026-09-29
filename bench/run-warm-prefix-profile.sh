@@ -159,6 +159,27 @@ CFG_FLAGS[lm_none_devhost_tq_128k]="--load-mode none"
 CFG_ENV[lm_none_devhost_tq_128k]="GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
 CFG_NOTE[lm_none_devhost_tq_128k]="device-local host expert buffer + dedicated transfer queue, at ~128K"
 
+# ---------------------------------------------------------------------------
+# M4.3 (BAS-158) shipped default. `shipped_default` is exactly what bongo.sh
+# runs by default since M4.3: the M4.2-patched Vulkan engine, `--load-mode
+# none`, and the two GGML_VK upload env vars. `stage0_optout` is `bongo.sh
+# --engine stage0`: the stock Stage 0 Vulkan baseline with the levers off.
+# Run these with BONGO_LLAMA_SERVER pointed at the patched engine build.
+# ---------------------------------------------------------------------------
+CFG_CTX[shipped_default]="131072"; CFG_PREFIXES[shipped_default]="16384"
+CFG_FLAGS[shipped_default]="--load-mode none"
+CFG_ENV[shipped_default]="GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
+CFG_NOTE[shipped_default]="bongo.sh default (BAS-158): M4.2 patched engine + --load-mode none + upload levers"
+
+CFG_CTX[shipped_default_128k]="131072"; CFG_PREFIXES[shipped_default_128k]="128000"
+CFG_FLAGS[shipped_default_128k]="--load-mode none"
+CFG_ENV[shipped_default_128k]="GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
+CFG_NOTE[shipped_default_128k]="bongo.sh default at ~128K (BAS-158)"
+
+CFG_CTX[stage0_optout]="131072"; CFG_PREFIXES[stage0_optout]="16384"
+CFG_FLAGS[stage0_optout]=""
+CFG_NOTE[stage0_optout]="bongo.sh --engine stage0: stock Stage 0 Vulkan baseline (no upload levers)"
+
 ALL_CONFIGS="baseline baseline_perf ncmoe24 ncmoe8 fa_off ub128 ub1024 attn_cpu ssm_cpu hc_cpu"
 
 log() { printf '[warm-prefix %s] %s\n' "$(date -u +%H:%M:%SZ)" "$*" >&2; }

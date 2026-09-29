@@ -37,6 +37,12 @@ CFG_FLAGS[baseline]=""
 CFG_FLAGS[lm_none]="--load-mode none"
 CFG_FLAGS[no_op_offload]="--no-op-offload"
 CFG_FLAGS[threads16]="--threads 16 --threads-batch 16"
+# M4.3 (BAS-158): the shipped bongo.sh default (patched engine + --load-mode
+# none + the two GGML_VK upload env vars). Requires BONGO_LLAMA_SERVER pointed
+# at the M4.2-patched engine build.
+declare -A CFG_ENV
+CFG_FLAGS[shipped_default]="--load-mode none"
+CFG_ENV[shipped_default]="GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
 selected="${BONGO_NEEDLE_CONFIGS:-baseline no_op_offload}"
 selected="${selected//,/ }"
 
@@ -87,8 +93,10 @@ for name in $selected; do
     --host "$host" --port "$port" --parallel 1 --alias "bongo-$tier"
     --metrics --device "$device" --spec-type none --n-cpu-moe 16 --n-gpu-layers 99 --flash-attn on)
   argv+=("${extra[@]}")
-  log "$name: starting llama-server flags: ${flags:-<baseline>}"
-  setsid "$llama_bin" "${argv[@]}" > "$out_dir/llama-server.log" 2>&1 &
+  env_flags="${CFG_ENV[$name]:-}"
+  log "$name: starting llama-server flags: ${flags:-<baseline>} env: ${env_flags:-<none>}"
+  # shellcheck disable=SC2086
+  env $env_flags setsid "$llama_bin" "${argv[@]}" > "$out_dir/llama-server.log" 2>&1 &
   pid=$!
   waited=0; started=0
   while (( waited < 900 )); do

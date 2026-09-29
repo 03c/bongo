@@ -16,6 +16,15 @@ set -Eeuo pipefail
 
 BONGO_VERSION="0.1.0"
 
+# Directory of this script. Used to locate the in-repo engine build helper when
+# bongo.sh is run from a checkout (a standalone copy degrades gracefully).
+# Builtins only: bongo.sh must start on a host with an almost-empty PATH (BAS-58 F5).
+SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
+[[ "$SCRIPT_DIR" == "${BASH_SOURCE[0]}" ]] && SCRIPT_DIR="."
+if [[ -d "$SCRIPT_DIR" ]]; then
+  SCRIPT_DIR="$(cd -- "$SCRIPT_DIR" 2>/dev/null && pwd -P)" || SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
+fi
+
 # Single-GPU serialisation (BAS-80). `bench/gpu-lock.sh` lives beside this
 # script in the repo; when bongo.sh is copied standalone the lock degrades to a
 # no-op, which is acceptable for a dev box without the bench tree.
@@ -88,10 +97,18 @@ SLOT_SAVE_PATH=""         # "" = disabled; set by --slot-save-path or the run-di
 SLOT_SAVE_PATH_SET=0       # 1 once --slot-save-path/--no-slot-save-path was given
 SAVE_SLOT_CHECKPOINTS=0    # 1 persist context checkpoints alongside the slot file (BAS-86)
 WARMUP=1                   # warm the server after load (pays shader/kernel compile once)
+# Engine + M4.2 host-expert upload (BAS-158). The shipped default is the patched
+# Vulkan engine with the two upload levers on; `--engine stage0` is the no-rebuild
+# opt-out that restores the Stage 0 Vulkan baseline.
+ENGINE_MODE="${BONGO_ENGINE:-m42}"   # m42 (pinned llama.cpp + M4.2 patch) | stage0 (stock)
+M42_UPLOAD=1                          # 1 = --load-mode none + the two GGML_VK levers
+ENGINE_PATCHED=0                      # 1 once the M4.2-patched engine is selected
 
 SERVER_PID=""
 SERVER_BIN=""
 SERVER_FLAGS=()
+SERVER_ENV=()            # env assignments for llama-server (the M4.2 upload levers)
+EFFECTIVE_LOAD_MODE=""  # the load mode actually emitted (default or explicit)
 SELECTED_BACKEND=""
 SELECTED_DEVICES=""
 GPU_PCI=""
@@ -190,14 +207,20 @@ Serving:
   --host HOST            Bind address (default: $HOST)
   --port N               Port (default: $PORT)
   --backend NAME         auto (default: Vulkan, SYCL fallback) | sycl | vulkan | cpu
+  --engine MODE          Engine build: m42 (default) = the pinned llama.cpp Vulkan build with the
+                         M4.2 host-expert upload patch; stage0 = the stock prebuilt Stage 0 build.
+                         '--engine stage0' is the no-rebuild opt-out (BAS-158).
+  --m42-upload           Enable the M4.2 host-expert upload levers (default: on): --load-mode none
+                         plus GGML_VK_HOST_BUFT_PER_DEVICE=1 and GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
+  --no-m42-upload        Keep the selected engine but turn the upload levers off (Stage 0 defaults)
   --n-cpu-moe N          MoE layers with experts on CPU (explicit placement)
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
-  --load-mode MODE       Model loading mode: auto (default), none, mmap, mlock, mmap+mlock, dio
-  --no-mmap              Alias for --load-mode none: read the model into anonymous RAM instead of
-                         an mmap. Measured M4.1 (BAS-144): removes in-turn page-cache re-reads of the
-                         host-resident MoE experts (~0.5 GiB/turn) and their page-fault CPU. Keep the
-                         default unless the measurement shows the mmap thrashing.
+  --load-mode MODE       Model loading mode: none (default when the M4.2 upload levers are on),
+                         or auto|mmap|mlock|mmap+mlock|dio. 'none' reads the model into anonymous
+                         RAM instead of an mmap and removes the in-turn page-cache re-reads of the
+                         host-resident MoE experts. The opt-out ('--engine stage0') omits it.
+  --no-mmap              Alias for --load-mode none.
   --detach               Start the server in the background and exit
   --no-keep-alive        Let llama-server exit when idle
 
@@ -232,6 +255,9 @@ Other:
 Environment:
   HF_TOKEN               Hugging Face token (needed for gated repos)
   BONGO_HOME             State directory (default: ~/.bongo)
+  BONGO_ENGINE_DIR       Pinned llama.cpp source/build tree for the M4.2 engine
+                         (default: $BONGO_HOME/engine/llama.cpp-pin)
+  BONGO_ENGINE           Default for --engine (m42 | stage0)
   BONGO_RUNTIME_DIR      Runtime prefix (same as --runtime-dir)
   BONGO_MODEL_DIR        Model root (default: ~/.bongo/models)
 
@@ -257,11 +283,14 @@ parse_args() {
       --host) HOST="${2:?--host needs a value}"; shift 2;;
       --port) PORT="${2:?--port needs a value}"; shift 2;;
       --backend) BACKEND="${2:?--backend needs a value}"; shift 2;;
+      --engine) ENGINE_MODE="${2:?--engine needs a value}"; shift 2;;
+      --m42-upload) M42_UPLOAD=1; shift;;
+      --no-m42-upload) M42_UPLOAD=0; shift;;
       --n-cpu-moe) N_CPU_MOE="${2:?--n-cpu-moe needs a value}"; shift 2;;
       --n-gpu-layers) N_GPU_LAYERS="${2:?--n-gpu-layers needs a value}"; shift 2;;
       --threads) THREADS="${2:?--threads needs a value}"; shift 2;;
-      --load-mode) LOAD_MODE="${2:?--load-mode needs a value}"; shift 2;;
-      --no-mmap) LOAD_MODE="none"; shift;;
+      --load-mode) LOAD_MODE="${2:?--load-mode needs a value}"; LOAD_MODE_SET=1; shift 2;;
+      --no-mmap) LOAD_MODE="none"; LOAD_MODE_SET=1; shift;;
       # The published GGUF has no MTP/NextN head and llama.cpp qwen4exp cannot convert or run one;
       # speculation is the n-gram/PLE table. Refuse the flag with an actionable message.
       --mtp) die "--mtp is not supported for this model: the published GGUF has no MTP head and llama.cpp qwen4exp cannot run one. Speculation uses the lazy-read n-gram/PLE table. See docs/research/intel-arc-b70.md section 2.1.";;
@@ -301,6 +330,13 @@ validate_args() {
     die "Unknown tier '$TIER'. Valid tiers: iq2_xs, iq3_xxs, q2_0."
   fi
   case "$BACKEND" in auto|sycl|vulkan|cpu) ;; *) die "Unknown backend '$BACKEND'. Use auto|sycl|vulkan|cpu.";; esac
+  case "$ENGINE_MODE" in
+    m42|stage0) ;;
+    *) die "Unknown --engine '$ENGINE_MODE'. Use m42 (the M4.2-patched Vulkan engine) or stage0 (stock).";;
+  esac
+  # The stage0 engine is the Stage 0 behaviour: no --load-mode none and no M4.2
+  # upload env, so the upload levers go with it.
+  if [[ "$ENGINE_MODE" == "stage0" ]]; then M42_UPLOAD=0; fi
   case "$RUNTIME_MODE" in auto|system|user|dir) ;; *) die "Unknown runtime mode '$RUNTIME_MODE'. Use auto|system|user|dir.";; esac
   [[ "$CTX" =~ ^[0-9]+$ ]] || die "--ctx must be an integer (got '$CTX')."
   (( CTX >= 131072 )) || die "Context $CTX is below the 131072 acceptance minimum. Use --ctx 131072 or higher."
@@ -774,6 +810,85 @@ fetch_llama() {
 }
 
 # ---------------------------------------------------------------------------
+# M4.2 patched Vulkan engine (BAS-158)
+# ---------------------------------------------------------------------------
+# The M4.2 host-expert upload fix is an engine patch, not a server flag, so the
+# shipped default needs a patched build. The pinned source/build tree is cached
+# under $BONGO_ENGINE_DIR; when it is missing and docker is available the tree is
+# cloned at the pinned commit and built with tools/build-llama-vulkan.sh.
+m42_engine_src() { printf '%s' "${BONGO_ENGINE_DIR:-$BONGO_HOME/engine/llama.cpp-pin}"; }
+m42_engine_bindir() { printf '%s/build-vulkan/bin' "$(m42_engine_src)"; }
+
+# Is the engine at BIN_DIR the M4.2-patched build? The lever literal is compiled
+# into libggml-vulkan.so, not the server binary, so test the sibling Vulkan lib.
+# grep reads the library directly (no pipe): a `strings | grep -q` pipeline trips
+# `set -o pipefail` on the early-exit SIGPIPE and would report a false negative.
+binary_is_m42_patched() {
+  local bin="$1" dir lib
+  [[ -x "$bin" ]] || return 1
+  have_cmd grep || return 0   # cannot inspect; assume the caller knows
+  dir="${bin%/*}"
+  for lib in "$dir"/libggml-vulkan.so*; do
+    [[ -e "$lib" ]] || continue
+    if grep -qa -m1 'GGML_VK_HOST_BUFT_PER_DEVICE' "$lib" 2>/dev/null; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Materialise the patched M4.2 Vulkan engine and print its bin directory.
+# Reuses the cached build; otherwise clones the pinned llama.cpp tree and builds
+# it in the Vulkan build container. Returns non-zero (with a warning) when it
+# cannot, so the caller can fall back to the stock prebuilt with the levers off.
+build_m42_engine() {
+  local src bin_dir builder image
+  src="$(m42_engine_src)"
+  bin_dir="$src/build-vulkan/bin"
+  builder="$SCRIPT_DIR/tools/build-llama-vulkan.sh"
+
+  if [[ -x "$bin_dir/llama-server" ]] && binary_is_m42_patched "$bin_dir/llama-server"; then
+    echo "$bin_dir"; return 0
+  fi
+  if [[ ! -x "$builder" ]]; then
+    warn "The M4.2 engine builder is missing ($builder); cannot build the patched engine."
+    return 1
+  fi
+  if ! have_cmd docker; then
+    warn "docker is required to build the M4.2 patched Vulkan engine; it is not installed."
+    return 1
+  fi
+  image="${BONGO_VULKAN_BUILD_IMAGE:-bongo-llama-build:vulkan}"
+  if ! docker image inspect "$image" >/dev/null 2>&1; then
+    warn "The Vulkan build image '$image' is missing; cannot build the M4.2 engine."
+    return 1
+  fi
+  if [[ ! -d "$src/.git" ]]; then
+    need_cmd git
+    log "Cloning pinned llama.cpp $LLAMA_CPP_COMMIT_DEFAULT into $src ..."
+    mkdir -p "$(dirname "$src")"
+    if ! git clone --filter=blob:none https://github.com/ggml-org/llama.cpp "$src"; then
+      warn "Could not clone llama.cpp; cannot build the M4.2 engine."
+      return 1
+    fi
+    if ! git -C "$src" checkout --quiet "$LLAMA_CPP_COMMIT_DEFAULT"; then
+      warn "Could not check out llama.cpp $LLAMA_CPP_COMMIT_DEFAULT."
+      return 1
+    fi
+  fi
+  log "Building the M4.2 patched Vulkan engine (first run only; this can take several minutes)..."
+  if ! BONGO_APPLY_M42_PATCH=1 "$builder" "$src" llama-server; then
+    warn "The M4.2 engine build failed."
+    return 1
+  fi
+  if [[ -x "$bin_dir/llama-server" ]] && binary_is_m42_patched "$bin_dir/llama-server"; then
+    echo "$bin_dir"; return 0
+  fi
+  warn "The M4.2 engine build produced no patched llama-server."
+  return 1
+}
+
+# ---------------------------------------------------------------------------
 # Model download
 # ---------------------------------------------------------------------------
 shard_names() {
@@ -950,6 +1065,22 @@ build_server_flags() {
   )
   if [[ -n "$THREADS" ]]; then SERVER_FLAGS+=(--threads "$THREADS"); fi
   if [[ -n "$LOAD_MODE" ]]; then SERVER_FLAGS+=(--load-mode "$LOAD_MODE"); fi
+  EFFECTIVE_LOAD_MODE="$LOAD_MODE"
+  # M4.2 host-expert upload (BAS-158): the shipped default. Active only on the
+  # patched engine's Vulkan path; a fallback to the stock prebuilt or to SYCL
+  # clears M42_UPLOAD in main()/validate_args().
+  local m42_active=0
+  if (( M42_UPLOAD )) && (( ENGINE_PATCHED )) && [[ "$SELECTED_BACKEND" == "Vulkan" ]]; then
+    m42_active=1
+  fi
+  if (( m42_active )) && [[ -z "$LOAD_MODE" ]]; then
+    SERVER_FLAGS+=(--load-mode none)
+    EFFECTIVE_LOAD_MODE="none"
+  fi
+  SERVER_ENV=()
+  if (( m42_active )); then
+    SERVER_ENV+=(GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1)
+  fi
   if (( KEEP_ALIVE == 0 )); then SERVER_FLAGS+=(--no-keep-alive); fi
   # Prefix-cache serving: explicit in the config so the cached path is the
   # reproducible product path (not the engine default that a reader has to know).
@@ -988,6 +1119,13 @@ write_config() {
     flags_json+="\"$(json_escape "$f")\""
   done
   flags_json+="]"
+  local env_json="[" first=1 f
+  for f in "${SERVER_ENV[@]}"; do
+    [[ $first -eq 0 ]] && env_json+=", "
+    first=0
+    env_json+="\"$(json_escape "$f")\""
+  done
+  env_json+="]"
   local shards_json="[" first=1
   for f in "${MODEL_SHARDS[@]}"; do
     [[ $first -eq 0 ]] && shards_json+=", "
@@ -1003,6 +1141,8 @@ write_config() {
     "revision": "$(json_escape "$LLAMA_REV")",
     "commit": "$(json_escape "$LLAMA_CPP_COMMIT_DEFAULT")",
     "backend": "$(json_escape "$SELECTED_BACKEND")",
+    "engine": "$(json_escape "$ENGINE_MODE")",
+    "m42_patched": $(if (( ENGINE_PATCHED )); then echo true; else echo false; fi),
     "binary": "$(json_escape "$SERVER_BIN")"
   },
   "model": {
@@ -1024,11 +1164,13 @@ write_config() {
   "server": {
     "host": "$(json_escape "$HOST")",
     "port": $PORT,
-    "flags": $flags_json
+    "flags": $flags_json,
+    "env": $env_json
   },
   "placement": {
     "n_gpu_layers": $N_GPU_LAYERS,
     "n_cpu_moe": $N_CPU_MOE,
+    "load_mode": "$(json_escape "$EFFECTIVE_LOAD_MODE")",
     "cache_type_k": "$(json_escape "$CACHE_TYPE_K")",
     "cache_type_v": "$(json_escape "$CACHE_TYPE_V")",
     "flash_attn": "$(json_escape "$FLASH_ATTN")"
@@ -1048,6 +1190,9 @@ EOF
     echo "BONGO_LLAMA_REV=$(printf '%q' "$LLAMA_REV")"
     echo "BONGO_LLAMA_COMMIT=$(printf '%q' "$LLAMA_CPP_COMMIT_DEFAULT")"
     echo "BONGO_BACKEND=$(printf '%q' "$SELECTED_BACKEND")"
+    echo "BONGO_ENGINE=$(printf '%q' "$ENGINE_MODE")"
+    echo "BONGO_M42_PATCHED=$(printf '%q' "$ENGINE_PATCHED")"
+    echo "BONGO_M42_UPLOAD=$(printf '%q' "$M42_UPLOAD")"
     echo "BONGO_TIER=$(printf '%q' "$TIER")"
     echo "BONGO_CTX=$(printf '%q' "$CTX")"
     echo "BONGO_N_CPU_MOE=$(printf '%q' "$N_CPU_MOE")"
@@ -1055,6 +1200,9 @@ EOF
     echo "BONGO_SLOT_SAVE_PATH=$(printf '%q' "$SLOT_SAVE_PATH")"
     printf 'BONGO_SERVER_FLAGS=('
     printf '%q ' "${SERVER_FLAGS[@]}"
+    printf ')\n'
+    printf 'BONGO_SERVER_ENV=('
+    printf '%q ' "${SERVER_ENV[@]}"
     printf ')\n'
   } > "$envf"
   log "Wrote generated config: $json"
@@ -1068,6 +1216,12 @@ print_plan() {
   echo "  Backend        : ${SELECTED_BACKEND:-auto}"
   echo "  Runtime        : mode=$RUNTIME_MODE dir=$RUNTIME_DIR"
   echo "  llama.cpp      : $LLAMA_REV ($LLAMA_CPP_COMMIT_DEFAULT)"
+  if (( ENGINE_PATCHED )); then
+    echo "  Engine         : m42 (pinned llama.cpp + M4.2 host-expert upload patch)"
+  else
+    echo "  Engine         : $ENGINE_MODE (M4.2 patch off)"
+  fi
+  echo "  Server env     : ${SERVER_ENV[*]:-<none>}"
   echo "  Model          : $MODEL_REPO [$TIER]"
   echo "  Context        : $CTX"
   echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE"
@@ -1134,8 +1288,13 @@ start_server() {
 
   log "Starting llama-server:"
   log "  $SERVER_BIN ${SERVER_FLAGS[*]}"
+  if (( ${#SERVER_ENV[@]} )); then log "  env: ${SERVER_ENV[*]}"; fi
   : > "$LOG_FILE"
-  "$SERVER_BIN" "${SERVER_FLAGS[@]}" >>"$LOG_FILE" 2>&1 &
+  if (( ${#SERVER_ENV[@]} )); then
+    env "${SERVER_ENV[@]}" "$SERVER_BIN" "${SERVER_FLAGS[@]}" >>"$LOG_FILE" 2>&1 &
+  else
+    "$SERVER_BIN" "${SERVER_FLAGS[@]}" >>"$LOG_FILE" 2>&1 &
+  fi
   SERVER_PID=$!
   echo "$SERVER_PID" > "$PID_FILE"
 
@@ -1238,6 +1397,7 @@ bongo uninstall
 Downloaded artifacts live under: ${BONGO_HOME}
   runtime : ${RUNTIME_DIR}
   llama   : ${LLAMA_DIR}
+  engine  : $(m42_engine_src)
   models  : ${MODEL_BASE_DIR}
   logs    : ${RUN_DIR}
 EOF
@@ -1293,13 +1453,40 @@ main() {
   log "Provisioning compute runtime (mode: $RUNTIME_MODE)..."
   provision_runtime
 
-  # Fetch/select the llama.cpp build for the requested backend.
+  # Fetch/select the llama.cpp build for the requested backend. The default is
+  # the M4.2-patched Vulkan engine; --engine stage0 uses the stock prebuilt.
   local backend_for_bin="$BACKEND"
   case "$backend_for_bin" in auto) backend_for_bin="vulkan";; esac
   local bin_dir
   if [[ -n "$LLAMA_BIN_DIR" ]]; then
     bin_dir="$LLAMA_BIN_DIR"
     log "Using existing llama.cpp build at $bin_dir"
+    if [[ "$ENGINE_MODE" == "m42" ]]; then
+      if binary_is_m42_patched "$bin_dir/llama-server"; then
+        ENGINE_PATCHED=1
+      else
+        warn "--llama-bin is not the M4.2-patched engine; the host-expert upload levers stay off.
+  Build it with: BONGO_APPLY_M42_PATCH=1 tools/build-llama-vulkan.sh <tree> llama-server"
+        ENGINE_PATCHED=0; M42_UPLOAD=0
+      fi
+    fi
+  elif [[ "$backend_for_bin" == "vulkan" && "$ENGINE_MODE" == "m42" ]]; then
+    local m42_bin_dir
+    m42_bin_dir="$(m42_engine_bindir)"
+    if [[ -x "$m42_bin_dir/llama-server" ]] && binary_is_m42_patched "$m42_bin_dir/llama-server"; then
+      bin_dir="$m42_bin_dir"; ENGINE_PATCHED=1
+      log "Using the cached M4.2 patched Vulkan engine at $bin_dir"
+    elif (( DRY_RUN )); then
+      bin_dir="$m42_bin_dir"; ENGINE_PATCHED=1
+      log "[dry-run] would build the M4.2 patched Vulkan engine at $m42_bin_dir"
+    elif bin_dir="$(build_m42_engine)"; then
+      ENGINE_PATCHED=1
+    else
+      warn "Falling back to the stock Vulkan prebuilt; the M4.2 host-expert upload levers stay off.
+  Build the patched engine with: BONGO_APPLY_M42_PATCH=1 tools/build-llama-vulkan.sh $(m42_engine_src) llama-server"
+      ENGINE_PATCHED=0; M42_UPLOAD=0
+      bin_dir="$(fetch_llama vulkan)"
+    fi
   else
     bin_dir="$(fetch_llama "$backend_for_bin")"
   fi

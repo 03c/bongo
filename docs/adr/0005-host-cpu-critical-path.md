@@ -108,8 +108,23 @@ M4.2 ([BAS-155](/BAS/issues/BAS-155)) located the upload and fixed its root caus
 - Both levers are **environment-gated and default off**; the patch is
   `tools/patches/m4.2-vulkan-host-expert-upload.patch`. Shipping them as the default is M4.3.
 
-**Updated target status:** `<=3 s` at 16K and `<=5 s` at 128K are **met** on the measured configuration; 256K is
-met; **decode `>=25 tok/s` is the only target still open** and is a separate, GPU-matmul-bound axis.
+**Updated target status:** `<=3 s` at 16K and `<=5 s` at 128K are **met on the shipped default** since
+M4.3 (`bongo.sh` selects the patched engine and sets the levers itself); 256K is met; **decode `>=25 tok/s`
+is the only target still open** and is a separate, GPU-matmul-bound axis (M4.4).
+
+### M4.3 result (2026-09-29) — the fix ships as the default
+
+M4.3 ([BAS-158](/BAS/issues/BAS-158)) makes the M4.2 configuration the `bongo.sh` default: it selects
+(and, when missing, builds) the pinned + M4.2-patched Vulkan engine and sets `--load-mode none` plus
+`GGML_VK_HOST_BUFT_PER_DEVICE=1` / `GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1` without user action.
+`--engine stage0` is the no-rebuild opt-out (the patch is env-gated). The shipped default reproduces
+M4.2: **16K 2716 ms (−23.9% vs the M4.1 frozen baseline), 128K 4669 ms (−14.80%, a statistical tie
+with the 15% gate; `<=5 s` met by 331 ms)**, cold prefill within 0.05% of M4.2, needle pass. The
+opt-out measured 5638 ms with a 566 MB in-turn re-read, so it is a real return to the Stage 0 path.
+The RAM premise is corrected: the default's server VmRSS is ~2.4 GiB and the ~10 GiB host-resident
+set is the `mmap` opt-out's working set (~10.6 GiB), so the shipped default is cheaper in anonymous
+RAM; the 256K default loads in 75 s at a 30.65 GiB VRAM peak.
+([doc](../research/m4.3-shipped-default.md), [raw](../../bench/results/2026-09-29-m4.3-shipped-default/))
 
 ## Consequences
 

@@ -149,6 +149,8 @@ reset_cache_state() {
   TIER=iq2_xs; MODEL_SHARDS=(/m/model.gguf); N_GPU_LAYERS=99; N_CPU_MOE=16; CTX=131072
   HOST=127.0.0.1; PORT=8080; PARALLEL=1; SELECTED_BACKEND=Vulkan; SERVER_BIN=""
   FLASH_ATTN=on; CACHE_TYPE_K=q8_0; CACHE_TYPE_V=q8_0; THREADS=""; LOAD_MODE=""; KEEP_ALIVE=1
+  # M4.3 (BAS-158) shipped default: the M4.2-patched engine with the levers on.
+  ENGINE_MODE=m42; M42_UPLOAD=1; ENGINE_PATCHED=1; LOAD_MODE_SET=0; SERVER_ENV=()
 }
 flags_have() { local needle="$1" f; for f in "${SERVER_FLAGS[@]}"; do [[ "$f" == "$needle" ]] && return 0; done; return 1; }
 flags_pair() {
@@ -176,24 +178,63 @@ t_check "M3.0a emits --no-cache-idle-slots" flags_have --no-cache-idle-slots
 t_check "M3.0a emits --ctx-checkpoints" flags_have --ctx-checkpoints
 t_check "M3.0a emits --cache-prompt with idle/checkpoint overrides" flags_have --cache-prompt
 
-# --- M4.1: the host-expert RAM load mode is selectable and default-off -------
-# The pinned b11223 llama-server rejects --no-mmap; --load-mode none is the
-# supported spelling of the same request (BAS-144).
+# --- M4.3: the shipped default is the M4.2 engine + upload levers -----------
+# M4.3 (BAS-158) turns the M4.2 win into the default: the patched Vulkan engine,
+# --load-mode none, and the two GGML_VK upload env vars. '--engine stage0' is the
+# no-rebuild opt-out that restores the Stage 0 Vulkan baseline (no --load-mode,
+# no env). The --no-mmap spelling of --load-mode none (BAS-144) still works.
+env_has() { local needle="$1" e; for e in "${SERVER_ENV[@]}"; do [[ "$e" == "$needle" ]] && return 0; done; return 1; }
+
 reset_cache_state
 validate_args; build_server_flags
-if flags_have --load-mode; then t_bad "M4.1 default omits --load-mode"; else t_ok "M4.1 default omits --load-mode"; fi
+t_check "M4.3 default emits --load-mode none" flags_pair --load-mode none
+t_check "M4.3 default sets the device-local host buffer lever" env_has GGML_VK_HOST_BUFT_PER_DEVICE=1
+t_check "M4.3 default sets the transfer-queue lever" env_has GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
 
+# The opt-out restores the Stage 0 Vulkan baseline without a rebuild: stock
+# engine (or the patched one with the env-gated patch off), no --load-mode, no
+# upload env. It also clears the upload levers whatever the argument order.
+reset_cache_state; parse_args --engine stage0
+validate_args; build_server_flags
+t_check "M4.3 --engine stage0 selects the stock engine" test "$ENGINE_MODE" = stage0
+t_check "M4.3 --engine stage0 forces the upload levers off" test "$M42_UPLOAD" = 0
+if flags_have --load-mode; then t_bad "M4.3 --engine stage0 omits --load-mode"; else t_ok "M4.3 --engine stage0 omits --load-mode"; fi
+if (( ${#SERVER_ENV[@]} == 0 )); then t_ok "M4.3 --engine stage0 omits the upload env"; else t_bad "M4.3 --engine stage0 omits the upload env"; fi
+
+reset_cache_state; parse_args --no-m42-upload
+validate_args; build_server_flags
+if flags_have --load-mode; then t_bad "M4.3 --no-m42-upload omits --load-mode"; else t_ok "M4.3 --no-m42-upload omits --load-mode"; fi
+if (( ${#SERVER_ENV[@]} == 0 )); then t_ok "M4.3 --no-m42-upload omits the upload env"; else t_bad "M4.3 --no-m42-upload omits the upload env"; fi
+
+reset_cache_state; ENGINE_PATCHED=0
+validate_args; build_server_flags
+if flags_have --load-mode; then t_bad "M4.3 an unpatched engine omits --load-mode"; else t_ok "M4.3 an unpatched engine omits --load-mode"; fi
+if (( ${#SERVER_ENV[@]} == 0 )); then t_ok "M4.3 an unpatched engine omits the upload env"; else t_bad "M4.3 an unpatched engine omits the upload env"; fi
+
+reset_cache_state; SELECTED_BACKEND=SYCL0
+validate_args; build_server_flags
+if flags_have --load-mode; then t_bad "M4.3 the SYCL backend omits --load-mode"; else t_ok "M4.3 the SYCL backend omits --load-mode"; fi
+if (( ${#SERVER_ENV[@]} == 0 )); then t_ok "M4.3 the SYCL backend omits the upload env"; else t_bad "M4.3 the SYCL backend omits the upload env"; fi
+
+# --- M4.1: the host-expert RAM load mode stays selectable -------------------
+# The pinned b11223 llama-server rejects --no-mmap; --load-mode none is the
+# supported spelling of the same request (BAS-144).
 reset_cache_state; parse_args --no-mmap
 validate_args; build_server_flags
 t_check "M4.1 --no-mmap maps to load mode none" test "$LOAD_MODE" = none
 t_check "M4.1 --no-mmap emits --load-mode none" flags_pair --load-mode none
 
+# An explicit --load-mode overrides the M4.2 default (mmap+mlock is not none).
 reset_cache_state; parse_args --load-mode mmap+mlock
 validate_args; build_server_flags
 t_check "M4.1 --load-mode passes the mode through" flags_pair --load-mode mmap+mlock
+if flags_pair --load-mode none; then t_bad "M4.3 explicit --load-mode is not overridden"; else t_ok "M4.3 explicit --load-mode is not overridden"; fi
 
 reset_cache_state; LOAD_MODE=bogus
 if (validate_args) >/dev/null 2>&1; then t_bad "M4.1 invalid load mode is rejected"; else t_ok "M4.1 invalid load mode is rejected"; fi
+
+reset_cache_state; ENGINE_MODE=bogus; M42_UPLOAD=1
+if (validate_args) >/dev/null 2>&1; then t_bad "M4.3 invalid engine mode is rejected"; else t_ok "M4.3 invalid engine mode is rejected"; fi
 
 # --- M3.0: setup_runtime_env puts the IGC/LLVM libs on the link path -------
 # Without usr/lib64/llvm15/lib the Level Zero probe aborts in gmm_helper and
