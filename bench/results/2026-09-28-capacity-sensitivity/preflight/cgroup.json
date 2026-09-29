@@ -1,0 +1,9 @@
+{
+  "pid": 2075904,
+  "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/bongo-cap-16g-16.scope",
+  "requested_memory_max": "16G",
+  "memory.max": "17179869184",
+  "memory.current_after_load": "17165328384",
+  "memory.swap.max": "0",
+  "memory.events_after_load": "low 0\nhigh 0\nmax 1437\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 33"
+}

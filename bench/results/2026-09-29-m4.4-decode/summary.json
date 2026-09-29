@@ -1,0 +1,114 @@
+{
+  "baseline": "decode16",
+  "baseline_tps_median": 16.96,
+  "configs": [
+    {
+      "config": "decode16",
+      "repeats": 3,
+      "tps": [
+        16.935,
+        16.96,
+        17.808
+      ],
+      "tps_median": 16.96,
+      "tps_min": 16.935,
+      "tps_max": 17.808,
+      "prompt_ms_median": 11398.4,
+      "output_tokens": 128,
+      "note": "shipped decode config + M4.2 upload levers (the M4.4 reference)",
+      "env": "GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1",
+      "flags": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --cache-type-k q8_0 --cache-type-v q8_0 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none --flash-attn on --n-cpu-moe 16 --n-gpu-layers 99 --load-mode none",
+      "vs_baseline_pct": 0.0
+    },
+    {
+      "config": "decode_forcemmvq",
+      "repeats": 3,
+      "tps": [
+        16.447,
+        17.521,
+        17.76
+      ],
+      "tps_median": 17.521,
+      "tps_min": 16.447,
+      "tps_max": 17.76,
+      "prompt_ms_median": 11403.0,
+      "output_tokens": 128,
+      "note": "force the explicit mul_mat_vec path for every dense matmul",
+      "env": "GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1 GGML_VK_FORCE_MMVQ=1",
+      "flags": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --cache-type-k q8_0 --cache-type-v q8_0 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none --flash-attn on --n-cpu-moe 16 --n-gpu-layers 99 --load-mode none",
+      "vs_baseline_pct": 3.31
+    },
+    {
+      "config": "decode_nc12",
+      "repeats": 3,
+      "tps": [
+        18.976,
+        19.589,
+        19.608
+      ],
+      "tps_median": 19.589,
+      "tps_min": 18.976,
+      "tps_max": 19.608,
+      "prompt_ms_median": 10890.0,
+      "output_tokens": 128,
+      "note": "placement: 4 more expert layers on the GPU (less per-token host upload)",
+      "env": "GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1",
+      "flags": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --cache-type-k q8_0 --cache-type-v q8_0 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none --flash-attn on --n-gpu-layers 99 --load-mode none --n-cpu-moe 12",
+      "vs_baseline_pct": 15.5
+    },
+    {
+      "config": "decode_offload1",
+      "repeats": 3,
+      "tps": [
+        16.685,
+        16.686,
+        16.62
+      ],
+      "tps_median": 16.685,
+      "tps_min": 16.62,
+      "tps_max": 16.686,
+      "prompt_ms_median": 11316.8,
+      "output_tokens": 128,
+      "note": "lever: offload the CPU-resident expert MUL_MAT_ID to Vulkan at batch 1",
+      "env": "GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1 GGML_OP_OFFLOAD_MIN_BATCH=1",
+      "flags": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --cache-type-k q8_0 --cache-type-v q8_0 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none --flash-attn on --n-cpu-moe 16 --n-gpu-layers 99 --load-mode none",
+      "vs_baseline_pct": -1.62
+    },
+    {
+      "config": "decode_offload1_nc12",
+      "repeats": 3,
+      "tps": [
+        17.874,
+        17.889,
+        17.889
+      ],
+      "tps_median": 17.889,
+      "tps_min": 17.874,
+      "tps_max": 17.889,
+      "prompt_ms_median": 10813.1,
+      "output_tokens": 128,
+      "note": "lever + placement: offload at batch 1, 4 more layers on the GPU",
+      "env": "GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1 GGML_OP_OFFLOAD_MIN_BATCH=1",
+      "flags": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --cache-type-k q8_0 --cache-type-v q8_0 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none --flash-attn on --n-gpu-layers 99 --load-mode none --n-cpu-moe 12",
+      "vs_baseline_pct": 5.48
+    },
+    {
+      "config": "decode_t16",
+      "repeats": 3,
+      "tps": [
+        6.016,
+        5.633,
+        6.27
+      ],
+      "tps_median": 6.016,
+      "tps_min": 5.633,
+      "tps_max": 6.27,
+      "prompt_ms_median": 11684.6,
+      "output_tokens": 128,
+      "note": "CPU-side lever: 16 CPU threads for the host-resident expert matmuls",
+      "env": "GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1",
+      "flags": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --cache-type-k q8_0 --cache-type-v q8_0 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none --flash-attn on --n-cpu-moe 16 --n-gpu-layers 99 --load-mode none --threads 16 --threads-batch 16",
+      "vs_baseline_pct": -64.53
+    }
+  ]
+}

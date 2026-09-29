@@ -1,0 +1,9 @@
+{
+  "schema": "bongo.m4.5-fit.v1",
+  "label": "fallback",
+  "request_status": 200,
+  "vram_peak_gib": 28.79,
+  "vram_method": "fdinfo",
+  "rss_peak_gib": 1.92,
+  "host_ram_available_gib": 10.757
+}

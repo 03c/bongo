@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "wall_ms": 52016.78,
+  "prompt_tokens": 3,
+  "prompt_ms": 1190.843,
+  "prompt_tps": 2.5192237767699015,
+  "output_tokens": 128,
+  "output_ms": 50748.766,
+  "output_tps": 2.5025239037339353,
+  "cache_n": 4094,
+  "cached_tokens": 4094,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 4097,
+    "total_tokens": 4225,
+    "prompt_tokens_details": {
+      "cached_tokens": 4094
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nThe text provided is a repetition of the same paragraph. Here is the single instance of that paragraph:\n\nThe mountain road curved past the reservoir, where the morning fog had not",
+  "ttft_ms": 1266.78,
+  "ttfb_ms": 1266.75,
+  "stream_total_ms": 52016.78,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nThe text provided is a repetition of the same paragraph. Here is the single instance of that paragr",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 31262355456.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 25938456576.0,
+    "system_ram_process_hwm_bytes": 25941401600.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 207
+  }
+}

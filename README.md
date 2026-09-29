@@ -37,6 +37,7 @@ runtime on the reference box; the script detects this and falls back to **Vulkan
 - [`docs/adr/0001-runtime-architecture.md`](docs/adr/0001-runtime-architecture.md) — the staged runtime decision.
 - [`docs/adr/0002-baseline-engine.md`](docs/adr/0002-baseline-engine.md) — why llama.cpp SYCL is the baseline.
 - [`docs/bongo-sh.md`](docs/bongo-sh.md) — the one-command setup: options, provisioning, backends, tiers, config.
+- [`docs/runbooks/active-run-watchdog-recovery.md`](docs/runbooks/active-run-watchdog-recovery.md) — platform ops: clear a board-owned `active_run_watchdog` recovery hold without re-filing work.
 - [`CONTEXT.md`](CONTEXT.md) — project vocabulary.
 
 ## Intended one-command UX

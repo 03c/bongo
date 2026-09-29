@@ -1,0 +1,61 @@
+{
+  "schema": "bongo.speculation-compare.v1",
+  "generated_at": "2026-09-29T01:32:53+00:00",
+  "baseline_label": "baseline",
+  "spec_label": "spec",
+  "workload": "generic",
+  "spec_type": "ngram-map-k4v",
+  "contexts": [
+    {
+      "context": 4096,
+      "status": "ok",
+      "equiv_equal": true,
+      "equiv_len": 325,
+      "output_tps_baseline": 14.40338234583044,
+      "output_tps_spec": 17.524197616340004,
+      "speedup": 1.2166723895525131,
+      "ttft_baseline_ms": 262.51,
+      "ttft_spec_ms": 179.38,
+      "acceptance": {
+        "draft_n": 244,
+        "draft_n_accepted": 213,
+        "draft_ratio": 0.8729508196721312,
+        "mean_acc_len": 19.2,
+        "verif_steps": 3,
+        "tokens_per_round": 72.0
+      }
+    },
+    {
+      "context": 131072,
+      "status": "ok",
+      "equiv_equal": false,
+      "equiv_len": 311,
+      "equiv_divergence_index": 23,
+      "equiv_baseline_excerpt": "\n\n<think>\nThe user has sent a massive block of repeated text - the same paragraph about a mountain road",
+      "equiv_spec_excerpt": "\n\n<think>\nThe user has pasted a paragraph repeated many, many times. The text describes a mountain road",
+      "output_tps_baseline": 8.20764820881209,
+      "output_tps_spec": 8.257690502623142,
+      "speedup": 1.0060970320045302,
+      "ttft_baseline_ms": 519.56,
+      "ttft_spec_ms": 498.58000000000004,
+      "acceptance": {
+        "cache_n": 128321,
+        "prompt_n": 4,
+        "predicted_n": 128,
+        "draft_n": null,
+        "draft_n_accepted": null,
+        "draft_n_verif_steps": null,
+        "draft_ratio": null,
+        "mean_acc_len": null
+      }
+    }
+  ],
+  "verdict": {
+    "outputs_identical": false,
+    "speedups_at_acceptance_ge_0.5": {
+      "4096": 1.2166723895525131
+    },
+    "min_speedup_at_acceptance_ge_0.5": 1.2166723895525131,
+    "low_acceptance_regressions": []
+  }
+}

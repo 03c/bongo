@@ -1,0 +1,13 @@
+0.00.436.070 I srv  llama_server: initializing ...
+0.00.436.082 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.437.489 W srv  llama_server: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.438.883 I srv    load_model: loading model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+0.00.830.190 E llama_init_from_model: quantized V cache requires flash_attn to be enabled
+0.00.851.635 E common_fit_params: encountered an error while trying to fit params to free device memory: failed to create llama_context from model
+0.01.034.249 W llama_model_loader: tensor overrides to CPU are used with mmap enabled - consider using --load-mode none for better performance
+1.26.515.085 E llama_init_from_model: quantized V cache requires flash_attn to be enabled
+1.26.515.088 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.26.515.779 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.26.517.632 E srv    load_model: failed to create_context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.26.517.871 I srv    operator(): operator(): cleaning up before exit...
+1.26.522.286 E srv  llama_server: exiting due to model loading error

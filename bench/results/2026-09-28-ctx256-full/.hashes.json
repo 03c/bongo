@@ -1,0 +1,12 @@
+{
+  "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf:39788473344:1790550068:sampled": {
+    "sha256": "9117886e27aae30d5993d5966b54da2da3c6c6a3ba2826d1ea04c82a5503ee6e",
+    "hash_mode": "sampled",
+    "size_bytes": 39788473344
+  },
+  "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00002-of-00002.gguf:28363693824:1790550320:sampled": {
+    "sha256": "0ecf15c38ca003c29e069483b0f3b7065f4542f0d9abc4b1c06f5b35df6e08b5",
+    "hash_mode": "sampled",
+    "size_bytes": 28363693824
+  }
+}

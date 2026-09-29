@@ -1,0 +1,330 @@
+{
+  "schema": "bongo.speculation-run.v1",
+  "generated_at": "2026-09-29T00:07:20+00:00",
+  "label": "baseline",
+  "spec_type": "none",
+  "spec_synth": "none",
+  "workload": "generic",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "tier": "iq2_xs",
+  "config": {
+    "contexts": [
+      4096,
+      131072
+    ],
+    "max_tokens": 128,
+    "repeats": 2,
+    "equivalence_tokens": 64,
+    "skip_equivalence": false,
+    "cache_prompt": true
+  },
+  "server": {
+    "build_info": "b11223-4da633776",
+    "default_generation_settings": {
+      "params": {
+        "seed": 4294967295,
+        "temperature": 1.0,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 64,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "adaptive_target": -1.0,
+        "adaptive_decay": 0.8999999761581421,
+        "max_tokens": -1,
+        "n_predict": -1,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "Content-only",
+        "reasoning_format": "none",
+        "reasoning_in_content": false,
+        "generation_prompt": "",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "n_ctx": 131072
+    },
+    "log": "/home/cchild/.bongo/m32b/scratch/speculation-baseline-server.log",
+    "note": "engine=llama.cpp b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=16 ctx=131072 spec_type=none synth_len=none flags=--model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none workload=generic"
+  },
+  "warmup": {
+    "status": 200,
+    "wall_ms": 24713.15,
+    "ttft_ms": 24712.93,
+    "prompt_ms": 24705.723,
+    "prompt_tps": 10.321495145072257,
+    "output_tokens": 1,
+    "output_tps": 0.0,
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 255,
+      "prompt_ms": 24705.723,
+      "prompt_per_token_ms": 96.88518823529412,
+      "prompt_per_second": 10.321495145072257,
+      "predicted_n": 1,
+      "predicted_ms": 0.001,
+      "predicted_per_token_ms": 0.0,
+      "predicted_per_second": 0.0
+    },
+    "draft": {
+      "cache_n": 0,
+      "prompt_n": 255,
+      "predicted_n": 1,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "draft_n_verif_steps": null,
+      "draft_ratio": null,
+      "mean_acc_len": null
+    },
+    "text": "\n\n",
+    "error": null
+  },
+  "contexts": [
+    {
+      "context": 4096,
+      "equiv": {
+        "status": 200,
+        "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger",
+        "prompt_tokens": 3846,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 9201.91,
+          "ttft_ms": 211.38,
+          "prompt_ms": 206.679,
+          "prompt_tps": 19.3536837317773,
+          "output_tokens": 128,
+          "output_tps": 14.12603133932351,
+          "timings": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "prompt_ms": 206.679,
+            "prompt_per_token_ms": 51.66975,
+            "prompt_per_second": 19.3536837317773,
+            "predicted_n": 128,
+            "predicted_ms": 8990.494,
+            "predicted_per_token_ms": 70.79129133858268,
+            "predicted_per_second": 14.12603133932351
+          },
+          "draft": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger, comparing it against the previous week. A heron stood motionless at the water's edge, watching the shallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 8964.6,
+          "ttft_ms": 313.64,
+          "prompt_ms": 309.404,
+          "prompt_tps": 12.928081084924564,
+          "output_tokens": 128,
+          "output_tps": 14.68073335233737,
+          "timings": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "prompt_ms": 309.404,
+            "prompt_per_token_ms": 77.351,
+            "prompt_per_second": 12.928081084924564,
+            "predicted_n": 128,
+            "predicted_ms": 8650.794,
+            "predicted_per_token_ms": 68.11648818897638,
+            "predicted_per_second": 14.68073335233737
+          },
+          "draft": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger, comparing it against the previous week. A heron stood motionless at the water's edge, watching the shallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 14.40338234583044,
+          "min": 14.12603133932351,
+          "max": 14.68073335233737
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 262.51,
+          "min": 211.38,
+          "max": 313.64
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 4093.0,
+          "min": 4093,
+          "max": 4093
+        }
+      },
+      "acceptance": null,
+      "acceptance_runs": [],
+      "prompt_tokens": 4097
+    },
+    {
+      "context": 131072,
+      "equiv": {
+        "status": 200,
+        "text": "\n\n<think>\nThe user has sent a massive block of repeated text - the same paragraph about a mountain road, reservoir, engineers, heron, turbine hall, and maintenance crew repeated hundreds of times. This appears to be a test of some kind, or perhaps an accidental paste. There's no actual question or request here",
+        "prompt_tokens": 124232,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 16250.53,
+          "ttft_ms": 531.84,
+          "prompt_ms": 438.354,
+          "prompt_tps": 9.12504505490996,
+          "output_tokens": 128,
+          "output_tps": 8.079987550456977,
+          "timings": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "prompt_ms": 438.354,
+            "prompt_per_token_ms": 109.5885,
+            "prompt_per_second": 9.12504505490996,
+            "predicted_n": 128,
+            "predicted_ms": 15717.846,
+            "predicted_per_token_ms": 123.76256692913385,
+            "predicted_per_second": 8.079987550456977
+          },
+          "draft": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\nThe user has sent a massive block of repeated text - the same paragraph about a mountain road, reservoir, engineers, heron, turbine hall, and maintenance crew repeated hundreds of times. This appears to be a test of some kind, or perhaps an accidental paste. There's no actual question or request here.\n\nLet me consider what the user might want:\n1. They might be testing how I handle repetitive content\n2. They might want me to summarize the content\n3. They might want me to identify the pattern\n4. They might want me to respond to the content itself\n5. It could be",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 15744.57,
+          "ttft_ms": 507.28,
+          "prompt_ms": 414.898,
+          "prompt_tps": 9.640923793317874,
+          "output_tokens": 128,
+          "output_tps": 8.335308867167203,
+          "timings": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "prompt_ms": 414.898,
+            "prompt_per_token_ms": 103.7245,
+            "prompt_per_second": 9.640923793317874,
+            "predicted_n": 128,
+            "predicted_ms": 15236.388,
+            "predicted_per_token_ms": 119.97155905511812,
+            "predicted_per_second": 8.335308867167203
+          },
+          "draft": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\nThe user has sent a massive block of repeated text - the same paragraph about a mountain road, reservoir, engineers, heron, turbine hall, and maintenance crew repeated hundreds of times. This appears to be a test of some kind, or perhaps an accidental paste. There's no actual question or request here.\n\nLet me consider what the user might want:\n1. They might be testing how I handle repetitive content\n2. They might want me to summarize the content\n3. They might want me to identify the pattern\n4. They might want me to respond to the content itself\n5. It could be",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 8.20764820881209,
+          "min": 8.079987550456977,
+          "max": 8.335308867167203
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 519.56,
+          "min": 507.28,
+          "max": 531.84
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 128321.0,
+          "min": 128321,
+          "max": 128321
+        }
+      },
+      "acceptance": null,
+      "acceptance_runs": [],
+      "prompt_tokens": 128325
+    }
+  ]
+}

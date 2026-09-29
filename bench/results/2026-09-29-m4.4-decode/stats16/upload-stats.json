@@ -1,0 +1,33 @@
+{
+  "label": "bench/results/2026-09-29-m4.4-decode/stats16",
+  "ctx_tokens": 4096,
+  "max_tokens": 24,
+  "runs": [
+    {
+      "status": 200,
+      "wall_ms": 12711.59,
+      "prompt_tokens": 4094,
+      "prompt_ms": 11402.871,
+      "prompt_tps": 359.0323875452068,
+      "output_tokens": 24,
+      "output_ms": 1304.703,
+      "output_tps": 17.62853308377462,
+      "cache_n": 0,
+      "cached_tokens": 0,
+      "usage": {
+        "completion_tokens": 24,
+        "prompt_tokens": 4094,
+        "total_tokens": 4118,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two",
+      "ttft_ms": 11406.76,
+      "ttfb_ms": 11406.73,
+      "stream_total_ms": 12711.59,
+      "stream_error": null,
+      "stream_text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two"
+    }
+  ]
+}

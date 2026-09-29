@@ -1,0 +1,52 @@
+User: Hi, I have a question about running large language models on Intel Arc GPUs.
+
+Assistant: Sure, happy to help. The Arc Pro B70 has 32 GiB of VRAM and works with llama.cpp through either the SYCL or Vulkan backend. What are you trying to run?
+
+User: A 125B parameter mixture-of-experts model. It is about 68 GB on disk in a 2-bit quantization. I have 30 GB of system RAM. Is that even possible?
+
+Assistant: Yes, but you have to split the model across VRAM and RAM. The dense weights, attention, and router layers stay on the GPU, and the routed expert feed-forward blocks get placed either on the GPU or the CPU. llama.cpp has a flag called n-cpu-moe that keeps the experts of the first N layers on the CPU.
+
+User: How do I decide N?
+
+Assistant: It is a budget problem. Each layer's experts have a different byte size, so a layer-count rule is not exactly a byte rule. You load the model and check that it does not exceed the usable VRAM at the longest context you promise, because the key-value cache grows with context and can push a config over the edge.
+
+User: So what does the runtime actually do at inference time?
+
+Assistant: For every token and every layer, the router computes a score for each expert, then picks the top ten. Those ten experts are multiplied with the token's hidden state and summed. If an expert lives in VRAM the multiply is fast; if it lives in RAM the CPU computes it and the result is copied back.
+
+User: Which experts get picked? Is it always the same ones?
+
+Assistant: That is the interesting question. If a small set of experts is picked most of the time, you could keep those in VRAM and shrink the part that runs on the CPU. If the picks are near uniform, a frequency cache buys nothing and the static layer rule is as good as anything.
+
+User: How would I measure that?
+
+Assistant: You instrument the router and record the top-k expert index for each layer and each token, over prompts that look like your real workload. Then you build a coverage curve: for a fixed number of resident expert bytes, what fraction of routed selections does the resident set serve? Compare the frequency-ranked set against the layer-ordered set at the same byte budget.
+
+User: And temporal stability?
+
+Assistant: Build the profile on one corpus and evaluate it on another. If a profile transfers, a one-time offline ranking is enough. If it does not, you need a predictor that adapts online, which is much more work.
+
+User: What about predicting the next token's experts from the current one?
+
+Assistant: If expert selections persist across adjacent tokens at the same layer, a trivial predictor helps. If they decorrelate quickly, a learned predictor would need router logits and a model, and the payoff is unlikely to justify the complexity.
+
+User: Thank you, that is clear.
+
+Assistant: You are welcome. The practical summary is that the measurement is cheap and the answer decides whether an adaptive cache is worth building at all.
+
+
+User: One more thing. Does the placement change what the model outputs?
+
+Assistant: No. Moving an expert between VRAM and RAM changes where it is computed, not what it computes. The arithmetic is the same, so the output is bit-identical apart from floating point reduction order. That is why a placement change is safe to ship as a performance-only change.
+
+User: And prefill versus decode? Do they behave differently?
+
+Assistant: Yes. Prefill processes many tokens at once, so it is a large batched matrix multiplication and it is throughput-bound by the expert weights it has to read. Decode processes one token at a time, so it is latency-bound and dominated by memory traffic and by attention over the whole context. On this box decode at a long context is fairly flat with respect to placement, while prefill still scales with how many expert bytes sit on the GPU.
+
+User: So if I only care about decode latency at 128K context, the cache might not help?
+
+Assistant: Possibly not, and that is exactly why you measure before you build. If decode is dominated by attention and key-value traffic, then moving a few gigabytes of experts around changes very little. If prefill time to first token is what you care about, the expert miss rate matters much more, and a hot set has a real chance to help.
+
+User: Understood. Let me go collect the routing data.
+
+Assistant: Good plan. Record the top-k indices for a code prompt, a document prompt, and a conversational prompt, then check that a profile built on one transfers to the others. The verdict follows directly from the coverage curves.

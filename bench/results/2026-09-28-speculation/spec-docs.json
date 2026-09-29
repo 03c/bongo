@@ -1,0 +1,386 @@
+{
+  "schema": "bongo.speculation-run.v1",
+  "generated_at": "2026-09-29T01:12:58+00:00",
+  "label": "spec",
+  "spec_type": "ngram-map-k4v",
+  "spec_synth": "none",
+  "workload": "docs",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "tier": "iq2_xs",
+  "config": {
+    "contexts": [
+      4096,
+      131072
+    ],
+    "max_tokens": 128,
+    "repeats": 2,
+    "equivalence_tokens": 64,
+    "skip_equivalence": false,
+    "cache_prompt": true
+  },
+  "server": {
+    "build_info": "b11223-4da633776",
+    "default_generation_settings": {
+      "params": {
+        "seed": 4294967295,
+        "temperature": 1.0,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 64,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "adaptive_target": -1.0,
+        "adaptive_decay": 0.8999999761581421,
+        "max_tokens": -1,
+        "n_predict": -1,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "Content-only",
+        "reasoning_format": "none",
+        "reasoning_in_content": false,
+        "generation_prompt": "",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "n_ctx": 131072
+    },
+    "log": "/home/cchild/.bongo/m32b/scratch/speculation-spec-server.log",
+    "note": "engine=llama.cpp b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=16 ctx=131072 spec_type=ngram-map-k4v synth_len=none flags=--model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type ngram-map-k4v workload=docs"
+  },
+  "warmup": {
+    "status": 200,
+    "wall_ms": 766.59,
+    "ttft_ms": 766.45,
+    "prompt_ms": 187.745,
+    "prompt_tps": 21.30549415430504,
+    "output_tokens": 1,
+    "output_tps": 0.0,
+    "timings": {
+      "cache_n": 251,
+      "prompt_n": 4,
+      "prompt_ms": 187.745,
+      "prompt_per_token_ms": 46.93625,
+      "prompt_per_second": 21.30549415430504,
+      "predicted_n": 1,
+      "predicted_ms": 0.001,
+      "predicted_per_token_ms": 0.0,
+      "predicted_per_second": 0.0
+    },
+    "draft": {
+      "cache_n": 251,
+      "prompt_n": 4,
+      "predicted_n": 1,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "draft_n_verif_steps": null,
+      "draft_ratio": null,
+      "mean_acc_len": null
+    },
+    "text": "\n\n",
+    "error": null
+  },
+  "contexts": [
+    {
+      "context": 4096,
+      "equiv": {
+        "status": 200,
+        "text": "\n\n</think>\n\npstream-default.\n\n### Measured prefix reuse\n\nThe reference box is an idle Arc Pro B70, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`,\n`--ctx 262144`, `--cache",
+        "prompt_tokens": 4087,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 8080.56,
+          "ttft_ms": 181.19,
+          "prompt_ms": 177.4,
+          "prompt_tps": 22.547914317925592,
+          "output_tokens": 128,
+          "output_tps": 16.077367838656144,
+          "timings": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "prompt_ms": 177.4,
+            "prompt_per_token_ms": 44.35,
+            "prompt_per_second": 22.547914317925592,
+            "predicted_n": 128,
+            "predicted_ms": 7899.303,
+            "predicted_per_token_ms": 62.19923622047244,
+            "predicted_per_second": 16.077367838656144,
+            "draft_n": 12,
+            "draft_n_accepted": 11
+          },
+          "draft": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": 12,
+            "draft_n_accepted": 11,
+            "draft_n_verif_steps": null,
+            "draft_ratio": 0.9166666666666666,
+            "mean_acc_len": null
+          },
+          "text": "\n\n</think>\n\npstream-default.\n\n### Measured prefix reuse\n\nThe reference box is an idle Arc Pro B70, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`,\n`--ctx 262144`, `--cache-ram 8192`, `--flash-attention`, `--slots`, `--cache-prompt`,\n`--ctx-checkpoints 32`, `--slot-save-path` set, `--cache-idle-slots` on,\n`--save-slot-checkpoints` **off** (",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 7873.63,
+          "ttft_ms": 179.71,
+          "prompt_ms": 175.83,
+          "prompt_tps": 22.749246431211965,
+          "output_tokens": 128,
+          "output_tps": 16.50684273618985,
+          "timings": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "prompt_ms": 175.83,
+            "prompt_per_token_ms": 43.9575,
+            "prompt_per_second": 22.749246431211965,
+            "predicted_n": 128,
+            "predicted_ms": 7693.779,
+            "predicted_per_token_ms": 60.58093700787402,
+            "predicted_per_second": 16.50684273618985,
+            "draft_n": 12,
+            "draft_n_accepted": 11
+          },
+          "draft": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": 12,
+            "draft_n_accepted": 11,
+            "draft_n_verif_steps": null,
+            "draft_ratio": 0.9166666666666666,
+            "mean_acc_len": null
+          },
+          "text": "\n\n</think>\n\npstream-default.\n\n### Measured prefix reuse\n\nThe reference box is an idle Arc Pro B70, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`,\n`--ctx 262144`, `--cache-ram 8192`, `--flash-attention`, `--slots`, `--cache-prompt`,\n`--ctx-checkpoints 32`, `--slot-save-path` set, `--cache-idle-slots` on,\n`--save-slot-checkpoints` **off** (",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 16.292105287423,
+          "min": 16.077367838656144,
+          "max": 16.50684273618985
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 180.45,
+          "min": 179.71,
+          "max": 181.19
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 4083.0,
+          "min": 4083,
+          "max": 4083
+        }
+      },
+      "acceptance": {
+        "draft_n": 50,
+        "draft_n_accepted": 33,
+        "draft_ratio": 0.66,
+        "mean_acc_len": 12.0,
+        "verif_steps": 3,
+        "tokens_per_round": 12.0
+      },
+      "acceptance_runs": [
+        {
+          "draft_n": 38,
+          "draft_n_accepted": 22,
+          "draft_ratio": 0.5789473684210527,
+          "mean_acc_len": 12.0,
+          "verif_steps": 2,
+          "tokens_per_round": 12.0
+        },
+        {
+          "draft_n": 12,
+          "draft_n_accepted": 11,
+          "draft_ratio": 0.9166666666666666,
+          "mean_acc_len": 12.0,
+          "verif_steps": 1,
+          "tokens_per_round": 12.0
+        }
+      ],
+      "prompt_tokens": 4087
+    },
+    {
+      "context": 131072,
+      "equiv": {
+        "status": 200,
+        "text": " \u2014 so a model that copies its\n  source gets a long lookup window and a model that paraphrases gets a short one.\n- `VerifyWindow` (`include/strata/core/verify.hpp`) sizes the window from an **EWMA of accepted lengths**\n  (`alpha = 0.25",
+        "prompt_tokens": 126783,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 15230.85,
+          "ttft_ms": 405.13,
+          "prompt_ms": 334.83,
+          "prompt_tps": 11.946360839829168,
+          "output_tokens": 128,
+          "output_tps": 8.566900545300085,
+          "timings": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "prompt_ms": 334.83,
+            "prompt_per_token_ms": 83.7075,
+            "prompt_per_second": 11.946360839829168,
+            "predicted_n": 128,
+            "predicted_ms": 14824.498,
+            "predicted_per_token_ms": 116.72833070866142,
+            "predicted_per_second": 8.566900545300085,
+            "draft_n": 10,
+            "draft_n_accepted": 1
+          },
+          "draft": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": 10,
+            "draft_n_accepted": 1,
+            "draft_n_verif_steps": null,
+            "draft_ratio": 0.1,
+            "mean_acc_len": null
+          },
+          "text": " \u2014 so a model that copies its\n  source gets a long lookup window and a model that paraphrases gets a short one.\n- `VerifyWindow` (`include/strata/core/verify.hpp`) sizes the window from an **EWMA of accepted lengths**\n  (`alpha = 0.25`), clamped to `[1, 8]`, and **shrinks the window when acceptance falls below `min_p`**\n  (`--spec-min-p`, default 0.5) so a low-acceptance workload never pays for drafts.\n\nThe shipped default is `--spec 4 --",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 14389.14,
+          "ttft_ms": 390.48,
+          "prompt_ms": 319.952,
+          "prompt_tps": 12.501875281292193,
+          "output_tokens": 128,
+          "output_tps": 9.073687919720582,
+          "timings": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "prompt_ms": 319.952,
+            "prompt_per_token_ms": 79.988,
+            "prompt_per_second": 12.501875281292193,
+            "predicted_n": 128,
+            "predicted_ms": 13996.514,
+            "predicted_per_token_ms": 110.2087716535433,
+            "predicted_per_second": 9.073687919720582,
+            "draft_n": 2,
+            "draft_n_accepted": 1
+          },
+          "draft": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": 2,
+            "draft_n_accepted": 1,
+            "draft_n_verif_steps": null,
+            "draft_ratio": 0.5,
+            "mean_acc_len": null
+          },
+          "text": " \u2014 so a model that copies its\n  source gets a long lookup window and a model that paraphrases gets a short one.\n- `VerifyWindow` (`include/strata/core/verify.hpp`) sizes the window from an **EWMA of accepted lengths**\n  (`alpha = 0.25`), clamped to `[1, 8]`, and **shrinks the window when acceptance falls below `min_p`**\n  (`--spec-min-p`, default 0.5) so a low-acceptance workload never pays for drafts.\n\nThe shipped default is `--spec 4 --",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 8.820294232510333,
+          "min": 8.566900545300085,
+          "max": 9.073687919720582
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 397.805,
+          "min": 390.48,
+          "max": 405.13
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 130862.0,
+          "min": 130862,
+          "max": 130862
+        }
+      },
+      "acceptance": {
+        "draft_n": 12,
+        "draft_n_accepted": 2,
+        "draft_ratio": 0.16666666666666666,
+        "mean_acc_len": 2.0,
+        "verif_steps": 2,
+        "tokens_per_round": 2.0
+      },
+      "acceptance_runs": [
+        {
+          "draft_n": 10,
+          "draft_n_accepted": 1,
+          "draft_ratio": 0.1,
+          "mean_acc_len": 2.0,
+          "verif_steps": 1,
+          "tokens_per_round": 2.0
+        },
+        {
+          "draft_n": 2,
+          "draft_n_accepted": 1,
+          "draft_ratio": 0.5,
+          "mean_acc_len": 2.0,
+          "verif_steps": 1,
+          "tokens_per_round": 2.0
+        }
+      ],
+      "prompt_tokens": 130866
+    }
+  ]
+}

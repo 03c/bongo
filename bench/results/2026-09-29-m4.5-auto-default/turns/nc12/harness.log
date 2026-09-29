@@ -1,0 +1,18 @@
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=1695.549 prompt_tps=150.39376626685515 ttft_ms=1696.52 out_n=1 out_tps=0.0 wall_ms=1696.67
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                status=200 prompt_n=16384 cache_n=0 prompt_ms=57034.01 prompt_tps=287.2671937323011 ttft_ms=57072.1 out_n=1 out_tps=0.0 wall_ms=57072.26
+hit_p16384                 status=200 prompt_n=4 cache_n=16380 prompt_ms=259.018 prompt_tps=15.442942189345915 ttft_ms=276.22 out_n=1 out_tps=0.0 wall_ms=276.33
+grow_p16384_d512           status=200 prompt_n=510 cache_n=16384 prompt_ms=2707.66 prompt_tps=188.35452013916077 ttft_ms=2721.13 out_n=1 out_tps=0.0 wall_ms=2721.21
+hit2_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=265.253 prompt_tps=15.079942545418902 ttft_ms=278.78 out_n=1 out_tps=0.0 wall_ms=278.91
+decode_p16384              status=200 prompt_n=4 cache_n=16380 prompt_ms=250.773 prompt_tps=15.950680495906656 ttft_ms=263.95 out_n=32 out_tps=12.581694770520034 wall_ms=2727.87
+
+== prefix target 127999 (actual 127998) ==
+cold_p127998               status=200 prompt_n=127998 cache_n=0 prompt_ms=750731.58 prompt_tps=170.49768973352633 ttft_ms=750827.58 out_n=1 out_tps=0.0 wall_ms=750828.56
+hit_p127998                status=200 prompt_n=4 cache_n=127994 prompt_ms=401.904 prompt_tps=9.952625502607589 ttft_ms=497.63 out_n=1 out_tps=0.0 wall_ms=498.47
+grow_p127998_d512          status=200 prompt_n=513 cache_n=127998 prompt_ms=4648.54 prompt_tps=110.35723044224638 ttft_ms=4744.59 out_n=1 out_tps=0.0 wall_ms=4745.68
+hit2_p127998               status=200 prompt_n=4 cache_n=127994 prompt_ms=415.157 prompt_tps=9.634909203024398 ttft_ms=518.63 out_n=1 out_tps=0.0 wall_ms=520.15
+decode_p127998             status=200 prompt_n=4 cache_n=127994 prompt_ms=411.384 prompt_tps=9.723275577076405 ttft_ms=506.07 out_n=32 out_tps=7.555826590367443 wall_ms=4609.69
+
+wrote bench/results/2026-09-29-m4.5-auto-default/turns/nc12/profile-host-split.json
+nc12: needle pass (prompt_n=8239) answer='\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ'

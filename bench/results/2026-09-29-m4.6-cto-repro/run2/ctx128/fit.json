@@ -1,0 +1,9 @@
+{
+  "schema": "bongo.m4.5-fit.v1",
+  "label": "ctx128",
+  "request_status": 200,
+  "vram_peak_gib": 31.415,
+  "vram_method": "fdinfo",
+  "rss_peak_gib": 2.316,
+  "host_ram_available_gib": 12.925
+}

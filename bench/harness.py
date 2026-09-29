@@ -186,14 +186,32 @@ def timings_of(res):
     return {}
 
 
-def completion_call(base_url, model, prompt, max_tokens, timeout, extra=None):
+def reuse_counts(timings, usage):
+    """Tokens reused from the prefix cache, from the two places llama.cpp reports them.
+
+    ``timings.cache_n`` is the authoritative server-side count; the
+    OpenAI-compatible ``usage.prompt_tokens_details.cached_tokens`` is the same
+    number in the usage block and is the fallback when stream timings are absent.
+    """
+    cache_n = timings.get("cache_n") if isinstance(timings, dict) else None
+    cached_tokens = None
+    if isinstance(usage, dict):
+        details = usage.get("prompt_tokens_details")
+        if isinstance(details, dict):
+            cached_tokens = details.get("cached_tokens")
+    if cache_n is None:
+        cache_n = cached_tokens
+    return cache_n, cached_tokens
+
+
+def completion_call(base_url, model, prompt, max_tokens, timeout, extra=None, cache_prompt=True):
     payload = {
         "model": model,
         "prompt": prompt,
         "max_tokens": max_tokens,
         "temperature": 0.0,
         "stream": False,
-        "cache_prompt": False,
+        "cache_prompt": bool(cache_prompt),
     }
     if extra:
         payload.update(extra)
@@ -205,6 +223,7 @@ def completion_call(base_url, model, prompt, max_tokens, timeout, extra=None):
         choices = res.json.get("choices") or []
         if choices and isinstance(choices[0], dict):
             text = choices[0].get("text") or ""
+    cache_n, cached_tokens = reuse_counts(t, usage)
     out = {
         "status": res.status,
         "wall_ms": round(res.elapsed_ms, 2),
@@ -214,6 +233,8 @@ def completion_call(base_url, model, prompt, max_tokens, timeout, extra=None):
         "output_tokens": t.get("predicted_n"),
         "output_ms": t.get("predicted_ms"),
         "output_tps": t.get("predicted_per_second"),
+        "cache_n": cache_n,
+        "cached_tokens": cached_tokens,
         "usage": usage,
         "text": text[:200],
     }
@@ -222,7 +243,7 @@ def completion_call(base_url, model, prompt, max_tokens, timeout, extra=None):
     return out
 
 
-def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
+def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None, cache_prompt=True):
     """One streaming request that yields TTFT and server-reported throughput.
 
     Returns a record shaped like ``completion_call``'s, plus ``ttft_ms`` and
@@ -236,7 +257,7 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
         "max_tokens": max_tokens,
         "temperature": 0.0,
         "stream": True,
-        "cache_prompt": False,
+        "cache_prompt": bool(cache_prompt),
         "ignore_eos": True,
         "stream_options": {"include_usage": True},
     }
@@ -244,6 +265,8 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
         payload.update(extra)
     ttft_ms, ttfb_ms, total_ms, text, meta = stream_completion(base_url, payload, timeout)
     timings = meta.get("timings") or {}
+    usage = meta.get("usage")
+    cache_n, cached_tokens = reuse_counts(timings, usage)
     out = {
         "status": meta.get("status"),
         "wall_ms": round(total_ms, 2),
@@ -253,7 +276,9 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
         "output_tokens": timings.get("predicted_n"),
         "output_ms": timings.get("predicted_ms"),
         "output_tps": timings.get("predicted_per_second"),
-        "usage": meta.get("usage"),
+        "cache_n": cache_n,
+        "cached_tokens": cached_tokens,
+        "usage": usage,
         "text": text[:200],
         "ttft_ms": round(ttft_ms, 2) if ttft_ms is not None else None,
         "ttfb_ms": round(ttfb_ms, 2) if ttfb_ms is not None else None,
@@ -263,7 +288,10 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
     }
     # Safety net for OpenAI-compatible servers that do not emit stream timings.
     if out["status"] == 200 and out["prompt_tps"] is None and out["stream_error"] is None:
-        fallback = completion_call(base_url, model, prompt, max_tokens, timeout, extra={"ignore_eos": True})
+        fallback = completion_call(
+            base_url, model, prompt, max_tokens, timeout,
+            extra={"ignore_eos": True}, cache_prompt=cache_prompt,
+        )
         for key in (
             "prompt_tokens",
             "prompt_ms",
@@ -271,6 +299,8 @@ def streaming_measure(base_url, model, prompt, max_tokens, timeout, extra=None):
             "output_tokens",
             "output_ms",
             "output_tps",
+            "cache_n",
+            "cached_tokens",
             "usage",
             "text",
         ):
@@ -436,7 +466,7 @@ def benchmark(args):
     sampler.start()
     tokenizer = Tokenizer(base_url, timeout=args.timeout)
 
-    warmup = completion_call(base_url, model_id, "Hello.", 8, args.timeout)
+    warmup = completion_call(base_url, model_id, "Hello.", 8, args.timeout, cache_prompt=False)
 
     results = []
     failures = []
@@ -477,7 +507,10 @@ def benchmark(args):
             # One streaming request per repeat measures client-side TTFT and,
             # from the final chunk's timings, prefill and decode throughput.
             # This avoids a second full prefill for the same prompt.
-            rec = streaming_measure(base_url, model_id, prompt, args.max_tokens, args.timeout)
+            rec = streaming_measure(
+                base_url, model_id, prompt, args.max_tokens, args.timeout,
+                cache_prompt=args.cache_prompt,
+            )
             run_end = time.time()
             rec["repeat"] = rep + 1
             rec["memory"] = sampler.window_peak(run_start, run_end)
@@ -503,6 +536,8 @@ def benchmark(args):
             "output_tps": summarize(entry["runs"], "output_tps"),
             "ttft_ms": summarize(entry["runs"], "ttft_ms"),
             "prompt_tokens": summarize(entry["runs"], "prompt_tokens"),
+            "cache_n": summarize(entry["runs"], "cache_n"),
+            "cached_tokens": summarize(entry["runs"], "cached_tokens"),
         }
         if entry["summary"].get("prompt_tokens"):
             entry["actual_prompt_tokens_median"] = entry["summary"]["prompt_tokens"]["median"]
@@ -559,7 +594,8 @@ def benchmark(args):
             filler = tokenizer.size_to(target, CORPUS, hard_max=hard_max)
             document = build_needle_document(filler)
             res = completion_call(
-                base_url, model_id, document, args.needle_tokens, args.timeout
+                base_url, model_id, document, args.needle_tokens, args.timeout,
+                cache_prompt=args.cache_prompt,
             )
             answer = res.get("text") or ""
             needle = {
@@ -573,7 +609,7 @@ def benchmark(args):
             }
             (raw_dir / "needle.json").write_text(json.dumps(needle, indent=2))
 
-    error_cases = run_error_cases(base_url, model_id, context_limit, args)
+    error_cases = [] if args.skip_error_cases else run_error_cases(base_url, model_id, context_limit, args)
     sampler.stop()
 
     failed_contexts = [r["target_context"] for r in results if r["status"] in ("error", "skipped")]
@@ -595,6 +631,8 @@ def benchmark(args):
             "needle_tokens": args.needle_tokens,
             "context_limit": context_limit,
             "hash_mode": args.hash_mode,
+            "cache_prompt": bool(args.cache_prompt),
+            "profile": "agentic" if args.cache_prompt else "baseline",
         },
         "machine": machine,
         "bongo_config": bongo_config,
@@ -698,6 +736,7 @@ def render_markdown(m):
     lines.append(f"- max_tokens: `{cfg.get('max_tokens')}`  ")
     lines.append(f"- TTFT stream tokens: `{cfg.get('ttft_tokens')}`  ")
     lines.append(f"- server n_ctx: `{cfg.get('context_limit')}`  ")
+    lines.append(f"- prompt cache: `cache_prompt={cfg.get('cache_prompt')}` (profile `{cfg.get('profile')}`)  ")
     lines.append(f"- shard hash mode: `{cfg.get('hash_mode')}`  ")
     lines.append("")
 
@@ -706,22 +745,26 @@ def render_markdown(m):
     lines.append(
         "`prompt tok/s` is prefill throughput, `output tok/s` is decode throughput, "
         "`TTFT` is time to first streamed token. Values are the median of the "
-        "repeats; `cv` is the coefficient of variation (stdev/median)."
+        "repeats; `cv` is the coefficient of variation (stdev/median). "
+        "`cached tok` is the median number of prompt tokens the server reused from "
+        "the slot KV (`timings.cache_n` / `usage.prompt_tokens_details.cached_tokens`)."
     )
     lines.append("")
-    lines.append("| context | prompt tokens | prompt tok/s | output tok/s | TTFT ms | prefill ms | repeats | cv(ttft) |")
-    lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    lines.append("| context | prompt tokens | cached tok | prompt tok/s | output tok/s | TTFT ms | prefill ms | repeats | cv(ttft) |")
+    lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for r in m.get("results", []):
         s = r.get("summary", {})
         pt = s.get("prompt_tokens") or {}
+        cn = s.get("cache_n") or s.get("cached_tokens") or {}
         pp = s.get("prompt_tps") or {}
         op = s.get("output_tps") or {}
         tt = s.get("ttft_ms") or {}
         first = r.get("runs", [{}])[0] if r.get("runs") else {}
         lines.append(
-            "| {ctx} | {ptok} | {ptps} | {otps} | {ttft} | {pm} | {n} | {cv} |".format(
+            "| {ctx} | {ptok} | {cn} | {ptps} | {otps} | {ttft} | {pm} | {n} | {cv} |".format(
                 ctx=r.get("target_context"),
                 ptok=num(pt.get("median"), 0),
+                cn=num(cn.get("median"), 0),
                 ptps=num(pp.get("median")),
                 otps=num(op.get("median")),
                 ttft=num(tt.get("median"), 1),
@@ -822,6 +865,14 @@ def render_markdown(m):
 # ---------------------------------------------------------------------------
 
 
+def _env_bool(name, default):
+    """Parse a boolean environment variable without argparse's ambiguity."""
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return str(raw).strip().lower() not in ("0", "false", "no", "off", "")
+
+
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description="bongo benchmark harness")
     p.add_argument("--base-url", default=os.environ.get("BONGO_BASE_URL", "http://127.0.0.1:8080/v1"))
@@ -847,6 +898,19 @@ def parse_args(argv=None):
     )
     p.add_argument("--max-tokens", type=int, default=int(os.environ.get("BONGO_MAX_TOKENS", "128")))
     p.add_argument("--ttft-tokens", type=int, default=int(os.environ.get("BONGO_TTFT_TOKENS", "8")))
+    p.add_argument(
+        "--cache-prompt",
+        dest="cache_prompt",
+        action="store_true",
+        default=_env_bool("BONGO_CACHE_PROMPT", True),
+        help="send cache_prompt=true and measure the prefix-reuse (agentic) path (default: true)",
+    )
+    p.add_argument(
+        "--no-cache-prompt",
+        dest="cache_prompt",
+        action="store_false",
+        help="send cache_prompt=false; cold prefill, the historical Stage 0 baseline",
+    )
     p.add_argument("--needle-context", type=int, default=int(os.environ.get("BONGO_NEEDLE_CONTEXT", "131072")))
     p.add_argument("--needle-tokens", type=int, default=64)
     p.add_argument("--timeout", type=float, default=float(os.environ.get("BONGO_TIMEOUT", "3600")))
@@ -857,6 +921,11 @@ def parse_args(argv=None):
     p.add_argument("--out-dir", default=None)
     p.add_argument("--repo-root", default=str(Path(__file__).resolve().parent.parent))
     p.add_argument("--no-stop-on-error", dest="stop_on_error", action="store_false")
+    p.add_argument(
+        "--skip-error-cases",
+        action="store_true",
+        help="skip the malformed/boundary request battery (default: run it)",
+    )
     p.add_argument("--quiet", action="store_true")
     args = p.parse_args(argv)
     args.contexts = [int(x) for x in str(args.contexts).replace(" ", "").split(",") if x]

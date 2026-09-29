@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "wall_ms": 951990.46,
+  "prompt_tokens": 126767,
+  "prompt_ms": 935174.876,
+  "prompt_tps": 135.55432599111012,
+  "output_tokens": 128,
+  "output_ms": 16613.519,
+  "output_tps": 7.644376847554091,
+  "cache_n": 4094,
+  "cached_tokens": 4094,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 130861,
+    "total_tokens": 130989,
+    "prompt_tokens_details": {
+      "cached_tokens": 4094
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n\nThe secret access code for the vault is VAULT-COORD-7391-QXZ.\nallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more t",
+  "ttft_ms": 935380.91,
+  "ttfb_ms": 30209.52,
+  "stream_total_ms": 951990.46,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n\nThe secret access code for the vault is VAULT-COORD-7391-QXZ.\nallow channel ",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 31449821184.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 12645179392.0,
+    "system_ram_process_hwm_bytes": 14296829952.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 3796
+  }
+}

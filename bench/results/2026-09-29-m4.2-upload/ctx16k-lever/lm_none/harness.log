@@ -1,0 +1,12 @@
+warmup prefill status=200
+warmup                       status=200 prompt_n=255 cache_n=0 prompt_ms=1498.983 wall_ms=1584.38 cpu_ms=1330.0 read_bytes=114688 majflt=0
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                  status=200 prompt_n=16384 cache_n=0 prompt_ms=68647.433 wall_ms=68733.08 cpu_ms=32050.0 read_bytes=69632 majflt=54
+   worker tids (0): []
+hit_p16384                   status=200 prompt_n=4 cache_n=16380 prompt_ms=257.198 wall_ms=274.86 cpu_ms=720.0 read_bytes=0 majflt=0
+grow_p16384_d512             status=200 prompt_n=510 cache_n=16384 prompt_ms=3047.006 wall_ms=3061.27 cpu_ms=2110.0 read_bytes=1687552 majflt=413
+hit2_p16384                  status=200 prompt_n=4 cache_n=16380 prompt_ms=262.719 wall_ms=276.76 cpu_ms=790.0 read_bytes=0 majflt=0
+decode_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=254.89 wall_ms=2707.24 cpu_ms=10390.0 read_bytes=2408448 majflt=513
+
+wrote bench/results/2026-09-29-m4.2-upload/ctx16k-lever/lm_none/profile-host-split.json

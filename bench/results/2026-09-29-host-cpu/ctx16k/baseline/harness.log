@@ -1,0 +1,23 @@
+warmup prefill status=200
+warmup                       status=200 prompt_n=255 cache_n=0 prompt_ms=2422.182 wall_ms=2503.61 cpu_ms=1990.0 read_bytes=26173440 majflt=1652
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                  status=200 prompt_n=16384 cache_n=0 prompt_ms=84557.442 wall_ms=84650.86 cpu_ms=49360.0 read_bytes=335282176 majflt=2227
+   worker tids (0): []
+hit_p16384                   status=200 prompt_n=4 cache_n=16380 prompt_ms=235.697 wall_ms=249.0 cpu_ms=740.0 read_bytes=0 majflt=0
+grow_p16384_d512             status=200 prompt_n=510 cache_n=16384 prompt_ms=5666.887 wall_ms=5680.49 cpu_ms=2820.0 read_bytes=554504192 majflt=1535
+hit2_p16384                  status=200 prompt_n=4 cache_n=16380 prompt_ms=252.817 wall_ms=265.41 cpu_ms=810.0 read_bytes=4096 majflt=1
+decode_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=240.13 wall_ms=3024.28 cpu_ms=11180.0 read_bytes=122499072 majflt=1438
+
+wrote bench/results/2026-09-29-host-cpu/ctx16k/baseline/profile-host-split.json
+warmup prefill status=200
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=1997.696 prompt_tps=127.64704940090985 ttft_ms=2075.81 out_n=1 out_tps=0.0 wall_ms=2075.95
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                status=200 prompt_n=16384 cache_n=0 prompt_ms=84204.642 prompt_tps=194.57359607324258 ttft_ms=84295.28 out_n=1 out_tps=0.0 wall_ms=84295.41
+hit_p16384                 status=200 prompt_n=4 cache_n=16380 prompt_ms=229.336 prompt_tps=17.441657655143544 ttft_ms=242.14 out_n=1 out_tps=0.0 wall_ms=242.22
+grow_p16384_d512           status=200 prompt_n=510 cache_n=16384 prompt_ms=5584.725 prompt_tps=91.3205216013322 ttft_ms=5597.32 out_n=1 out_tps=0.0 wall_ms=5597.57
+hit2_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=239.618 prompt_tps=16.69323673513676 ttft_ms=255.9 out_n=1 out_tps=0.0 wall_ms=256.03
+decode_p16384              status=200 prompt_n=4 cache_n=16380 prompt_ms=226.439 prompt_tps=17.6648015580355 ttft_ms=239.02 out_n=32 out_tps=11.310198990181652 wall_ms=2979.98
+
+wrote bench/results/2026-09-29-host-cpu/ctx16k/baseline/profile.json

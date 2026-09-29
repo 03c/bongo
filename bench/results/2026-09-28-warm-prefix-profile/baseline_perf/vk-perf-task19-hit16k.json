@@ -1,0 +1,5686 @@
+{
+  "log": "bench/results/2026-09-28-warm-prefix-profile/baseline_perf/llama-server.log",
+  "task": 19,
+  "prompt_tokens": null,
+  "gpu_busy_us": 145520.6,
+  "n_blocks": 17,
+  "blocks": [
+    {
+      "block": 2095,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 644.618,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 437.7,
+        "norm_activation": 93.2,
+        "memory_layout": 44.1,
+        "recurrent_deltanet": 31.1,
+        "other": 27.3,
+        "elementwise": 11.2
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 130.625,
+          "total_us": 130.625,
+          "gflops": 963.097
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 81.979,
+          "total_us": 81.979,
+          "gflops": 2557.66
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 28.567,
+          "total_us": 57.135,
+          "gflops": 917.585
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 56.875,
+          "total_us": 56.875,
+          "gflops": 2212.2
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 21.953,
+          "total_us": 43.906,
+          "gflops": 1192.25
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.979,
+          "total_us": 26.979,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 26.718,
+          "total_us": 26.718,
+          "gflops": 12.2638
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 24.895,
+          "total_us": 24.895,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.875,
+          "total_us": 21.875,
+          "gflops": 479.255
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 6,
+          "avg_us": 3.35,
+          "total_us": 20.102,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.296,
+          "total_us": 18.593,
+          "gflops": 105.722
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 8.984,
+          "total_us": 17.968,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.681,
+          "total_us": 15.363,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 13.072,
+          "total_us": 13.072,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 3,
+          "avg_us": 4.027,
+          "total_us": 12.082,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.729,
+          "total_us": 11.458,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.442,
+          "total_us": 10.885,
+          "gflops": null
+        },
+        {
+          "name": "REPEAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 8.541,
+          "total_us": 8.541,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.218,
+          "total_us": 8.436,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 3.098,
+          "total_us": 6.197,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 6.197,
+          "total_us": 6.197,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 6.093,
+          "total_us": 6.093,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 1,
+          "avg_us": 4.375,
+          "total_us": 4.375,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 3.958,
+          "total_us": 3.958,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 3.854,
+          "total_us": 3.854,
+          "gflops": null
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 3.385,
+          "total_us": 3.385,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 3.072,
+          "total_us": 3.072,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2096,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 1177.2,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 771.3,
+        "memory_layout": 126.6,
+        "norm_activation": 125.5,
+        "elementwise": 77.6,
+        "other": 39.7,
+        "recurrent_deltanet": 36.5
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 141.406,
+          "total_us": 141.406,
+          "gflops": 889.669
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 115.0,
+          "total_us": 115.0,
+          "gflops": 1823.25
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 93.02,
+          "total_us": 93.02,
+          "gflops": 2254.08
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 67.239,
+          "total_us": 67.239,
+          "gflops": 1871.22
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 58.541,
+          "total_us": 58.541,
+          "gflops": 223.854
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 27.473,
+          "total_us": 54.947,
+          "gflops": 11.9265
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 25.416,
+          "total_us": 50.832,
+          "gflops": 1031.36
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.739,
+          "total_us": 49.478,
+          "gflops": 1057.98
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=2560 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 47.968,
+          "total_us": 47.968,
+          "gflops": 1092.78
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 11,
+          "avg_us": 4.284,
+          "total_us": 47.13,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 9,
+          "avg_us": 4.594,
+          "total_us": 41.352,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 5,
+          "avg_us": 6.989,
+          "total_us": 34.946,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 31.562,
+          "total_us": 31.562,
+          "gflops": null
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.447,
+          "total_us": 27.447,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 9,
+          "avg_us": 2.904,
+          "total_us": 26.142,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 7,
+          "avg_us": 3.504,
+          "total_us": 24.529,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 24.322,
+          "total_us": 24.322,
+          "gflops": 538.482
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 22.916,
+          "total_us": 22.916,
+          "gflops": 571.855
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 3,
+          "avg_us": 7.586,
+          "total_us": 22.759,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 20.833,
+          "total_us": 20.833,
+          "gflops": 503.226
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 8.593,
+          "total_us": 17.187,
+          "gflops": 114.371
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.124,
+          "total_us": 15.624,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 13.489,
+          "total_us": 13.489,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 4.339,
+          "total_us": 13.019,
+          "gflops": null
+        },
+        {
+          "name": "SUM_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 12.864,
+          "total_us": 12.864,
+          "gflops": null
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 4.148,
+          "total_us": 12.446,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.676,
+          "total_us": 11.353,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 5.468,
+          "total_us": 10.937,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.791,
+          "total_us": 9.582,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.739,
+          "total_us": 9.479,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 3,
+          "avg_us": 2.899,
+          "total_us": 8.697,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.604,
+          "total_us": 7.604,
+          "gflops": 2.69279
+        },
+        {
+          "name": "REPEAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.781,
+          "total_us": 5.781,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 4.947,
+          "total_us": 4.947,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID_MUL SIGMOID",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.27,
+          "total_us": 4.27,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.385,
+          "total_us": 3.385,
+          "gflops": null
+        },
+        {
+          "name": "CLAMP",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 2.552,
+          "total_us": 2.552,
+          "gflops": null
+        },
+        {
+          "name": "SGN",
+          "class": "other",
+          "count": 1,
+          "avg_us": 2.552,
+          "total_us": 2.552,
+          "gflops": null
+        },
+        {
+          "name": "ABS",
+          "class": "other",
+          "count": 1,
+          "avg_us": 2.5,
+          "total_us": 2.5,
+          "gflops": null
+        },
+        {
+          "name": "SQRT",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 2.447,
+          "total_us": 2.447,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2097,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 737.735,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 498.2,
+        "norm_activation": 101.7,
+        "other": 39.8,
+        "memory_layout": 37.6,
+        "elementwise": 32.2,
+        "recurrent_deltanet": 28.3
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 90.937,
+          "total_us": 90.937,
+          "gflops": 2305.71
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 38.619,
+          "total_us": 77.239,
+          "gflops": 678.753
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 76.562,
+          "total_us": 76.562,
+          "gflops": 1643.36
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 53.072,
+          "total_us": 53.072,
+          "gflops": 2370.45
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.427,
+          "total_us": 48.854,
+          "gflops": 13.414
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.135,
+          "total_us": 44.27,
+          "gflops": 1182.45
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.875,
+          "total_us": 26.875,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.183,
+          "total_us": 25.465,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 24.739,
+          "total_us": 24.739,
+          "gflops": 529.716
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 24.218,
+          "total_us": 24.218,
+          "gflops": 540.794
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 22.968,
+          "total_us": 22.968,
+          "gflops": null
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.27,
+          "total_us": 18.541,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.062,
+          "total_us": 18.124,
+          "gflops": 108.458
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 18.072,
+          "total_us": 18.072,
+          "gflops": 580.108
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.624,
+          "total_us": 16.874,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.354,
+          "total_us": 16.77,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.89,
+          "total_us": 15.781,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 14.895,
+          "total_us": 14.895,
+          "gflops": 879.801
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.968,
+          "total_us": 12.968,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.276,
+          "total_us": 12.552,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.833,
+          "total_us": 11.666,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.259,
+          "total_us": 10.519,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.608,
+          "total_us": 9.217,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.187,
+          "total_us": 7.187,
+          "gflops": 2.84903
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.228,
+          "total_us": 6.457,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.677,
+          "total_us": 5.677,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.812,
+          "total_us": 5.624,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 5.312,
+          "total_us": 5.312,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.739,
+          "total_us": 4.739,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.166,
+          "total_us": 4.166,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.281,
+          "total_us": 3.281,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2098,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 7008.82,
+      "dirty": false,
+      "class_us": {
+        "full_attention": 5806.6,
+        "dense_matmul": 624.7,
+        "memory_layout": 245.1,
+        "norm_activation": 228.5,
+        "elementwise": 61.7,
+        "other": 42.2
+      },
+      "ops": [
+        {
+          "name": "FLASH_ATTN_EXT dst(256,24,4,1),  q(256,4,24,1),  k(256,16384,2,1),  v(256,16384,2,1),  m(16384,4,1,1)",
+          "class": "full_attention",
+          "count": 1,
+          "avg_us": 5806.61,
+          "total_us": 5806.61,
+          "gflops": 277.376
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 139.322,
+          "total_us": 139.322,
+          "gflops": 903.08
+        },
+        {
+          "name": "TOPK_QSA GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 134.166,
+          "total_us": 134.166,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4096,1,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 109.322,
+          "total_us": 109.322,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=12288 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 103.906,
+          "total_us": 103.906,
+          "gflops": 2421.51
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 36.692,
+          "total_us": 73.384,
+          "gflops": 714.41
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 8,
+          "avg_us": 6.516,
+          "total_us": 52.133,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.635,
+          "total_us": 49.27,
+          "gflops": 13.3008
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.177,
+          "total_us": 46.354,
+          "gflops": 1129.29
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.473,
+          "total_us": 44.947,
+          "gflops": 583.115
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 34.531,
+          "total_us": 34.531,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=4096 n=16 k=128",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 33.593,
+          "total_us": 33.593,
+          "gflops": 497.475
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.51,
+          "total_us": 26.51,
+          "gflops": null
+        },
+        {
+          "name": "ROPE",
+          "class": "norm_activation",
+          "count": 4,
+          "avg_us": 6.262,
+          "total_us": 25.051,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 23.802,
+          "total_us": 23.802,
+          "gflops": 550.246
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 4,
+          "avg_us": 5.911,
+          "total_us": 23.644,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 7,
+          "avg_us": 3.273,
+          "total_us": 22.913,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 6.978,
+          "total_us": 20.936,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 19.531,
+          "total_us": 19.531,
+          "gflops": 536.773
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 19.479,
+          "total_us": 19.479,
+          "gflops": 538.206
+        },
+        {
+          "name": "SET_ROWS",
+          "class": "memory_layout",
+          "count": 4,
+          "avg_us": 4.713,
+          "total_us": 18.852,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 18.333,
+          "total_us": 18.333,
+          "gflops": 571.849
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.711,
+          "total_us": 17.134,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 4,
+          "avg_us": 4.231,
+          "total_us": 16.926,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.578,
+          "total_us": 15.156,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 14.687,
+          "total_us": 14.687,
+          "gflops": 713.809
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,24,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 11.145,
+          "total_us": 11.145,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.103,
+          "total_us": 10.207,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.973,
+          "total_us": 9.947,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=256 n=96 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.489,
+          "total_us": 8.489,
+          "gflops": 1479.37
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=256 n=8 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.177,
+          "total_us": 8.177,
+          "gflops": 127.984
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=128 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.072,
+          "total_us": 8.072,
+          "gflops": 324.694
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 6.302,
+          "total_us": 6.302,
+          "gflops": 3.24913
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 5.572,
+          "total_us": 5.572,
+          "gflops": null
+        },
+        {
+          "name": "FILL",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 2.708,
+          "total_us": 5.416,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.682,
+          "total_us": 5.364,
+          "gflops": null
+        },
+        {
+          "name": "RELU",
+          "class": "other",
+          "count": 1,
+          "avg_us": 5.104,
+          "total_us": 5.104,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,2,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 4.27,
+          "total_us": 4.27,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=384 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.854,
+          "total_us": 3.854,
+          "gflops": 809.847
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.229,
+          "total_us": 3.229,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=32 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.177,
+          "total_us": 3.177,
+          "gflops": 81.8684
+        }
+      ]
+    },
+    {
+      "block": 2099,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 783.72,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 539.6,
+        "norm_activation": 101.2,
+        "other": 41.0,
+        "memory_layout": 38.1,
+        "elementwise": 32.7,
+        "recurrent_deltanet": 31.1
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 138.333,
+          "total_us": 138.333,
+          "gflops": 909.433
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 85.364,
+          "total_us": 85.364,
+          "gflops": 2456.24
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 38.176,
+          "total_us": 76.353,
+          "gflops": 686.63
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 57.447,
+          "total_us": 57.447,
+          "gflops": 2190.17
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.384,
+          "total_us": 46.769,
+          "gflops": 1119.26
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.838,
+          "total_us": 45.676,
+          "gflops": 14.3473
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 17.369,
+          "total_us": 34.739,
+          "gflops": 754.463
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.875,
+          "total_us": 26.875,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 26.25,
+          "total_us": 26.25,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.111,
+          "total_us": 24.891,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 19.583,
+          "total_us": 19.583,
+          "gflops": 535.348
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.218,
+          "total_us": 18.437,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.645,
+          "total_us": 18.226,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 8.671,
+          "total_us": 17.343,
+          "gflops": 113.342
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.503,
+          "total_us": 16.509,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 8.072,
+          "total_us": 16.145,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 13.072,
+          "total_us": 13.072,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.51,
+          "total_us": 13.02,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.754,
+          "total_us": 11.509,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q8_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 10.885,
+          "total_us": 10.885,
+          "gflops": 1203.21
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.895,
+          "total_us": 9.791,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.661,
+          "total_us": 9.322,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.135,
+          "total_us": 7.135,
+          "gflops": 2.8698
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.124,
+          "total_us": 6.249,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 6.145,
+          "total_us": 6.145,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.838,
+          "total_us": 5.676,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 5.208,
+          "total_us": 5.208,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 4.843,
+          "total_us": 4.843,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.687,
+          "total_us": 4.687,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.218,
+          "total_us": 4.218,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.02,
+          "total_us": 3.02,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2100,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 882.521,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 640.7,
+        "norm_activation": 102.0,
+        "other": 40.1,
+        "memory_layout": 36.6,
+        "elementwise": 32.8,
+        "recurrent_deltanet": 30.4
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 142.343,
+          "total_us": 142.343,
+          "gflops": 883.813
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 92.083,
+          "total_us": 92.083,
+          "gflops": 2277.01
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 40.286,
+          "total_us": 80.572,
+          "gflops": 650.676
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 79.791,
+          "total_us": 79.791,
+          "gflops": 1576.86
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 59.479,
+          "total_us": 59.479,
+          "gflops": 220.324
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.739,
+          "total_us": 49.478,
+          "gflops": 13.2448
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.072,
+          "total_us": 46.145,
+          "gflops": 1134.4
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.187,
+          "total_us": 27.187,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 25.52,
+          "total_us": 25.52,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.124,
+          "total_us": 24.996,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 24.218,
+          "total_us": 24.218,
+          "gflops": 540.794
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.197,
+          "total_us": 21.197,
+          "gflops": 618.231
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 20.833,
+          "total_us": 20.833,
+          "gflops": 503.226
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.27,
+          "total_us": 18.541,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 8.437,
+          "total_us": 16.874,
+          "gflops": 116.493
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.364,
+          "total_us": 16.82,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.555,
+          "total_us": 16.665,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 8.02,
+          "total_us": 16.041,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.562,
+          "total_us": 13.124,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 13.072,
+          "total_us": 13.072,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.781,
+          "total_us": 11.562,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.077,
+          "total_us": 10.155,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.192,
+          "total_us": 8.384,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.656,
+          "total_us": 7.656,
+          "gflops": 2.6745
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.254,
+          "total_us": 6.509,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.916,
+          "total_us": 5.832,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.468,
+          "total_us": 5.468,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.947,
+          "total_us": 4.947,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 4.895,
+          "total_us": 4.895,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.687,
+          "total_us": 4.687,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.166,
+          "total_us": 4.166,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.281,
+          "total_us": 3.281,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2101,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 746.016,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 509.2,
+        "norm_activation": 99.3,
+        "other": 39.7,
+        "memory_layout": 36.8,
+        "elementwise": 32.3,
+        "recurrent_deltanet": 28.6
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 90.052,
+          "total_us": 90.052,
+          "gflops": 2328.37
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 81.145,
+          "total_us": 81.145,
+          "gflops": 1550.54
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 37.056,
+          "total_us": 74.113,
+          "gflops": 707.383
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 63.281,
+          "total_us": 63.281,
+          "gflops": 1988.03
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.619,
+          "total_us": 47.239,
+          "gflops": 13.8726
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 21.302,
+          "total_us": 42.604,
+          "gflops": 1228.68
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.239,
+          "total_us": 27.239,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.02,
+          "total_us": 24.163,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 23.75,
+          "total_us": 23.75,
+          "gflops": 551.451
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 23.645,
+          "total_us": 23.645,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.822,
+          "total_us": 21.822,
+          "gflops": 600.524
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 20.312,
+          "total_us": 20.312,
+          "gflops": 516.134
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 18.593,
+          "total_us": 18.593,
+          "gflops": 704.816
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.088,
+          "total_us": 18.176,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.062,
+          "total_us": 18.124,
+          "gflops": 108.458
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.555,
+          "total_us": 16.665,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.28,
+          "total_us": 16.404,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.369,
+          "total_us": 14.739,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.536,
+          "total_us": 13.072,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.708,
+          "total_us": 12.708,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.703,
+          "total_us": 11.406,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.129,
+          "total_us": 10.259,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.531,
+          "total_us": 9.062,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.177,
+          "total_us": 8.177,
+          "gflops": 2.5041
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.254,
+          "total_us": 6.509,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.916,
+          "total_us": 5.832,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.416,
+          "total_us": 5.416,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 5.0,
+          "total_us": 5.0,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.687,
+          "total_us": 4.687,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.479,
+          "total_us": 4.479,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.229,
+          "total_us": 3.229,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2102,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 6550.85,
+      "dirty": false,
+      "class_us": {
+        "full_attention": 5420.8,
+        "dense_matmul": 547.2,
+        "memory_layout": 250.4,
+        "norm_activation": 227.9,
+        "elementwise": 63.0,
+        "other": 41.7
+      },
+      "ops": [
+        {
+          "name": "FLASH_ATTN_EXT dst(256,24,4,1),  q(256,4,24,1),  k(256,16384,2,1),  v(256,16384,2,1),  m(16384,4,1,1)",
+          "class": "full_attention",
+          "count": 1,
+          "avg_us": 5420.78,
+          "total_us": 5420.78,
+          "gflops": 297.118
+        },
+        {
+          "name": "TOPK_QSA GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 139.635,
+          "total_us": 139.635,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4096,1,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 107.916,
+          "total_us": 107.916,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=12288 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 104.166,
+          "total_us": 104.166,
+          "gflops": 2415.46
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 81.197,
+          "total_us": 81.197,
+          "gflops": 1549.55
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 38.385,
+          "total_us": 76.77,
+          "gflops": 682.9
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 8,
+          "avg_us": 6.555,
+          "total_us": 52.444,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.359,
+          "total_us": 46.718,
+          "gflops": 14.0273
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.76,
+          "total_us": 45.52,
+          "gflops": 575.775
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.395,
+          "total_us": 44.791,
+          "gflops": 1168.69
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 34.687,
+          "total_us": 34.687,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=4096 n=16 k=128",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 33.541,
+          "total_us": 33.541,
+          "gflops": 498.246
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.979,
+          "total_us": 26.979,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 13.332,
+          "total_us": 26.665,
+          "gflops": 786.328
+        },
+        {
+          "name": "ROPE",
+          "class": "norm_activation",
+          "count": 4,
+          "avg_us": 6.431,
+          "total_us": 25.726,
+          "gflops": null
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 4,
+          "avg_us": 5.937,
+          "total_us": 23.748,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 7,
+          "avg_us": 3.325,
+          "total_us": 23.279,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 7.221,
+          "total_us": 21.665,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 19.531,
+          "total_us": 19.531,
+          "gflops": 536.773
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 18.958,
+          "total_us": 18.958,
+          "gflops": 552.997
+        },
+        {
+          "name": "SET_ROWS",
+          "class": "memory_layout",
+          "count": 4,
+          "avg_us": 4.661,
+          "total_us": 18.644,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.85,
+          "total_us": 17.551,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 4,
+          "avg_us": 4.166,
+          "total_us": 16.665,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.473,
+          "total_us": 14.947,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.416,
+          "total_us": 10.832,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,24,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 9.739,
+          "total_us": 9.739,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q2_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 9.635,
+          "total_us": 9.635,
+          "gflops": 1359.31
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.556,
+          "total_us": 9.113,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=256 n=96 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.489,
+          "total_us": 8.489,
+          "gflops": 1479.37
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=128 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.385,
+          "total_us": 8.385,
+          "gflops": 312.573
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=256 n=8 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.229,
+          "total_us": 8.229,
+          "gflops": 127.176
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.552,
+          "total_us": 7.552,
+          "gflops": 2.71133
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 6.51,
+          "total_us": 6.51,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.708,
+          "total_us": 5.416,
+          "gflops": null
+        },
+        {
+          "name": "RELU",
+          "class": "other",
+          "count": 1,
+          "avg_us": 5.052,
+          "total_us": 5.052,
+          "gflops": null
+        },
+        {
+          "name": "FILL",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 2.5,
+          "total_us": 5.0,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,2,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 4.062,
+          "total_us": 4.062,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=384 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.854,
+          "total_us": 3.854,
+          "gflops": 809.847
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.281,
+          "total_us": 3.281,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=32 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.177,
+          "total_us": 3.177,
+          "gflops": 81.8684
+        }
+      ]
+    },
+    {
+      "block": 2103,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 742.471,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 503.6,
+        "norm_activation": 102.6,
+        "other": 40.7,
+        "memory_layout": 37.0,
+        "elementwise": 31.4,
+        "recurrent_deltanet": 27.1
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 99.322,
+          "total_us": 99.322,
+          "gflops": 1266.78
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 85.416,
+          "total_us": 85.416,
+          "gflops": 2454.74
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 38.489,
+          "total_us": 76.978,
+          "gflops": 681.055
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 58.02,
+          "total_us": 58.02,
+          "gflops": 2168.3
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.905,
+          "total_us": 47.811,
+          "gflops": 13.7066
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.15,
+          "total_us": 46.301,
+          "gflops": 1130.58
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.239,
+          "total_us": 27.239,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.222,
+          "total_us": 25.778,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 22.187,
+          "total_us": 22.187,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.041,
+          "total_us": 21.041,
+          "gflops": 622.815
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 20.677,
+          "total_us": 20.677,
+          "gflops": 507.023
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.114,
+          "total_us": 18.228,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 8.489,
+          "total_us": 16.978,
+          "gflops": 115.779
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 8.385,
+          "total_us": 16.77,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.312,
+          "total_us": 16.561,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.451,
+          "total_us": 16.353,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 15.0,
+          "total_us": 15.0,
+          "gflops": 873.643
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.484,
+          "total_us": 12.968,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.864,
+          "total_us": 12.864,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.598,
+          "total_us": 11.197,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.572,
+          "total_us": 11.145,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q2_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 9.27,
+          "total_us": 9.27,
+          "gflops": 1412.83
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.582,
+          "total_us": 9.165,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 6.822,
+          "total_us": 6.822,
+          "gflops": 3.00147
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.15,
+          "total_us": 6.301,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.812,
+          "total_us": 5.624,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.468,
+          "total_us": 5.468,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 4.947,
+          "total_us": 4.947,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.739,
+          "total_us": 4.739,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 3.958,
+          "total_us": 3.958,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.229,
+          "total_us": 3.229,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2104,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 760.598,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 524.4,
+        "norm_activation": 99.5,
+        "other": 39.8,
+        "memory_layout": 36.8,
+        "elementwise": 32.4,
+        "recurrent_deltanet": 27.8
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 91.51,
+          "total_us": 91.51,
+          "gflops": 2291.27
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 80.416,
+          "total_us": 80.416,
+          "gflops": 1564.6
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 37.369,
+          "total_us": 74.739,
+          "gflops": 701.458
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 61.406,
+          "total_us": 61.406,
+          "gflops": 2048.73
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.999,
+          "total_us": 49.999,
+          "gflops": 1046.96
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.817,
+          "total_us": 49.635,
+          "gflops": 13.2029
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.968,
+          "total_us": 45.937,
+          "gflops": 570.548
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.927,
+          "total_us": 26.927,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.065,
+          "total_us": 24.527,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 23.802,
+          "total_us": 23.802,
+          "gflops": 550.246
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 22.604,
+          "total_us": 22.604,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.562,
+          "total_us": 21.562,
+          "gflops": 486.212
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.192,
+          "total_us": 18.384,
+          "gflops": 106.924
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.14,
+          "total_us": 18.281,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.693,
+          "total_us": 17.081,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.332,
+          "total_us": 16.664,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.291,
+          "total_us": 14.583,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.536,
+          "total_us": 13.072,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.604,
+          "total_us": 12.604,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.858,
+          "total_us": 11.717,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.025,
+          "total_us": 10.051,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.608,
+          "total_us": 9.217,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 6.979,
+          "total_us": 6.979,
+          "gflops": 2.93394
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.176,
+          "total_us": 6.353,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.838,
+          "total_us": 5.676,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.208,
+          "total_us": 5.208,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 5.156,
+          "total_us": 5.156,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.791,
+          "total_us": 4.791,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.166,
+          "total_us": 4.166,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.437,
+          "total_us": 3.437,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2105,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 799.605,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 563.5,
+        "norm_activation": 100.5,
+        "other": 39.5,
+        "memory_layout": 36.9,
+        "elementwise": 31.8,
+        "recurrent_deltanet": 27.4
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 56.796,
+          "total_us": 113.593,
+          "gflops": 230.73
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 91.51,
+          "total_us": 91.51,
+          "gflops": 2291.27
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 37.265,
+          "total_us": 74.53,
+          "gflops": 703.425
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 65.885,
+          "total_us": 65.885,
+          "gflops": 1909.67
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 64.947,
+          "total_us": 64.947,
+          "gflops": 1937.03
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 25.65,
+          "total_us": 51.301,
+          "gflops": 12.7742
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.525,
+          "total_us": 45.051,
+          "gflops": 1161.95
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.083,
+          "total_us": 27.083,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.078,
+          "total_us": 24.631,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 22.395,
+          "total_us": 22.395,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 18.697,
+          "total_us": 18.697,
+          "gflops": 560.716
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.218,
+          "total_us": 18.436,
+          "gflops": 106.623
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 8.984,
+          "total_us": 17.968,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.555,
+          "total_us": 16.665,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.218,
+          "total_us": 16.09,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.551,
+          "total_us": 15.103,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 13.02,
+          "total_us": 13.02,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.484,
+          "total_us": 12.968,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q8_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 11.927,
+          "total_us": 11.927,
+          "gflops": 1098.09
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.702,
+          "total_us": 11.405,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.208,
+          "total_us": 10.416,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.661,
+          "total_us": 9.322,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.604,
+          "total_us": 7.604,
+          "gflops": 2.69279
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.202,
+          "total_us": 6.405,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.89,
+          "total_us": 5.781,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.416,
+          "total_us": 5.416,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 5.052,
+          "total_us": 5.052,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.583,
+          "total_us": 4.583,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.218,
+          "total_us": 4.218,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.166,
+          "total_us": 4.166,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.437,
+          "total_us": 3.437,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2106,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 7564.34,
+      "dirty": false,
+      "class_us": {
+        "full_attention": 6400.6,
+        "dense_matmul": 601.6,
+        "norm_activation": 228.5,
+        "memory_layout": 228.0,
+        "elementwise": 62.8,
+        "other": 43.0
+      },
+      "ops": [
+        {
+          "name": "FLASH_ATTN_EXT dst(256,24,4,1),  q(256,4,24,1),  k(256,16384,2,1),  v(256,16384,2,1),  m(16384,4,1,1)",
+          "class": "full_attention",
+          "count": 1,
+          "avg_us": 6400.57,
+          "total_us": 6400.57,
+          "gflops": 251.636
+        },
+        {
+          "name": "TOPK_QSA GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 118.593,
+          "total_us": 118.593,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4096,1,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 109.27,
+          "total_us": 109.27,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=12288 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 105.416,
+          "total_us": 105.416,
+          "gflops": 2386.82
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 82.5,
+          "total_us": 82.5,
+          "gflops": 1525.08
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 36.588,
+          "total_us": 73.176,
+          "gflops": 716.44
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 59.218,
+          "total_us": 59.218,
+          "gflops": 221.295
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 8,
+          "avg_us": 6.49,
+          "total_us": 51.924,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.697,
+          "total_us": 47.395,
+          "gflops": 13.8269
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.89,
+          "total_us": 45.781,
+          "gflops": 1143.42
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 34.531,
+          "total_us": 34.531,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=4096 n=16 k=128",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 33.958,
+          "total_us": 33.958,
+          "gflops": 492.128
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 16.067,
+          "total_us": 32.134,
+          "gflops": 652.5
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.135,
+          "total_us": 27.135,
+          "gflops": null
+        },
+        {
+          "name": "ROPE",
+          "class": "norm_activation",
+          "count": 4,
+          "avg_us": 6.301,
+          "total_us": 25.207,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 24.114,
+          "total_us": 24.114,
+          "gflops": 543.127
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 4,
+          "avg_us": 5.95,
+          "total_us": 23.8,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 7,
+          "avg_us": 3.154,
+          "total_us": 22.08,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.718,
+          "total_us": 21.718,
+          "gflops": 603.4
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 7.048,
+          "total_us": 21.145,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 19.687,
+          "total_us": 19.687,
+          "gflops": 532.52
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.937,
+          "total_us": 17.811,
+          "gflops": null
+        },
+        {
+          "name": "SET_ROWS",
+          "class": "memory_layout",
+          "count": 4,
+          "avg_us": 4.348,
+          "total_us": 17.395,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 17.343,
+          "total_us": 17.343,
+          "gflops": 604.492
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 4,
+          "avg_us": 4.322,
+          "total_us": 17.29,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.682,
+          "total_us": 15.364,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.468,
+          "total_us": 10.937,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,24,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 10.572,
+          "total_us": 10.572,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.817,
+          "total_us": 9.635,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=256 n=96 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.385,
+          "total_us": 8.385,
+          "gflops": 1497.71
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=256 n=8 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.229,
+          "total_us": 8.229,
+          "gflops": 127.176
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=128 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.02,
+          "total_us": 8.02,
+          "gflops": 326.799
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.447,
+          "total_us": 7.447,
+          "gflops": 2.74956
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 5.729,
+          "total_us": 5.729,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.812,
+          "total_us": 5.624,
+          "gflops": null
+        },
+        {
+          "name": "FILL",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 2.76,
+          "total_us": 5.52,
+          "gflops": null
+        },
+        {
+          "name": "RELU",
+          "class": "other",
+          "count": 1,
+          "avg_us": 5.104,
+          "total_us": 5.104,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,2,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 4.062,
+          "total_us": 4.062,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=384 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.854,
+          "total_us": 3.854,
+          "gflops": 809.847
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.489,
+          "total_us": 3.489,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=32 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.177,
+          "total_us": 3.177,
+          "gflops": 81.8684
+        }
+      ]
+    },
+    {
+      "block": 2107,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 692.733,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 453.1,
+        "norm_activation": 102.0,
+        "other": 40.0,
+        "memory_layout": 37.2,
+        "elementwise": 31.5,
+        "recurrent_deltanet": 28.8
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 85.833,
+          "total_us": 85.833,
+          "gflops": 2442.82
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 37.551,
+          "total_us": 75.103,
+          "gflops": 698.058
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 56.77,
+          "total_us": 56.77,
+          "gflops": 2216.04
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 56.302,
+          "total_us": 56.302,
+          "gflops": 2234.71
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.317,
+          "total_us": 44.634,
+          "gflops": 1172.8
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 21.926,
+          "total_us": 43.853,
+          "gflops": 14.9437
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.239,
+          "total_us": 27.239,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.183,
+          "total_us": 25.465,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 24.062,
+          "total_us": 24.062,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 21.562,
+          "total_us": 21.562,
+          "gflops": 607.766
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 20.26,
+          "total_us": 20.26,
+          "gflops": 517.459
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.166,
+          "total_us": 18.333,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 8.489,
+          "total_us": 16.979,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.555,
+          "total_us": 16.665,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.301,
+          "total_us": 16.508,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 8.228,
+          "total_us": 16.457,
+          "gflops": 119.444
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 14.791,
+          "total_us": 14.791,
+          "gflops": 885.987
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.822,
+          "total_us": 13.645,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.604,
+          "total_us": 12.604,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.572,
+          "total_us": 11.145,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.947,
+          "total_us": 9.895,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q2_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.958,
+          "total_us": 8.958,
+          "gflops": 1462.04
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.593,
+          "total_us": 8.593,
+          "gflops": 2.38287
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.218,
+          "total_us": 8.436,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 6.354,
+          "total_us": 6.354,
+          "gflops": null
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.124,
+          "total_us": 6.249,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.812,
+          "total_us": 5.624,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 4.739,
+          "total_us": 4.739,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.635,
+          "total_us": 4.635,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 3.958,
+          "total_us": 3.958,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 2.968,
+          "total_us": 2.968,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2108,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 797.002,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 557.3,
+        "norm_activation": 100.8,
+        "other": 40.2,
+        "memory_layout": 38.1,
+        "elementwise": 32.2,
+        "recurrent_deltanet": 28.3
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 92.343,
+          "total_us": 92.343,
+          "gflops": 2270.6
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 81.718,
+          "total_us": 81.718,
+          "gflops": 1539.67
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 37.629,
+          "total_us": 75.259,
+          "gflops": 696.611
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 65.208,
+          "total_us": 65.208,
+          "gflops": 1929.28
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 61.041,
+          "total_us": 61.041,
+          "gflops": 214.686
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 24.505,
+          "total_us": 49.01,
+          "gflops": 1068.09
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.905,
+          "total_us": 47.811,
+          "gflops": 13.7066
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.979,
+          "total_us": 26.979,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.156,
+          "total_us": 25.255,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 24.218,
+          "total_us": 24.218,
+          "gflops": 540.794
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 23.125,
+          "total_us": 23.125,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 19.375,
+          "total_us": 19.375,
+          "gflops": 541.095
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.322,
+          "total_us": 18.645,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.114,
+          "total_us": 18.228,
+          "gflops": 107.839
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.641,
+          "total_us": 16.925,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.249,
+          "total_us": 16.248,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 15.625,
+          "total_us": 15.625,
+          "gflops": 838.697
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.734,
+          "total_us": 15.468,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.588,
+          "total_us": 13.176,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.552,
+          "total_us": 12.552,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.729,
+          "total_us": 11.458,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.39,
+          "total_us": 10.78,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.582,
+          "total_us": 9.165,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.5,
+          "total_us": 7.5,
+          "gflops": 2.73013
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.254,
+          "total_us": 6.509,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 6.145,
+          "total_us": 6.145,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.812,
+          "total_us": 5.624,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 5.208,
+          "total_us": 5.208,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.687,
+          "total_us": 4.687,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.166,
+          "total_us": 4.166,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.437,
+          "total_us": 3.437,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2109,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 883.668,
+      "dirty": false,
+      "class_us": {
+        "dense_matmul": 640.7,
+        "norm_activation": 100.9,
+        "other": 42.1,
+        "memory_layout": 37.3,
+        "elementwise": 31.9,
+        "recurrent_deltanet": 30.7
+      },
+      "ops": [
+        {
+          "name": "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 143.437,
+          "total_us": 143.437,
+          "gflops": 877.072
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 55.937,
+          "total_us": 111.874,
+          "gflops": 234.275
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 90.52,
+          "total_us": 90.52,
+          "gflops": 2316.33
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 38.776,
+          "total_us": 77.552,
+          "gflops": 676.014
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 67.031,
+          "total_us": 67.031,
+          "gflops": 1877.03
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.463,
+          "total_us": 46.926,
+          "gflops": 13.9651
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.02,
+          "total_us": 46.04,
+          "gflops": 1136.99
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 26.822,
+          "total_us": 26.822,
+          "gflops": null
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 25.52,
+          "total_us": 25.52,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 3.098,
+          "total_us": 24.788,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 20.0,
+          "total_us": 20.0,
+          "gflops": 524.186
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 9.192,
+          "total_us": 18.384,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 5,
+          "avg_us": 3.593,
+          "total_us": 17.966,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 8.645,
+          "total_us": 17.291,
+          "gflops": 113.683
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.607,
+          "total_us": 16.821,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.968,
+          "total_us": 15.937,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 6.562,
+          "total_us": 13.124,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 12.968,
+          "total_us": 12.968,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q8_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 12.291,
+          "total_us": 12.291,
+          "gflops": 1065.57
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 5.65,
+          "total_us": 11.301,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.52,
+          "total_us": 11.04,
+          "gflops": null
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 4.609,
+          "total_us": 9.218,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.708,
+          "total_us": 7.708,
+          "gflops": 2.65646
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 2,
+          "avg_us": 3.228,
+          "total_us": 6.457,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.838,
+          "total_us": 5.676,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 5.468,
+          "total_us": 5.468,
+          "gflops": null
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 1,
+          "avg_us": 5.208,
+          "total_us": 5.208,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.531,
+          "total_us": 4.531,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 4.218,
+          "total_us": 4.218,
+          "gflops": null
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.114,
+          "total_us": 4.114,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.437,
+          "total_us": 3.437,
+          "gflops": null
+        }
+      ]
+    },
+    {
+      "block": 2110,
+      "task": 19,
+      "prompt_tokens": null,
+      "total_us": 9123.67,
+      "dirty": false,
+      "class_us": {
+        "full_attention": 7988.2,
+        "dense_matmul": 548.6,
+        "memory_layout": 254.0,
+        "norm_activation": 227.6,
+        "elementwise": 61.5,
+        "other": 43.7
+      },
+      "ops": [
+        {
+          "name": "FLASH_ATTN_EXT dst(256,24,4,1),  q(256,4,24,1),  k(256,16384,2,1),  v(256,16384,2,1),  m(16384,4,1,1)",
+          "class": "full_attention",
+          "count": 1,
+          "avg_us": 7988.23,
+          "total_us": 7988.23,
+          "gflops": 201.623
+        },
+        {
+          "name": "TOPK_QSA GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 142.604,
+          "total_us": 142.604,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4096,1,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 108.437,
+          "total_us": 108.437,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=12288 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 103.489,
+          "total_us": 103.489,
+          "gflops": 2431.26
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 36.51,
+          "total_us": 73.02,
+          "gflops": 717.971
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 70.885,
+          "total_us": 70.885,
+          "gflops": 1774.97
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 8,
+          "avg_us": 6.601,
+          "total_us": 52.808,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 23.723,
+          "total_us": 47.447,
+          "gflops": 13.8118
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 22.499,
+          "total_us": 44.999,
+          "gflops": 582.441
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 21.328,
+          "total_us": 42.656,
+          "gflops": 1227.19
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 1,
+          "avg_us": 34.843,
+          "total_us": 34.843,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=4096 n=16 k=128",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 32.708,
+          "total_us": 32.708,
+          "gflops": 510.936
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 28.333,
+          "total_us": 28.333,
+          "gflops": 370.018
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 27.239,
+          "total_us": 27.239,
+          "gflops": null
+        },
+        {
+          "name": "ROPE",
+          "class": "norm_activation",
+          "count": 4,
+          "avg_us": 6.158,
+          "total_us": 24.634,
+          "gflops": null
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 4,
+          "avg_us": 5.846,
+          "total_us": 23.385,
+          "gflops": null
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 7,
+          "avg_us": 3.213,
+          "total_us": 22.496,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 6.961,
+          "total_us": 20.884,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 18.906,
+          "total_us": 18.906,
+          "gflops": 554.518
+        },
+        {
+          "name": "SET_ROWS",
+          "class": "memory_layout",
+          "count": 4,
+          "avg_us": 4.556,
+          "total_us": 18.227,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 4,
+          "avg_us": 4.491,
+          "total_us": 17.967,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 17.656,
+          "total_us": 17.656,
+          "gflops": 593.776
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 17.5,
+          "total_us": 17.5,
+          "gflops": 599.069
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 3,
+          "avg_us": 5.746,
+          "total_us": 17.239,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 7.864,
+          "total_us": 15.729,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q8_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 11.614,
+          "total_us": 11.614,
+          "gflops": 1127.69
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 2,
+          "avg_us": 5.442,
+          "total_us": 10.884,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,24,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 10.052,
+          "total_us": 10.052,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 2,
+          "avg_us": 4.843,
+          "total_us": 9.687,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=256 n=96 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.489,
+          "total_us": 8.489,
+          "gflops": 1479.37
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=128 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.437,
+          "total_us": 8.437,
+          "gflops": 310.647
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=256 n=8 k=256",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 8.177,
+          "total_us": 8.177,
+          "gflops": 127.984
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 7.239,
+          "total_us": 7.239,
+          "gflops": 2.82857
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 5.937,
+          "total_us": 5.937,
+          "gflops": null
+        },
+        {
+          "name": "FILL",
+          "class": "memory_layout",
+          "count": 2,
+          "avg_us": 2.76,
+          "total_us": 5.52,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 2.708,
+          "total_us": 5.416,
+          "gflops": null
+        },
+        {
+          "name": "RELU",
+          "class": "other",
+          "count": 1,
+          "avg_us": 5.208,
+          "total_us": 5.208,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,2,4,1)",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 4.27,
+          "total_us": 4.27,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=384 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.854,
+          "total_us": 3.854,
+          "gflops": 809.847
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 1,
+          "avg_us": 3.385,
+          "total_us": 3.385,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=32 k=64",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 3.177,
+          "total_us": 3.177,
+          "gflops": 81.8684
+        }
+      ]
+    },
+    {
+      "block": 2111,
+      "task": 19,
+      "prompt_tokens": 4,
+      "total_us": 105625.0,
+      "dirty": false,
+      "class_us": {
+        "full_attention": 63213.4,
+        "dense_matmul": 18179.1,
+        "moe_experts": 13649.7,
+        "norm_activation": 4453.5,
+        "memory_layout": 2979.7,
+        "other": 1235.4,
+        "elementwise": 1224.6,
+        "recurrent_deltanet": 689.7
+      },
+      "ops": [
+        {
+          "name": "FLASH_ATTN_EXT dst(256,24,4,1),  q(256,4,24,1),  k(256,16384,2,1),  v(256,16384,2,1),  m(16384,4,1,1)",
+          "class": "full_attention",
+          "count": 8,
+          "avg_us": 7901.67,
+          "total_us": 63213.4,
+          "gflops": 203.832
+        },
+        {
+          "name": "MUL_MAT_ID iq2_s m=640 n=10 k=2560 n_expert=512 batch=4",
+          "class": "moe_experts",
+          "count": 50,
+          "avg_us": 199.304,
+          "total_us": 9965.24,
+          "gflops": 657.518
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 23,
+          "avg_us": 89.668,
+          "total_us": 2062.38,
+          "gflops": 2338.32
+        },
+        {
+          "name": "MUL_MAT_ID q2_0 m=2560 n=10 k=640 n_expert=512 batch=4",
+          "class": "moe_experts",
+          "count": 31,
+          "avg_us": 63.178,
+          "total_us": 1958.53,
+          "gflops": 2073.01
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 26,
+          "avg_us": 74.642,
+          "total_us": 1940.72,
+          "gflops": 1685.61
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 64,
+          "avg_us": 27.797,
+          "total_us": 1779.04,
+          "gflops": 11.7876
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=4 k=10240",
+          "class": "dense_matmul",
+          "count": 63,
+          "avg_us": 26.565,
+          "total_us": 1673.62,
+          "gflops": 986.741
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=4 k=320",
+          "class": "dense_matmul",
+          "count": 63,
+          "avg_us": 23.256,
+          "total_us": 1465.13,
+          "gflops": 1125.45
+        },
+        {
+          "name": "MUL_MAT_ID iq2_xxs m=640 n=10 k=2560 n_expert=512 batch=4",
+          "class": "moe_experts",
+          "count": 10,
+          "avg_us": 119.202,
+          "total_us": 1192.03,
+          "gflops": 1099.36
+        },
+        {
+          "name": "TOPK_QSA GET_ROWS",
+          "class": "memory_layout",
+          "count": 8,
+          "avg_us": 141.288,
+          "total_us": 1130.31,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=248320 n=1 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 970.364,
+          "total_us": 970.364,
+          "gflops": 1309.97
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4096,1,1)",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 112.864,
+          "total_us": 902.913,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 6,
+          "avg_us": 140.989,
+          "total_us": 845.935,
+          "gflops": 892.299
+        },
+        {
+          "name": "SCALE",
+          "class": "norm_activation",
+          "count": 252,
+          "avg_us": 3.333,
+          "total_us": 839.989,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 15,
+          "avg_us": 55.124,
+          "total_us": 826.869,
+          "gflops": 2282.19
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 38,
+          "avg_us": 19.741,
+          "total_us": 750.193,
+          "gflops": 663.798
+        },
+        {
+          "name": "GET_ROWS",
+          "class": "memory_layout",
+          "count": 59,
+          "avg_us": 12.686,
+          "total_us": 748.517,
+          "gflops": null
+        },
+        {
+          "name": "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX",
+          "class": "norm_activation",
+          "count": 32,
+          "avg_us": 23.248,
+          "total_us": 743.939,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=12288 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 7,
+          "avg_us": 105.297,
+          "total_us": 737.079,
+          "gflops": 2389.52
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 27,
+          "avg_us": 24.773,
+          "total_us": 668.893,
+          "gflops": 528.661
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 5,
+          "avg_us": 130.114,
+          "total_us": 650.571,
+          "gflops": 966.988
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 15,
+          "avg_us": 42.659,
+          "total_us": 639.888,
+          "gflops": 307.194
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 31,
+          "avg_us": 19.799,
+          "total_us": 613.788,
+          "gflops": 529.491
+        },
+        {
+          "name": "GATED_DELTA_NET",
+          "class": "recurrent_deltanet",
+          "count": 24,
+          "avg_us": 23.68,
+          "total_us": 568.322,
+          "gflops": null
+        },
+        {
+          "name": "CONT",
+          "class": "memory_layout",
+          "count": 89,
+          "avg_us": 6.063,
+          "total_us": 539.646,
+          "gflops": null
+        },
+        {
+          "name": "SIGMOID",
+          "class": "other",
+          "count": 154,
+          "avg_us": 3.494,
+          "total_us": 538.221,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,4,1)",
+          "class": "norm_activation",
+          "count": 63,
+          "avg_us": 8.041,
+          "total_us": 506.634,
+          "gflops": null
+        },
+        {
+          "name": "MUL",
+          "class": "elementwise",
+          "count": 97,
+          "avg_us": 4.826,
+          "total_us": 468.189,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=48 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 48,
+          "avg_us": 9.162,
+          "total_us": 439.821,
+          "gflops": 107.263
+        },
+        {
+          "name": "MUL_MAT_ID iq1_m m=640 n=10 k=2560 n_expert=512 batch=4",
+          "class": "moe_experts",
+          "count": 2,
+          "avg_us": 204.322,
+          "total_us": 408.644,
+          "gflops": 641.372
+        },
+        {
+          "name": "ADD",
+          "class": "elementwise",
+          "count": 81,
+          "avg_us": 4.396,
+          "total_us": 356.106,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_PRE",
+          "class": "other",
+          "count": 64,
+          "avg_us": 5.364,
+          "total_us": 343.305,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,48,4,1)",
+          "class": "norm_activation",
+          "count": 24,
+          "avg_us": 13.376,
+          "total_us": 321.028,
+          "gflops": null
+        },
+        {
+          "name": "DSV4_HC_POST",
+          "class": "other",
+          "count": 65,
+          "avg_us": 4.788,
+          "total_us": 311.225,
+          "gflops": null
+        },
+        {
+          "name": "MULTI_ADD ADD",
+          "class": "elementwise",
+          "count": 50,
+          "avg_us": 5.863,
+          "total_us": 293.159,
+          "gflops": null
+        },
+        {
+          "name": "GLU",
+          "class": "norm_activation",
+          "count": 65,
+          "avg_us": 4.407,
+          "total_us": 286.481,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT f32 m=4096 n=16 k=128",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 35.006,
+          "total_us": 280.048,
+          "gflops": 477.395
+        },
+        {
+          "name": "RMS_NORM(128,16,4,1)",
+          "class": "norm_activation",
+          "count": 48,
+          "avg_us": 5.748,
+          "total_us": 275.916,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 32,
+          "avg_us": 8.406,
+          "total_us": 268.993,
+          "gflops": 2.43587
+        },
+        {
+          "name": "CPY",
+          "class": "memory_layout",
+          "count": 48,
+          "avg_us": 4.638,
+          "total_us": 222.629,
+          "gflops": null
+        },
+        {
+          "name": "ROPE",
+          "class": "norm_activation",
+          "count": 32,
+          "avg_us": 6.317,
+          "total_us": 202.175,
+          "gflops": null
+        },
+        {
+          "name": "SILU",
+          "class": "norm_activation",
+          "count": 65,
+          "avg_us": 2.83,
+          "total_us": 183.979,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 11,
+          "avg_us": 16.287,
+          "total_us": 179.16,
+          "gflops": 643.675
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=12288 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 173.125,
+          "total_us": 173.125,
+          "gflops": 1453.34
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=640 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 11,
+          "avg_us": 14.857,
+          "total_us": 163.433,
+          "gflops": 882.019
+        },
+        {
+          "name": "MUL_MAT_VEC iq3_s m=10240 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 157.812,
+          "total_us": 157.812,
+          "gflops": 1328.63
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 19.185,
+          "total_us": 153.486,
+          "gflops": 546.432
+        },
+        {
+          "name": "SET_ROWS",
+          "class": "memory_layout",
+          "count": 32,
+          "avg_us": 4.641,
+          "total_us": 148.526,
+          "gflops": null
+        },
+        {
+          "name": "CONCAT",
+          "class": "memory_layout",
+          "count": 24,
+          "avg_us": 6.162,
+          "total_us": 147.905,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=6144 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 3,
+          "avg_us": 46.267,
+          "total_us": 138.801,
+          "gflops": 2719.1
+        },
+        {
+          "name": "SSM_CONV_SILU SSM_CONV",
+          "class": "recurrent_deltanet",
+          "count": 24,
+          "avg_us": 5.055,
+          "total_us": 121.34,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_ID_VEC iq2_s m=640 n=10 k=2560 n_expert=512",
+          "class": "moe_experts",
+          "count": 2,
+          "avg_us": 52.369,
+          "total_us": 104.738,
+          "gflops": 625.591
+        },
+        {
+          "name": "SOFTPLUS_MUL SOFTPLUS",
+          "class": "elementwise",
+          "count": 24,
+          "avg_us": 4.274,
+          "total_us": 102.596,
+          "gflops": null
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,24,4,1)",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 11.073,
+          "total_us": 88.591,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=512 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 5,
+          "avg_us": 14.916,
+          "total_us": 74.582,
+          "gflops": 702.831
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=128 n=4 k=2560",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 8.782,
+          "total_us": 70.256,
+          "gflops": 298.443
+        },
+        {
+          "name": "MUL_MAT f32 m=256 n=96 k=256",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 8.697,
+          "total_us": 69.579,
+          "gflops": 1443.92
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=256 n=8 k=256",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 8.391,
+          "total_us": 67.132,
+          "gflops": 124.713
+        },
+        {
+          "name": "MUL_MAT_VEC q6_K m=2560 n=4 k=6144",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 63.593,
+          "total_us": 63.593,
+          "gflops": 1978.5
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(128,4,4,1)",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 6.099,
+          "total_us": 48.798,
+          "gflops": null
+        },
+        {
+          "name": "RELU",
+          "class": "other",
+          "count": 8,
+          "avg_us": 5.331,
+          "total_us": 42.651,
+          "gflops": null
+        },
+        {
+          "name": "FILL",
+          "class": "memory_layout",
+          "count": 16,
+          "avg_us": 2.636,
+          "total_us": 42.182,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=10240 n=1 k=320",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 18.749,
+          "total_us": 37.499,
+          "gflops": 348.989
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=320 n=1 k=10240",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 18.619,
+          "total_us": 37.239,
+          "gflops": 351.958
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(256,2,4,1)",
+          "class": "norm_activation",
+          "count": 8,
+          "avg_us": 4.569,
+          "total_us": 36.558,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC q8_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 3,
+          "avg_us": 11.284,
+          "total_us": 33.853,
+          "gflops": 1160.63
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=384 k=64",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 3.873,
+          "total_us": 30.988,
+          "gflops": 805.77
+        },
+        {
+          "name": "MUL_MAT f32 m=64 n=32 k=64",
+          "class": "dense_matmul",
+          "count": 8,
+          "avg_us": 3.215,
+          "total_us": 25.726,
+          "gflops": 80.8819
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_xs m=640 n=1 k=2560",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 11.327,
+          "total_us": 22.655,
+          "gflops": 289.222
+        },
+        {
+          "name": "MUL_MAT_ID_MUL MUL_MAT_ID_VEC q2_0 m=2560 n=10 k=640 n_expert=512",
+          "class": "moe_experts",
+          "count": 1,
+          "avg_us": 20.52,
+          "total_us": 20.52,
+          "gflops": 1595.63
+        },
+        {
+          "name": "MUL_MAT_VEC q2_0 m=2560 n=4 k=640",
+          "class": "dense_matmul",
+          "count": 2,
+          "avg_us": 9.27,
+          "total_us": 18.541,
+          "gflops": 1412.76
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=512 n=1 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 16.875,
+          "total_us": 16.875,
+          "gflops": 155.314
+        },
+        {
+          "name": "RMS_NORM_MUL RMS_NORM(2560,4,1,1)",
+          "class": "norm_activation",
+          "count": 2,
+          "avg_us": 8.255,
+          "total_us": 16.51,
+          "gflops": null
+        },
+        {
+          "name": "MUL_MAT_VEC iq4_nl m=2560 n=1 k=640",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 15.312,
+          "total_us": 15.312,
+          "gflops": 213.835
+        },
+        {
+          "name": "MUL_MAT_VEC bf16 m=4 n=1 k=10240",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 10.416,
+          "total_us": 10.416,
+          "gflops": 7.86444
+        },
+        {
+          "name": "MUL_MAT_VEC f32 m=1 n=1 k=2560",
+          "class": "dense_matmul",
+          "count": 1,
+          "avg_us": 5.729,
+          "total_us": 5.729,
+          "gflops": 0.893524
+        },
+        {
+          "name": "SIGMOID_MUL SIGMOID",
+          "class": "elementwise",
+          "count": 1,
+          "avg_us": 4.583,
+          "total_us": 4.583,
+          "gflops": null
+        }
+      ]
+    }
+  ],
+  "aggregate": [
+    {
+      "class": "full_attention",
+      "total_us": 88829.6,
+      "ops": {
+        "FLASH_ATTN_EXT dst(256,24,4,1),  q(256,4,24,1),  k(256,16384,2,1),  v(256,16384,2,1),  m(16384,4,1,1)": {
+          "total_us": 88829.6,
+          "count": 12
+        }
+      }
+    },
+    {
+      "class": "dense_matmul",
+      "total_us": 27140.4,
+      "ops": {
+        "MUL_MAT_VEC iq3_s m=6144 n=4 k=2560": {
+          "total_us": 1542.1,
+          "count": 11
+        },
+        "MUL_MAT_VEC iq4_xs m=10240 n=4 k=2560": {
+          "total_us": 3132.9,
+          "count": 35
+        },
+        "MUL_MAT_VEC bf16 m=320 n=4 k=10240": {
+          "total_us": 2840.4,
+          "count": 95
+        },
+        "MUL_MAT_VEC iq4_xs m=2560 n=4 k=6144": {
+          "total_us": 2874.8,
+          "count": 39
+        },
+        "MUL_MAT_VEC bf16 m=10240 n=4 k=320": {
+          "total_us": 2198.9,
+          "count": 95
+        },
+        "MUL_MAT_VEC bf16 m=4 n=4 k=10240": {
+          "total_us": 2530.1,
+          "count": 95
+        },
+        "MUL_MAT_VEC f32 m=512 n=4 k=2560": {
+          "total_us": 929.4,
+          "count": 47
+        },
+        "MUL_MAT_VEC bf16 m=48 n=4 k=2560": {
+          "total_us": 651.8,
+          "count": 72
+        },
+        "MUL_MAT_VEC bf16 m=10240 n=4 k=2560": {
+          "total_us": 115.0,
+          "count": 1
+        },
+        "MUL_MAT_VEC iq3_s m=640 n=4 k=2560": {
+          "total_us": 1103.6,
+          "count": 23
+        },
+        "MUL_MAT_VEC bf16 m=2560 n=4 k=2560": {
+          "total_us": 48.0,
+          "count": 1
+        },
+        "MUL_MAT_VEC iq4_nl m=2560 n=4 k=640": {
+          "total_us": 861.3,
+          "count": 35
+        },
+        "MUL_MAT_VEC iq4_xs m=640 n=4 k=2560": {
+          "total_us": 1121.3,
+          "count": 55
+        },
+        "MUL_MAT_VEC f32 m=1 n=4 k=2560": {
+          "total_us": 380.5,
+          "count": 47
+        },
+        "MUL_MAT_VEC iq4_xs m=6144 n=4 k=2560": {
+          "total_us": 1249.6,
+          "count": 22
+        },
+        "MUL_MAT_VEC q6_K m=640 n=4 k=2560": {
+          "total_us": 242.3,
+          "count": 16
+        },
+        "MUL_MAT_VEC iq3_s m=2560 n=4 k=6144": {
+          "total_us": 889.2,
+          "count": 7
+        },
+        "MUL_MAT_VEC iq4_xs m=12288 n=4 k=2560": {
+          "total_us": 1154.1,
+          "count": 11
+        },
+        "MUL_MAT f32 m=4096 n=16 k=128": {
+          "total_us": 413.8,
+          "count": 12
+        },
+        "MUL_MAT_VEC iq4_xs m=512 n=4 k=2560": {
+          "total_us": 249.7,
+          "count": 15
+        },
+        "MUL_MAT_VEC bf16 m=512 n=4 k=2560": {
+          "total_us": 228.5,
+          "count": 12
+        },
+        "MUL_MAT_VEC q6_K m=512 n=4 k=2560": {
+          "total_us": 115.9,
+          "count": 8
+        },
+        "MUL_MAT f32 m=256 n=96 k=256": {
+          "total_us": 103.4,
+          "count": 12
+        },
+        "MUL_MAT_VEC f32 m=256 n=8 k=256": {
+          "total_us": 99.9,
+          "count": 12
+        },
+        "MUL_MAT_VEC bf16 m=128 n=4 k=2560": {
+          "total_us": 103.2,
+          "count": 12
+        },
+        "MUL_MAT f32 m=64 n=384 k=64": {
+          "total_us": 46.4,
+          "count": 12
+        },
+        "MUL_MAT f32 m=64 n=32 k=64": {
+          "total_us": 38.4,
+          "count": 12
+        },
+        "MUL_MAT_VEC q8_0 m=2560 n=4 k=640": {
+          "total_us": 80.6,
+          "count": 7
+        },
+        "MUL_MAT_VEC q2_0 m=2560 n=4 k=640": {
+          "total_us": 46.4,
+          "count": 5
+        },
+        "MUL_MAT_VEC q6_K m=2560 n=4 k=6144": {
+          "total_us": 134.5,
+          "count": 2
+        },
+        "MUL_MAT_VEC iq3_s m=512 n=4 k=2560": {
+          "total_us": 28.3,
+          "count": 1
+        },
+        "MUL_MAT_VEC iq4_xs m=248320 n=1 k=2560": {
+          "total_us": 970.4,
+          "count": 1
+        },
+        "MUL_MAT_VEC iq3_s m=12288 n=4 k=2560": {
+          "total_us": 173.1,
+          "count": 1
+        },
+        "MUL_MAT_VEC iq3_s m=10240 n=4 k=2560": {
+          "total_us": 157.8,
+          "count": 1
+        },
+        "MUL_MAT_VEC q6_K m=6144 n=4 k=2560": {
+          "total_us": 138.8,
+          "count": 3
+        },
+        "MUL_MAT_VEC bf16 m=10240 n=1 k=320": {
+          "total_us": 37.5,
+          "count": 2
+        },
+        "MUL_MAT_VEC bf16 m=320 n=1 k=10240": {
+          "total_us": 37.2,
+          "count": 2
+        },
+        "MUL_MAT_VEC iq4_xs m=640 n=1 k=2560": {
+          "total_us": 22.7,
+          "count": 2
+        },
+        "MUL_MAT_VEC f32 m=512 n=1 k=2560": {
+          "total_us": 16.9,
+          "count": 1
+        },
+        "MUL_MAT_VEC iq4_nl m=2560 n=1 k=640": {
+          "total_us": 15.3,
+          "count": 1
+        },
+        "MUL_MAT_VEC bf16 m=4 n=1 k=10240": {
+          "total_us": 10.4,
+          "count": 1
+        },
+        "MUL_MAT_VEC f32 m=1 n=1 k=2560": {
+          "total_us": 5.7,
+          "count": 1
+        }
+      }
+    },
+    {
+      "class": "moe_experts",
+      "total_us": 13649.7,
+      "ops": {
+        "MUL_MAT_ID iq2_s m=640 n=10 k=2560 n_expert=512 batch=4": {
+          "total_us": 9965.2,
+          "count": 50
+        },
+        "MUL_MAT_ID q2_0 m=2560 n=10 k=640 n_expert=512 batch=4": {
+          "total_us": 1958.5,
+          "count": 31
+        },
+        "MUL_MAT_ID iq2_xxs m=640 n=10 k=2560 n_expert=512 batch=4": {
+          "total_us": 1192.0,
+          "count": 10
+        },
+        "MUL_MAT_ID iq1_m m=640 n=10 k=2560 n_expert=512 batch=4": {
+          "total_us": 408.6,
+          "count": 2
+        },
+        "MUL_MAT_ID_VEC iq2_s m=640 n=10 k=2560 n_expert=512": {
+          "total_us": 104.7,
+          "count": 2
+        },
+        "MUL_MAT_ID_MUL MUL_MAT_ID_VEC q2_0 m=2560 n=10 k=640 n_expert=512": {
+          "total_us": 20.5,
+          "count": 1
+        }
+      }
+    },
+    {
+      "class": "norm_activation",
+      "total_us": 6595.1,
+      "ops": {
+        "TOPK_MOE_EARLY_SOFTMAX_NORM SOFT_MAX": {
+          "total_us": 1176.7,
+          "count": 48
+        },
+        "SCALE": {
+          "total_us": 1227.0,
+          "count": 375
+        },
+        "RMS_NORM_MUL RMS_NORM(2560,4,4,1)": {
+          "total_us": 775.7,
+          "count": 98
+        },
+        "RMS_NORM_MUL RMS_NORM(128,48,4,1)": {
+          "total_us": 476.0,
+          "count": 36
+        },
+        "RMS_NORM(128,16,4,1)": {
+          "total_us": 413.0,
+          "count": 72
+        },
+        "SILU": {
+          "total_us": 277.7,
+          "count": 98
+        },
+        "GLU": {
+          "total_us": 336.0,
+          "count": 80
+        },
+        "RMS_NORM_MUL RMS_NORM(128,4096,1,1)": {
+          "total_us": 1337.9,
+          "count": 12
+        },
+        "ROPE": {
+          "total_us": 302.8,
+          "count": 48
+        },
+        "RMS_NORM_MUL RMS_NORM(256,24,4,1)": {
+          "total_us": 130.1,
+          "count": 12
+        },
+        "RMS_NORM_MUL RMS_NORM(128,4,4,1)": {
+          "total_us": 72.5,
+          "count": 12
+        },
+        "RMS_NORM_MUL RMS_NORM(256,2,4,1)": {
+          "total_us": 53.2,
+          "count": 12
+        },
+        "RMS_NORM_MUL RMS_NORM(2560,4,1,1)": {
+          "total_us": 16.5,
+          "count": 2
+        }
+      }
+    },
+    {
+      "class": "memory_layout",
+      "total_us": 4500.3,
+      "ops": {
+        "GET_ROWS": {
+          "total_us": 1111.4,
+          "count": 88
+        },
+        "REPEAT": {
+          "total_us": 14.3,
+          "count": 2
+        },
+        "CPY": {
+          "total_us": 346.1,
+          "count": 77
+        },
+        "CONCAT": {
+          "total_us": 221.7,
+          "count": 37
+        },
+        "CONT": {
+          "total_us": 840.8,
+          "count": 143
+        },
+        "SUM_ROWS": {
+          "total_us": 12.9,
+          "count": 1
+        },
+        "CLAMP": {
+          "total_us": 2.6,
+          "count": 1
+        },
+        "TOPK_QSA GET_ROWS": {
+          "total_us": 1665.3,
+          "count": 12
+        },
+        "SET_ROWS": {
+          "total_us": 221.6,
+          "count": 48
+        },
+        "FILL": {
+          "total_us": 63.6,
+          "count": 24
+        }
+      }
+    },
+    {
+      "class": "elementwise",
+      "total_us": 1883.6,
+      "ops": {
+        "SOFTPLUS_MUL SOFTPLUS": {
+          "total_us": 153.4,
+          "count": 36
+        },
+        "MUL": {
+          "total_us": 750.4,
+          "count": 149
+        },
+        "ADD": {
+          "total_us": 530.5,
+          "count": 121
+        },
+        "MULTI_ADD ADD": {
+          "total_us": 438.1,
+          "count": 75
+        },
+        "SIGMOID_MUL SIGMOID": {
+          "total_us": 8.9,
+          "count": 2
+        },
+        "SQRT": {
+          "total_us": 2.4,
+          "count": 1
+        }
+      }
+    },
+    {
+      "class": "other",
+      "total_us": 1876.1,
+      "ops": {
+        "SIGMOID": {
+          "total_us": 803.0,
+          "count": 228
+        },
+        "DSV4_HC_PRE": {
+          "total_us": 510.7,
+          "count": 96
+        },
+        "DSV4_HC_POST": {
+          "total_us": 494.2,
+          "count": 96
+        },
+        "SGN": {
+          "total_us": 2.6,
+          "count": 1
+        },
+        "ABS": {
+          "total_us": 2.5,
+          "count": 1
+        },
+        "RELU": {
+          "total_us": 63.1,
+          "count": 12
+        }
+      }
+    },
+    {
+      "class": "recurrent_deltanet",
+      "total_us": 1045.9,
+      "ops": {
+        "GATED_DELTA_NET": {
+          "total_us": 863.1,
+          "count": 36
+        },
+        "SSM_CONV_SILU SSM_CONV": {
+          "total_us": 182.8,
+          "count": 36
+        }
+      }
+    }
+  ]
+}

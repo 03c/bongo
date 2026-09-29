@@ -1,0 +1,18 @@
+{
+  "schema": "bongo.ctx256-fit.v1",
+  "label": "ctx256-n18-shipped-default",
+  "ctx_size": 262144,
+  "n_cpu_moe": 18,
+  "load_mode": "none",
+  "m42_env": [
+    "GGML_VK_HOST_BUFT_PER_DEVICE=1",
+    "GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
+  ],
+  "loaded": true,
+  "load_seconds": 75,
+  "request_status": 200,
+  "vram_peak_gib": 30.647,
+  "vram_method": "fdinfo",
+  "rss_peak_gib": 1.825,
+  "host_ram_available_gib": 10.308
+}

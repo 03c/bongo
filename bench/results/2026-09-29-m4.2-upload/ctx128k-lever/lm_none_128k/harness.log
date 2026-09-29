@@ -1,0 +1,12 @@
+warmup prefill status=200
+warmup                       status=200 prompt_n=255 cache_n=0 prompt_ms=1183.785 wall_ms=1252.34 cpu_ms=1100.0 read_bytes=184320 majflt=17
+
+== prefix target 128000 (actual 127999) ==
+cold_p127999                 status=200 prompt_n=127999 cache_n=0 prompt_ms=751552.015 wall_ms=751716.58 cpu_ms=314440.0 read_bytes=94208 majflt=35
+   worker tids (0): []
+hit_p127999                  status=200 prompt_n=4 cache_n=127995 prompt_ms=395.953 wall_ms=498.94 cpu_ms=860.0 read_bytes=0 majflt=0
+grow_p127999_d512            status=200 prompt_n=516 cache_n=127995 prompt_ms=4660.962 wall_ms=4758.64 cpu_ms=2830.0 read_bytes=1736704 majflt=424
+hit2_p127999                 status=200 prompt_n=4 cache_n=127995 prompt_ms=404.543 wall_ms=501.61 cpu_ms=810.0 read_bytes=4096 majflt=1
+decode_p127999               status=200 prompt_n=4 cache_n=127995 prompt_ms=400.532 wall_ms=4557.25 cpu_ms=11530.0 read_bytes=823296 majflt=127
+
+wrote bench/results/2026-09-29-m4.2-upload/ctx128k-lever/lm_none_128k/profile-host-split.json

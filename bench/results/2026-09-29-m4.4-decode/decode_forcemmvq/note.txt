@@ -1,0 +1,1 @@
+force the explicit mul_mat_vec path for every dense matmul

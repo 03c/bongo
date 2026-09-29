@@ -174,4 +174,87 @@ print("deep-repeat assertions OK")
 PY
 echo "PASS: per-context repeat budget (deep contexts repeat less)"
 
+# ---- 6. cache_prompt mode (prefix reuse) ----------------------------------
+cache_port=18084
+cache_slot_dir="${work}/slots"
+python3 "${here}/mock_server.py" --port "$cache_port" --ctx 262144 --slot-save-path "$cache_slot_dir" >/dev/null 2>&1 &
+pids+=("$!")
+wait_ready "http://127.0.0.1:${cache_port}"
+
+"${here}/run.sh" \
+  --base-url "http://127.0.0.1:${cache_port}/v1" \
+  --contexts 1024,4096 --repeats 1 --needle-context 4096 --hash-mode none \
+  --out-dir "${work}/cache" || fail "cache-path run exited non-zero"
+python3 - "${work}/cache/matrix.json" <<'PY' || fail "cache-path matrix assertions"
+import json, sys
+m = json.load(open(sys.argv[1]))
+assert m["config"]["cache_prompt"] is True, m["config"]
+assert m["config"]["profile"] == "agentic", m["config"]
+by = {r["target_context"]: r for r in m["results"]}
+assert by[1024]["summary"]["cache_n"]["median"] == 0, by[1024]["summary"]["cache_n"]
+assert by[4096]["summary"]["cache_n"]["median"] > 0, by[4096]["summary"]["cache_n"]
+assert by[4096]["summary"]["cached_tokens"]["median"] > 0, by[4096]["summary"]["cached_tokens"]
+print("cache-path assertions OK")
+PY
+echo "PASS: cache_prompt mode records cache_n / cached_tokens"
+
+# ---- 7. cold baseline (--no-cache-prompt) ---------------------------------
+"${here}/run.sh" \
+  --base-url "http://127.0.0.1:${cache_port}/v1" --no-cache-prompt \
+  --contexts 1024,4096 --repeats 1 --needle-context 4096 --hash-mode none \
+  --out-dir "${work}/cold" || fail "cold-path run exited non-zero"
+python3 - "${work}/cold/matrix.json" <<'PY' || fail "cold-path matrix assertions"
+import json, sys
+m = json.load(open(sys.argv[1]))
+assert m["config"]["cache_prompt"] is False, m["config"]
+assert m["config"]["profile"] == "baseline", m["config"]
+for r in m["results"]:
+    assert (r["summary"].get("cache_n") or {}).get("median") == 0, r["target_context"]
+print("cold-path assertions OK")
+PY
+echo "PASS: --no-cache-prompt reproduces the cold baseline"
+
+# ---- 8. slot save/restore measurement -------------------------------------
+BONGO_BASE_URL="http://127.0.0.1:${cache_port}/v1" BONGO_MODEL=bongo-mock \
+  python3 "${here}/measure-prefix-cache.py" \
+  --prefixes 1024 --delta 64 --slot-id 0 --slot-save-dir "$cache_slot_dir" \
+  --out "${work}/pcache" >/dev/null || fail "measure-prefix-cache run exited non-zero"
+python3 - "${work}/pcache/prefix-cache.json" <<'PY' || fail "prefix-cache slot assertions"
+import json, sys
+d = json.load(open(sys.argv[1]))
+labels = {r["label"]: r for r in d["runs"]}
+assert labels["hit_p1024"]["cache_n"] > 0, labels["hit_p1024"]
+assert labels["grow_p1024_d64"]["cache_n"] > 0, labels["grow_p1024_d64"]
+assert labels["cold_p1024"]["cache_prompt"] is False
+slot = d["slot"]
+assert slot and slot["save"]["status"] == 200, slot
+assert slot["restore"]["status"] == 200, slot
+assert slot["save"]["file_bytes"] > 0, slot["save"]
+assert slot["restore_verified"] is True, slot
+print("prefix-cache slot assertions OK")
+PY
+echo "PASS: slot save/restore timed and restore verified"
+
+# ---- 9. cached-only delta turn (no cold pass, VRAM window recorded) --------
+BONGO_BASE_URL="http://127.0.0.1:${cache_port}/v1" BONGO_MODEL=bongo-mock \
+  python3 "${here}/measure-prefix-cache.py" \
+  --prefixes 1024 --delta 64 --no-slot --cached-only --timeout 1234 \
+  --out "${work}/pcache-cached" >/dev/null || fail "cached-only run exited non-zero"
+python3 - "${work}/pcache-cached/prefix-cache.json" <<'PY' || fail "cached-only assertions"
+import json, sys
+d = json.load(open(sys.argv[1]))
+labels = {r["label"]: r for r in d["runs"]}
+assert "cold_p1024" not in labels, labels.keys()
+assert labels["prime_p1024"]["cache_prompt"] is True, labels["prime_p1024"]
+assert labels["prime_p1024"]["prompt_tokens"] > 0, labels["prime_p1024"]
+assert labels["hit_p1024"]["cache_n"] > 0, labels["hit_p1024"]
+assert labels["grow_p1024_d64"]["cache_n"] > 0, labels["grow_p1024_d64"]
+assert d["cached_only"] is True, d["cached_only"]
+assert d["request_timeout_s"] == 1234, d["request_timeout_s"]
+assert "memory" in d and "vram_method" in d["memory"], d.get("memory")
+assert all("memory" in r for r in d["runs"]), "per-case memory window missing"
+print("cached-only assertions OK")
+PY
+echo "PASS: --cached-only primes the prefix and records a per-case VRAM window"
+
 echo "ALL SELFTESTS PASSED"

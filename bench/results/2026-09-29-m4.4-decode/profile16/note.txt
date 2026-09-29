@@ -1,0 +1,1 @@
+shipped decode config (--n-cpu-moe 16, --load-mode none) + GGML_VK_PERF_LOGGER

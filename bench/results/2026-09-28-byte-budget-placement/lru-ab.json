@@ -1,0 +1,136 @@
+{
+  "budget_bytes": 24051816857.6,
+  "budget_gib": 22.4,
+  "capture": "bench/results/2026-09-28-expert-activation/raw (CPU router capture, R4)",
+  "corpora": {
+    "chat": {
+      "events": 251930,
+      "tokens": 536
+    },
+    "code": {
+      "events": 1783190,
+      "tokens": 3794
+    },
+    "convo": {
+      "events": 473770,
+      "tokens": 1008
+    },
+    "doc": {
+      "events": 1866380,
+      "tokens": 3971
+    }
+  },
+  "decode_held_out": {
+    "chat": {
+      "cold_lru": 0.8616373697916667,
+      "decode_events": 61440,
+      "decode_tokens": 128,
+      "profile_lru": 0.9861653645833334,
+      "static_profile": 0.9617350260416667
+    },
+    "doc": {
+      "cold_lru": 0.9031005859375,
+      "decode_events": 122880,
+      "decode_tokens": 256,
+      "profile_lru": 0.9849772135416667,
+      "static_profile": 0.9450520833333333
+    }
+  },
+  "engine_revision": "llama.cpp b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a)",
+  "held_out": {
+    "chat": {
+      "byte_budget_layers": 0.7020997896241019,
+      "cold_lru": 0.9467232961536934,
+      "events": 251930,
+      "per_layer_lru": 0.9465407057515977,
+      "profile_cells": 16735,
+      "profile_lru": 0.9883618465446751,
+      "static_insample": 1.0,
+      "static_layer_16": 0.6595879807883143,
+      "static_profile": 0.9852776564918827,
+      "tokens": 536
+    },
+    "code": {
+      "byte_budget_layers": 0.7021237220935515,
+      "cold_lru": 0.9800307314419664,
+      "events": 1783190,
+      "per_layer_lru": 0.9758926418385029,
+      "profile_cells": 16729,
+      "profile_lru": 0.986343575278013,
+      "static_insample": 0.989731324199889,
+      "static_layer_16": 0.659576377166763,
+      "static_profile": 0.8806565761360259,
+      "tokens": 3794
+    },
+    "convo": {
+      "byte_budget_layers": 0.7021128395635012,
+      "cold_lru": 0.9687569917892649,
+      "events": 473770,
+      "per_layer_lru": 0.9683855035143635,
+      "profile_cells": 16735,
+      "profile_lru": 0.9916035206956962,
+      "static_insample": 1.0,
+      "static_layer_16": 0.6595816535449691,
+      "static_profile": 0.9771302530763872,
+      "tokens": 1008
+    },
+    "doc": {
+      "byte_budget_layers": 0.7021238975985598,
+      "cold_lru": 0.9873155520312048,
+      "events": 1866380,
+      "per_layer_lru": 0.9830865097139918,
+      "profile_cells": 16731,
+      "profile_lru": 0.9930132127433856,
+      "static_insample": 0.9957195212121862,
+      "static_layer_16": 0.6595762920734256,
+      "static_profile": 0.96320899280961,
+      "tokens": 3971
+    }
+  },
+  "policy_notes": {
+    "byte_budget_layers": "cheapest-layer-first whole-layer residency (Step 1)",
+    "cold_lru": "empty-start online LRU",
+    "per_layer_lru": "independent LRU per layer, equal byte share per layer",
+    "profile_lru": "held-out profile as LRU initialisation (ship rule)",
+    "static_insample": "frozen profile trained on the scored corpus (coverage ceiling)",
+    "static_layer_16": "llama.cpp --n-cpu-moe 16 (Stage 0 baseline)",
+    "static_profile": "frozen top-count profile from the other corpora (R4 policy)"
+  },
+  "schema": "bongo.expert-lru-ab.v1",
+  "step1_resident_layers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    37
+  ],
+  "tier": "iq2_xs"
+}

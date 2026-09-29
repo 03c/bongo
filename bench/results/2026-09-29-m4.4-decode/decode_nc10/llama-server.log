@@ -1,0 +1,15 @@
+0.00.025.787 I srv  llama_server: initializing ...
+0.00.025.795 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.025.991 W srv  llama_server: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.027.291 I srv    load_model: loading model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+0.00.319.329 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, abort
+ggml_vulkan: Device memory allocation of size 837623812 failed.
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+1.09.709.452 E ggml_gallocr_reserve_n_impl: failed to allocate Vulkan1 buffer of size 1106059268
+1.09.709.455 E graph_reserve: failed to allocate compute buffers
+1.09.711.111 E llama_init_from_model: failed to initialize the context: failed to allocate compute pp buffers
+1.09.711.114 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.09.711.117 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.09.711.121 E srv    load_model: failed to create_context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.09.711.123 I srv    operator(): operator(): cleaning up before exit...
+1.09.711.421 E srv  llama_server: exiting due to model loading error

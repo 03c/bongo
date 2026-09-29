@@ -1,0 +1,10 @@
+{
+  "context": 262144,
+  "needle": "VAULT-COORD-7391-QXZ",
+  "status": "pass",
+  "prompt_tokens": 261997,
+  "answer": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n service.  The mountain road curved past the reservoir, where",
+  "http_status": 200,
+  "error": null,
+  "folded_into_context": 262144
+}

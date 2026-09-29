@@ -1,0 +1,40 @@
+[m4.4 07:40:09Z] profile16: starting llama-server (ctx=131072 perf=1)
+[m4.4 07:41:24Z] profile16: healthy after 75s
+prime: status=200 prompt_tokens=4094 prompt_ms=12766.049
+profile run: status=200 cache_n=4090 prompt_tokens=4 prompt_ms=182.822 output_tokens=16 output_tps=14.334259645045508
+[m4.4 07:41:39Z] profile16: done (rc=0)
+[m4.4 07:41:39Z] stats16: starting llama-server (ctx=131072 perf=2)
+[m4.4 07:42:49Z] stats16: healthy after 70s
+run0: prompt_ms=11402.871 output_tokens=24 output_tps=17.62853308377462 status=200
+[m4.4 07:43:14Z] stats16: done (rc=0)
+[m4.4 07:43:14Z] decode_offload1: starting llama-server (ctx=131072 perf=0)
+[m4.4 07:44:30Z] decode_offload1: healthy after 75s
+run0: prompt_ms=11322.63 output_tokens=128 output_tps=16.68511663947562 status=200
+run1: prompt_ms=11314.614 output_tokens=128 output_tps=16.686445140749505 status=200
+run2: prompt_ms=11316.828 output_tokens=128 output_tps=16.619817103493045 status=200
+[m4.4 07:45:39Z] decode_offload1: done (rc=0)
+[m4.4 07:45:39Z] decode_offload1_nc12: starting llama-server (ctx=131072 perf=0)
+[m4.4 07:46:54Z] decode_offload1_nc12: healthy after 75s
+run0: prompt_ms=10819.969 output_tokens=128 output_tps=17.873873224698656 status=200
+run1: prompt_ms=10813.135 output_tokens=128 output_tps=17.88868701122156 status=200
+run2: prompt_ms=10812.665 output_tokens=128 output_tps=17.889148132851858 status=200
+[m4.4 07:48:00Z] decode_offload1_nc12: done (rc=0)
+[m4.4 07:48:00Z] decode_nc12: starting llama-server (ctx=131072 perf=0)
+[m4.4 07:49:16Z] decode_nc12: healthy after 75s
+run0: prompt_ms=10894.835 output_tokens=128 output_tps=18.975533365636565 status=200
+run1: prompt_ms=10890.009 output_tokens=128 output_tps=19.588735274129697 status=200
+run2: prompt_ms=10887.003 output_tokens=128 output_tps=19.60784616455862 status=200
+[m4.4 07:50:20Z] decode_nc12: done (rc=0)
+[m4.4 07:50:20Z] decode_t16: starting llama-server (ctx=131072 perf=0)
+[m4.4 07:51:35Z] decode_t16: healthy after 75s
+run0: prompt_ms=11415.812 output_tokens=128 output_tps=6.015866445112253 status=200
+run1: prompt_ms=11904.261 output_tokens=128 output_tps=5.6327700903279 status=200
+run2: prompt_ms=11684.644 output_tokens=128 output_tps=6.270026130210472 status=200
+[m4.4 07:53:27Z] decode_t16: done (rc=0)
+[m4.4 07:53:27Z] decode_forcemmvq: starting llama-server (ctx=131072 perf=0)
+[m4.4 07:54:43Z] decode_forcemmvq: healthy after 75s
+run0: prompt_ms=11401.796 output_tokens=128 output_tps=16.446644237069957 status=200
+run1: prompt_ms=11405.205 output_tokens=128 output_tps=17.521108106616634 status=200
+run2: prompt_ms=11402.976 output_tokens=128 output_tps=17.75962722122944 status=200
+[m4.4 07:55:52Z] decode_forcemmvq: done (rc=0)
+[m4.4 07:55:52Z] done; results in bench/results/2026-09-29-m4.4-decode

@@ -1,0 +1,24 @@
+starting bongo.sh: Vulkan, n-cpu-moe=16, ctx=131072, port=8080, slots=/home/cchild/.bongo/prefix-cache-m3.0c/slots-patched
+    Endpoint       : http://127.0.0.1:8080/v1
+  [bongo] Server ready: http://127.0.0.1:8080/v1
+  [bongo] Warmup done in 1116 ms.
+    Endpoint     : http://127.0.0.1:8080/v1
+    Slot KV      : save/restore enabled at /home/cchild/.bongo/prefix-cache-m3.0c/slots-patched
+server pid=3809081; running measurement
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=23057.332 prompt_tps=11.059388831283691 ttft_ms=23103.57 out_tps=0.0 wall_ms=23103.89
+
+== prefix target 128000 (actual 127999); with delta actual 128510 ==
+cold_p128000               status=200 prompt_n=127999 cache_n=0 prompt_ms=957073.934 prompt_tps=133.7399290199455 ttft_ms=957217.65 out_tps=6.185082405914588 wall_ms=957703.5
+hit_p128000                status=200 prompt_n=4 cache_n=127995 prompt_ms=432.724 prompt_tps=9.243767389837402 ttft_ms=528.85 out_tps=7.694635812886975 wall_ms=919.58
+grow_p128000_d512          status=200 prompt_n=515 cache_n=127995 prompt_ms=6613.438 prompt_tps=77.87175142490184 ttft_ms=6710.39 out_tps=7.153195213081764 wall_ms=7130.67
+grow_p128000_repeat        status=200 prompt_n=4 cache_n=128506 prompt_ms=359.271 prompt_tps=11.133656766062387 ttft_ms=457.03 out_tps=7.979996808001276 wall_ms=833.74
+
+== slot save/restore at prefix 128000 (actual 127999) ==
+slot0_prime_p127999        status=200 prompt_n=4 cache_n=127995 prompt_ms=456.813 prompt_tps=8.756318230873465 ttft_ms=551.4 out_tps=0.0 wall_ms=552.25
+slot0_after_restore_p127999 status=200 prompt_n=1 cache_n=127998 prompt_ms=761.738 prompt_tps=1.3127873363282387 ttft_ms=None out_tps=0.0 wall_ms=871.73
+
+== needle correctness after restore at prefix 128000 (actual 127999) ==
+  needle pass (p127999): sentinel found in answer
+
+wrote /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-prefix-cache-m3.0c/ctx128k-patched/prefix-cache.json
+saved /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-prefix-cache-m3.0c/ctx128k-patched/prefix-cache.json

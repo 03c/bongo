@@ -1,0 +1,22 @@
+{
+  "samples": 2108,
+  "samples_with_pid": 2108,
+  "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/bongo-cap-16g-16.scope",
+  "memory_max": "17179869184",
+  "memory_current_peak": 17179856896,
+  "vram_peak_bytes": 31417565184,
+  "vmrss_peak_kb": 13147016,
+  "vmhwm_kb": 16642244,
+  "majflt_last": 42595,
+  "minflt_last": 2528177,
+  "read_bytes_last": 59640938496,
+  "read_chars_last": 25715447,
+  "pgmajfault_last": 50275,
+  "memory_events": {
+    "max": 6342,
+    "oom": 0,
+    "oom_kill": 0,
+    "high": 0,
+    "low": 0
+  }
+}

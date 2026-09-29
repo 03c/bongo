@@ -1,0 +1,42 @@
+{
+  "schema": "bongo.ctx256-fit.v1",
+  "generated_at": "2026-09-28T11:20:00+00:00",
+  "purpose": "Can the 262144-token context fit VRAM with IQ2_XS on the Arc Pro B70?",
+  "reference": "usable VRAM 31.92 GiB; n=12 device-lost at 31.85 GiB during a 128K prefill (expert-placement.md)",
+  "engine": "llama.cpp b11223 (4da633776), Vulkan (--device Vulkan1)",
+  "model": "Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS",
+  "flags": "--ctx-size 262144 --jinja --flash-attn on --n-gpu-layers 99 --parallel 1",
+  "cases": [
+    {
+      "label": "ctx256-q8-n16",
+      "n_cpu_moe": 16,
+      "cache_type_k": "q8_0",
+      "cache_type_v": "q8_0",
+      "loaded": true,
+      "vram_after_load_gib": 31.786,
+      "vram_after_request_gib": 31.818,
+      "verdict": "unsafe; within ~0.03 GiB of the 31.85 GiB device-loss threshold"
+    },
+    {
+      "label": "ctx256-q8-n18",
+      "n_cpu_moe": 18,
+      "cache_type_k": "q8_0",
+      "cache_type_v": "q8_0",
+      "loaded": true,
+      "vram_after_load_gib": 30.346,
+      "vram_after_request_gib": 30.346,
+      "verdict": "safe; ~1.5 GiB margin; keeps KV at q8"
+    },
+    {
+      "label": "ctx256-q4-n16",
+      "n_cpu_moe": 16,
+      "cache_type_k": "q4_0",
+      "cache_type_v": "q4_0",
+      "loaded": true,
+      "vram_after_load_gib": 30.099,
+      "vram_after_request_gib": 30.099,
+      "verdict": "safe; ~1.75 GiB margin; loses KV precision"
+    }
+  ],
+  "run_protocol": "start llama-server, wait for 'model loaded', read /proc/<pid>/fdinfo drm-resident-vram0, send one 4-token request, read VRAM again, stop. A full 262144-token prefill was NOT run (~30+ min)."
+}

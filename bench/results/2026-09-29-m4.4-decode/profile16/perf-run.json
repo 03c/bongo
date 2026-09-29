@@ -1,0 +1,58 @@
+{
+  "label": "bench/results/2026-09-29-m4.4-decode/profile16",
+  "ctx_tokens": 4096,
+  "max_tokens": 16,
+  "prime": {
+    "status": 200,
+    "wall_ms": 12772.9,
+    "prompt_tokens": 4094,
+    "prompt_ms": 12766.049,
+    "prompt_tps": 320.69436675356644,
+    "output_tokens": 1,
+    "output_ms": 0.001,
+    "output_tps": 0.0,
+    "cache_n": 0,
+    "cached_tokens": 0,
+    "usage": {
+      "completion_tokens": 1,
+      "prompt_tokens": 4094,
+      "total_tokens": 4095,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": " The",
+    "ttft_ms": 12772.74,
+    "ttfb_ms": 12772.7,
+    "stream_total_ms": 12772.9,
+    "stream_error": null,
+    "stream_text": " The"
+  },
+  "run": {
+    "status": 200,
+    "wall_ms": 1233.45,
+    "prompt_tokens": 4,
+    "prompt_ms": 182.822,
+    "prompt_tps": 21.87920490969358,
+    "output_tokens": 16,
+    "output_ms": 1046.444,
+    "output_tps": 14.334259645045508,
+    "cache_n": 4090,
+    "cached_tokens": 4090,
+    "usage": {
+      "completion_tokens": 16,
+      "prompt_tokens": 4094,
+      "total_tokens": 4110,
+      "prompt_tokens_details": {
+        "cached_tokens": 4090
+      }
+    },
+    "text": " The turbine hall hummed at a steady frequency, a sound felt more than heard",
+    "ttft_ms": 186.97,
+    "ttfb_ms": 186.94,
+    "stream_total_ms": 1233.45,
+    "stream_error": null,
+    "stream_text": " The turbine hall hummed at a steady frequency, a sound felt more than heard"
+  },
+  "decode_steps": 17
+}

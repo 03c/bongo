@@ -1,0 +1,44 @@
+budget=22.40 GiB  corpora=['doc', 'code', 'chat', 'convo']
+Step-1 resident layers: n=33 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 37]
+
+held-out doc    tokens= 3971 events= 1866380
+  static_insample      0.9957
+  static_profile       0.9632
+  profile_lru          0.9930
+  cold_lru             0.9873
+  per_layer_lru        0.9831
+  byte_budget_layers   0.7021
+  static_layer_16      0.6596
+
+held-out code   tokens= 3794 events= 1783190
+  static_insample      0.9897
+  static_profile       0.8807
+  profile_lru          0.9863
+  cold_lru             0.9800
+  per_layer_lru        0.9759
+  byte_budget_layers   0.7021
+  static_layer_16      0.6596
+
+held-out chat   tokens=  536 events=  251930
+  static_insample      1.0000
+  static_profile       0.9853
+  profile_lru          0.9884
+  cold_lru             0.9467
+  per_layer_lru        0.9465
+  byte_budget_layers   0.7021
+  static_layer_16      0.6596
+
+held-out convo  tokens= 1008 events=  473770
+  static_insample      1.0000
+  static_profile       0.9771
+  profile_lru          0.9916
+  cold_lru             0.9688
+  per_layer_lru        0.9684
+  byte_budget_layers   0.7021
+  static_layer_16      0.6596
+
+decode held-out doc: tokens=256 events=122880 static=0.9451 cold_lru=0.9031 profile_lru=0.9850
+
+decode held-out chat: tokens=128 events=61440 static=0.9617 cold_lru=0.8616 profile_lru=0.9862
+
+wrote bench/results/2026-09-28-byte-budget-placement/lru-ab.json

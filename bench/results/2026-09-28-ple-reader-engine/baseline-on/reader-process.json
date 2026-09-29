@@ -1,0 +1,10 @@
+{
+  "reader": "on",
+  "o_direct_fds": [
+    {
+      "fd": "18",
+      "target": "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+      "flags_octal": "0140000"
+    }
+  ]
+}

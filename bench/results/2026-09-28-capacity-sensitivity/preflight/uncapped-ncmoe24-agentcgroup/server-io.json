@@ -1,0 +1,1 @@
+{"mem_gib": none, "n_cpu_moe": 24, "rchar_before": 25489233, "rchar_after": 25715028, "read_bytes_before": 57194782720, "read_bytes_after": 62651183104, "majflt_before": 1447952, "majflt_after": 1490224, "harness_exit": 0}

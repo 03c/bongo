@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# M4.5 fallback-test wrapper: fail the auto placement once, serve the rest.
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+  if [[ "${args[i]}" == "--n-cpu-moe" && "${args[i + 1]:-}" == "12" ]]; then
+    echo "vk::Device::allocateMemory: ErrorOutOfDeviceMemory (forced by the M4.5 fallback test)" >&2
+    exit 1
+  fi
+done
+exec "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin/llama-server" "$@"
