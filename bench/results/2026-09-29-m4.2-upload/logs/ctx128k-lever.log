@@ -1,0 +1,7 @@
+[warm-prefix 06:39:40Z] lm_none_128k: starting llama-server (ctx=131072 perf=0) flags: --load-mode none
+[warm-prefix 06:40:50Z] lm_none_128k: server healthy after 70s; pid=4045117
+[warm-prefix 06:41:02Z] lm_none_128k: profiling prefixes=128000 deltas=512
+[warm-prefix 06:41:02Z] lm_none_128k: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 06:53:46Z] lm_none_128k: profile exit 0
+bench/run-warm-prefix-profile.sh: line 313: syntax error near unexpected token `('
+bench/run-warm-prefix-profile.sh: line 313: `old-page number (the sweep scripts do the same).'

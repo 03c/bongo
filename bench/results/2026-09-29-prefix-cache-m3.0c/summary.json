@@ -1,0 +1,79 @@
+{
+  "patched_rc": 0,
+  "stock_rc": 0,
+  "finished_at": "2026-09-29T04:58:58Z",
+  "cases": {
+    "patched": {
+      "cache_n": 127998,
+      "after_restore_prompt_tokens": 1,
+      "restore_ttft_ms": null,
+      "restore_reuse": true,
+      "restore_verified": false,
+      "after_restore": {
+        "status": 200,
+        "wall_ms": 871.73,
+        "prompt_tokens": 1,
+        "prompt_ms": 761.738,
+        "prompt_tps": 1.3127873363282387,
+        "output_tokens": 1,
+        "output_ms": 0.001,
+        "output_tps": 0.0,
+        "cache_n": 127998,
+        "cached_tokens": 127998,
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 127999,
+          "total_tokens": 128000,
+          "prompt_tokens_details": {
+            "cached_tokens": 127998
+          }
+        },
+        "text": "",
+        "ttft_ms": null,
+        "ttfb_ms": 871.6,
+        "stream_total_ms": 871.73,
+        "stream_error": null,
+        "stream_text": "",
+        "label": "slot0_after_restore_p127999",
+        "cache_prompt": true,
+        "ts": 1790654900.1436183
+      }
+    },
+    "stock": {
+      "cache_n": 0,
+      "after_restore_prompt_tokens": 127999,
+      "restore_ttft_ms": null,
+      "restore_reuse": false,
+      "restore_verified": false,
+      "after_restore": {
+        "status": 200,
+        "wall_ms": 963812.67,
+        "prompt_tokens": 127999,
+        "prompt_ms": 963720.061,
+        "prompt_tps": 132.81761496920836,
+        "output_tokens": 1,
+        "output_ms": 0.001,
+        "output_tps": 0.0,
+        "cache_n": 0,
+        "cached_tokens": 0,
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 127999,
+          "total_tokens": 128000,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "text": "",
+        "ttft_ms": null,
+        "ttfb_ms": 30093.75,
+        "stream_total_ms": 963812.67,
+        "stream_error": null,
+        "stream_text": "",
+        "label": "slot0_after_restore_p127999",
+        "cache_prompt": true,
+        "ts": 1790657938.0535548
+      }
+    }
+  }
+}

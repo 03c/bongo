@@ -1,0 +1,1 @@
+placement ceiling probe: 10 CPU expert layers at the full 128K context

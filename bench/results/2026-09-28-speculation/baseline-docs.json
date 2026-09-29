@@ -1,0 +1,330 @@
+{
+  "schema": "bongo.speculation-run.v1",
+  "generated_at": "2026-09-29T00:24:51+00:00",
+  "label": "baseline",
+  "spec_type": "none",
+  "spec_synth": "none",
+  "workload": "docs",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "tier": "iq2_xs",
+  "config": {
+    "contexts": [
+      4096,
+      131072
+    ],
+    "max_tokens": 128,
+    "repeats": 2,
+    "equivalence_tokens": 64,
+    "skip_equivalence": false,
+    "cache_prompt": true
+  },
+  "server": {
+    "build_info": "b11223-4da633776",
+    "default_generation_settings": {
+      "params": {
+        "seed": 4294967295,
+        "temperature": 1.0,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 64,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "adaptive_target": -1.0,
+        "adaptive_decay": 0.8999999761581421,
+        "max_tokens": -1,
+        "n_predict": -1,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "Content-only",
+        "reasoning_format": "none",
+        "reasoning_in_content": false,
+        "generation_prompt": "",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "n_ctx": 131072
+    },
+    "log": "/home/cchild/.bongo/m32b/scratch/speculation-baseline-server.log",
+    "note": "engine=llama.cpp b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=16 ctx=131072 spec_type=none synth_len=none flags=--model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type none workload=docs"
+  },
+  "warmup": {
+    "status": 200,
+    "wall_ms": 793.92,
+    "ttft_ms": 793.82,
+    "prompt_ms": 235.694,
+    "prompt_tps": 16.971157517798503,
+    "output_tokens": 1,
+    "output_tps": 0.0,
+    "timings": {
+      "cache_n": 251,
+      "prompt_n": 4,
+      "prompt_ms": 235.694,
+      "prompt_per_token_ms": 58.9235,
+      "prompt_per_second": 16.971157517798503,
+      "predicted_n": 1,
+      "predicted_ms": 0.001,
+      "predicted_per_token_ms": 0.0,
+      "predicted_per_second": 0.0
+    },
+    "draft": {
+      "cache_n": 251,
+      "prompt_n": 4,
+      "predicted_n": 1,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "draft_n_verif_steps": null,
+      "draft_ratio": null,
+      "mean_acc_len": null
+    },
+    "text": "\n\n",
+    "error": null
+  },
+  "contexts": [
+    {
+      "context": 4096,
+      "equiv": {
+        "status": 200,
+        "text": "\n\n</think>\n\npstream-default.\n\n### Measured prefix reuse\n\nThe reference box is an idle Arc Pro B70, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`,\n`--ctx 262144`, `--cache",
+        "prompt_tokens": 4087,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 7279.12,
+          "ttft_ms": 186.62,
+          "prompt_ms": 182.402,
+          "prompt_tps": 21.929584105437442,
+          "output_tokens": 128,
+          "output_tps": 17.906350071117817,
+          "timings": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "prompt_ms": 182.402,
+            "prompt_per_token_ms": 45.6005,
+            "prompt_per_second": 21.929584105437442,
+            "predicted_n": 128,
+            "predicted_ms": 7092.456,
+            "predicted_per_token_ms": 55.846110236220476,
+            "predicted_per_second": 17.906350071117817
+          },
+          "draft": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n</think>\n\npstream-default.\n\n### Measured prefix reuse\n\nThe reference box is an idle Arc Pro B70, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`,\n`--ctx 262144`, `--cache-ram 8192`, `--flash-attention`, `--slots`, `--cache-prompt`,\n`--ctx-checkpoints 32`, `--slot-save-path` set, `--cache-idle-slots` on.\nEvidence: [`bench/results/2026-",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 7364.42,
+          "ttft_ms": 180.81,
+          "prompt_ms": 176.655,
+          "prompt_tps": 22.643004726727238,
+          "output_tokens": 128,
+          "output_tps": 17.67919992015127,
+          "timings": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "prompt_ms": 176.655,
+            "prompt_per_token_ms": 44.16375,
+            "prompt_per_second": 22.643004726727238,
+            "predicted_n": 128,
+            "predicted_ms": 7183.583,
+            "predicted_per_token_ms": 56.56364566929133,
+            "predicted_per_second": 17.67919992015127
+          },
+          "draft": {
+            "cache_n": 4083,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n</think>\n\npstream-default.\n\n### Measured prefix reuse\n\nThe reference box is an idle Arc Pro B70, llama.cpp `b11223` Vulkan, `--n-cpu-moe 18`,\n`--ctx 262144`, `--cache-ram 8192`, `--flash-attention`, `--slots`, `--cache-prompt`,\n`--ctx-checkpoints 32`, `--slot-save-path` set, `--cache-idle-slots` on.\nEvidence: [`bench/results/2026-",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 17.792774995634545,
+          "min": 17.67919992015127,
+          "max": 17.906350071117817
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 183.715,
+          "min": 180.81,
+          "max": 186.62
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 4083.0,
+          "min": 4083,
+          "max": 4083
+        }
+      },
+      "acceptance": null,
+      "acceptance_runs": [],
+      "prompt_tokens": 4087
+    },
+    {
+      "context": 131072,
+      "equiv": {
+        "status": 200,
+        "text": " \u2014 so a 12-token match in a\n  copy-heavy prompt does not make the drafter greedy in a prompt that repeats nothing.\n- `VerifyWindow` (`include/strata/core/verify.hpp`) sizes the window from an **EWMA of accepted lengths**\n  (`alpha = 0",
+        "prompt_tokens": 126783,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 14228.47,
+          "ttft_ms": 389.05,
+          "prompt_ms": 318.803,
+          "prompt_tps": 12.546933372647057,
+          "output_tokens": 128,
+          "output_tps": 9.17726671080908,
+          "timings": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "prompt_ms": 318.803,
+            "prompt_per_token_ms": 79.70075,
+            "prompt_per_second": 12.546933372647057,
+            "predicted_n": 128,
+            "predicted_ms": 13838.543,
+            "predicted_per_token_ms": 108.96490551181103,
+            "predicted_per_second": 9.17726671080908
+          },
+          "draft": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": " \u2014 so a 12-token match in a\n  copy-heavy prompt does not make the drafter greedy in a prompt that repeats nothing.\n- `VerifyWindow` (`include/strata/core/verify.hpp`) sizes the window from an **EWMA of accepted lengths**\n  (`alpha = 0.25`), clamped to `[1, 8]`, and **shrinks the window when acceptance falls below `min_p`** so a\n  low-acceptance workload never pays for drafts.\n- `--spec-mode` selects the drafter: `mtp` (default), `",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 14065.98,
+          "ttft_ms": 391.95,
+          "prompt_ms": 323.871,
+          "prompt_tps": 12.350596379422672,
+          "output_tokens": 128,
+          "output_tps": 9.289100732398051,
+          "timings": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "prompt_ms": 323.871,
+            "prompt_per_token_ms": 80.96775,
+            "prompt_per_second": 12.350596379422672,
+            "predicted_n": 128,
+            "predicted_ms": 13671.937,
+            "predicted_per_token_ms": 107.65304724409448,
+            "predicted_per_second": 9.289100732398051
+          },
+          "draft": {
+            "cache_n": 130862,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": " \u2014 so a 12-token match in a\n  copy-heavy prompt does not make the drafter greedy in a prompt that repeats nothing.\n- `VerifyWindow` (`include/strata/core/verify.hpp`) sizes the window from an **EWMA of accepted lengths**\n  (`alpha = 0.25`), clamped to `[1, 8]`, and **shrinks the window when acceptance falls below `min_p`** so a\n  low-acceptance workload never pays for drafts.\n- `--spec-mode` selects the drafter: `mtp` (default), `",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 9.233183721603567,
+          "min": 9.17726671080908,
+          "max": 9.289100732398051
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 390.5,
+          "min": 389.05,
+          "max": 391.95
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 130862.0,
+          "min": 130862,
+          "max": 130862
+        }
+      },
+      "acceptance": null,
+      "acceptance_runs": [],
+      "prompt_tokens": 130866
+    }
+  ]
+}

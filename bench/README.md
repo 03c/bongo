@@ -34,6 +34,7 @@ Nothing needs editing between runs. Useful overrides:
 | `--needle-context N` | context of the recall check, default 131072 |
 | `--gguf-dir DIR` | where to hash the model shards (`BONGO_GGUF_DIR`) |
 | `--hash-mode full\|sampled\|none` | shard hashing, default `full` |
+| `--cache-prompt` / `--no-cache-prompt` | send `cache_prompt=true` (default) or `false` (`BONGO_CACHE_PROMPT`) |
 | `--server-pid PID` | llama-server pid for memory sampling (auto-detected) |
 | `--out-dir DIR` | results directory |
 
@@ -45,7 +46,14 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
 - **prompt tokens** — the server-reported token count of the prompt actually
   processed (`timings.prompt_n`). Prompts are sized with the server's
   `/tokenize` endpoint, so the target context is honest, not a character-count
-  guess, and are capped so `prompt tokens + max_tokens <= n_ctx`.
+  guess, and are capped so `prompt tokens + max_tokens <= n_ctx`. When prompt
+  caching is on, this is the *delta* after the cached prefix; the full prompt size
+  is `prompt tokens + cached tok`.
+- **cached tok** — the median number of prompt tokens the server reused from the
+  slot KV (`timings.cache_n`, falling back to
+  `usage.prompt_tokens_details.cached_tokens`). This is the product metric for an
+  agentic turn: a growing session prefills only its new suffix. It is `0` on a
+  cold prefill.
 - **prompt tok/s** — prefill throughput: prompt tokens per second of prompt
   processing (`timings.prompt_per_second`, cross-checked against
   `prompt_n / prompt_ms`).
@@ -75,6 +83,19 @@ Exit codes: `0` full success, `3` partial/negative result recorded (for example
   proves recall); otherwise it runs as its own request.
 - **cv** — coefficient of variation (stdev / median) across repeats. Reported
   wherever `repeats >= 2`.
+
+## Prompt caching (the agentic profile)
+
+The harness measures the **prefix-reuse** path by default (`cache_prompt: true`),
+because that is the product workload: a small first prompt that grows. The
+recorded `profile` is `agentic`. `--no-cache-prompt` sends `cache_prompt: false`
+and records `profile: baseline`; use it to reproduce the historical Stage 0 cold
+prefill numbers or to A/B the cached path against the cold one.
+
+`matrix.json.config` records `cache_prompt` and `profile`; every run records
+`cache_n` and `cached_tokens`, and `matrix.md` reports the median as `cached tok`.
+For a turn-by-turn view (cold / hit / grow / repeat) plus slot save/restore
+timings, use [`measure-prefix-cache.py`](measure-prefix-cache.py).
 
 ## Variance
 

@@ -1,0 +1,62 @@
+# Raw evidence: the STRP expert-profile layout, parsed from the file Strata ships
+#
+# Source : Niko1221/Strata @ b89c989a7155e984e544ddd90d1038dda7da9e3d (CMake project version 0.1.13),
+#          read-only clone, 2026-09-28.
+# File   : data/expert-profile.bin   (130,328 bytes, committed upstream)
+# Reader : src/core/expert_cache.cpp :: read_expert_profile
+# Date   : 2026-09-28
+#
+# The reader's own header comment (include/strata/core/expert_cache.hpp:42) describes the file as:
+#   "STRP, then version, n_layers, n_expert, slots, n_ranked, then n_ranked (layer, expert) pairs ranked by
+#    descending routing frequency, then a n_layers x n_expert frequency table.
+#    The frequency table is not returned: it is the profile's own working."
+#
+# ---------------------------------------------------------------------------------------------
+# Parsed header (magic + 5 x uint32 LE)
+# ---------------------------------------------------------------------------------------------
+#   magic     = b'STRP'
+#   version   = 1
+#   n_layers  = 48
+#   n_expert  = 512
+#   slots     = 8000
+#   n_ranked  = 8000
+#
+#   total size     = 130,328 B
+#   24 (magic + 5 u32) + 8000*4 (pairs)            = 32,024
+#   24 + 8000*4 + 48*512*4 (trailer)               = 130,328   == file size exactly
+#
+# ---------------------------------------------------------------------------------------------
+# The ranked list (bytes [24, 32024), n_ranked x (uint16 layer, uint16 expert))
+# ---------------------------------------------------------------------------------------------
+#   All 8,000 pairs are in range (layer 0..47, expert 0..511).  First 8:
+#     (28, 288) (46, 185) (47, 242) (33, 117) (44, 76) (31, 476) (30, 462) (3, 120)
+#
+#   All 48 layers are represented.  Pairs per layer: min 118, max 217:
+#     layer 0: 217   layer 1: 215   layer 6: 209   layer 22: 206   layer 2: 205   ...  layer 15: 118
+#
+#   Reading: the shipped profile is a roughly LAYER-UNIFORM 8,000-slot selection (16.3% of the 24,576
+#   (layer, expert) cells), i.e. ~167 slots per layer.  It is not concentrated in a few layers, so at
+#   8,000 total slots it implies ~167 slots/layer - well above the 64 slots/layer that
+#   include/strata/core/expert_cache.hpp measures at 70.4% hit rate.
+#
+# ---------------------------------------------------------------------------------------------
+# The trailer (bytes [32024, 130328), n_layers*n_expert = 24,576 uint32 LE) is a RANK TABLE, NOT a
+# frequency table: the header comment is wrong on this point (harmlessly - the reader discards it).
+# ---------------------------------------------------------------------------------------------
+#   entries equal to 0xFFFFFFFF : 16,576   == 24,576 - 8,000
+#   the other 8,000 entries     : a permutation of 0 .. 7,999
+#
+#   Verified two ways:
+#     (a) trailer[l*512 + e] == 0xFFFFFFFF  <=>  (l, e) is NOT in the ranked list   (all 24,576 cells)
+#     (b) trailer[l*512 + e] == i           for every ranked pair i, i.e. the value is the pair's own
+#                                            index in the ranked list
+#
+#   So the load-time-available "frequency" information in the file is only an ORDER, and the engine
+#   rescores it by running (`expert_cache.hpp`: "the engine measures h by running rather than by
+#   re-deriving what the file claims").
+#
+# Not established by this inspection (see docs/research/strata-architecture.md §2 and §7):
+#   * which corpus / sequence length / sampling settings the ranking was built from;
+#   * whether the ranking is over the whole trace or per layer only;
+#   * how it transfers to a different prompt (the 0.6447 leave-one-out figure comes from
+#     tools/routing_kfold.py, which is referenced by the engine but is NOT present at this commit).

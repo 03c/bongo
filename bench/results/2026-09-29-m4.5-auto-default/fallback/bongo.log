@@ -1,0 +1,79 @@
+[bongo] bongo.sh 0.1.0 — Fedora Linux 44 (Server Edition)
+[bongo] Kernel driver: xe (loaded)
+[bongo] Render node: /dev/dri/renderD128
+[bongo] Provisioning compute runtime (mode: dir)...
+[bongo] Runtime library path: /home/cchild/.bongo/runtime/opt/intel/oneapi/redist/lib:/home/cchild/.bongo/runtime/usr/lib64:/home/cchild/.bongo/runtime/usr/lib64/llvm15/lib
+[bongo] Using existing llama.cpp build at bench/results/2026-09-29-m4.5-auto-default/fallback-engine/bin
+[bongo] Using existing iq2_xs download at /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs — skipping download.
+[bongo] Pinned Vulkan device: Vulkan1
+[bongo] Wrote generated config: /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/bongo-config.json
+[bongo] Wrote generated config: /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/bongo-config.env
+
+bongo plan
+  GPU            : Intel Corporation Battlemage G31 [Arc Pro B70] (8086:e223), 32 GB VRAM
+  Backend        : Vulkan
+  Runtime        : mode=dir dir=/home/cchild/.bongo/runtime
+  llama.cpp      : b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a)
+  Engine         : m42 (pinned llama.cpp + M4.2 host-expert upload patch)
+  Server env     : GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
+  Model          : ukisai/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF [iq2_xs]
+  Context        : 131072
+  MoE placement  : --n-gpu-layers 99 --n-cpu-moe 12 (auto)
+  Prefix cache   : cache_prompt=1 slot_save_path=/tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots save_slot_checkpoints=0 warmup=1
+  Endpoint       : http://127.0.0.1:8080/v1
+  Exact flags    : --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 12 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --load-mode none --cache-prompt --slot-save-path /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots --device Vulkan1
+
+[bongo] Starting llama-server:
+[bongo]   bench/results/2026-09-29-m4.5-auto-default/fallback-engine/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 12 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --load-mode none --cache-prompt --slot-save-path /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots --device Vulkan1
+[bongo]   env: GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
+[bongo] Waiting for the server to become healthy (model load can take minutes)...
+[bongo] llama-server exited during startup. Last log lines:
+vk::Device::allocateMemory: ErrorOutOfDeviceMemory (forced by the M4.5 fallback test)
+[bongo] the auto placement (--n-cpu-moe 12) failed to load (out_of_device_memory); falling back to the safe placement (--n-cpu-moe 16).
+[bongo] Pinned Vulkan device: Vulkan1
+[bongo] Wrote generated config: /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/bongo-config.json
+[bongo] Wrote generated config: /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/bongo-config.env
+
+bongo plan
+  GPU            : Intel Corporation Battlemage G31 [Arc Pro B70] (8086:e223), 32 GB VRAM
+  Backend        : Vulkan
+  Runtime        : mode=dir dir=/home/cchild/.bongo/runtime
+  llama.cpp      : b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a)
+  Engine         : m42 (pinned llama.cpp + M4.2 host-expert upload patch)
+  Server env     : GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
+  Model          : ukisai/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF [iq2_xs]
+  Context        : 131072
+  MoE placement  : --n-gpu-layers 99 --n-cpu-moe 16 (auto -> tier (auto load fallback: out_of_device_memory))
+  Prefix cache   : cache_prompt=1 slot_save_path=/tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots save_slot_checkpoints=0 warmup=1
+  Endpoint       : http://127.0.0.1:8080/v1
+  Exact flags    : --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --load-mode none --cache-prompt --slot-save-path /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots --device Vulkan1
+
+[bongo] Starting llama-server:
+[bongo]   bench/results/2026-09-29-m4.5-auto-default/fallback-engine/bin/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --load-mode none --cache-prompt --slot-save-path /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots --device Vulkan1
+[bongo]   env: GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
+[bongo] Waiting for the server to become healthy (model load can take minutes)...
+[bongo]   ...still loading (30s)
+[bongo] Server ready: http://127.0.0.1:8080/v1
+[bongo] Warming the server (compiles the shader/kernel set)...
+[bongo] Warmup done in 156 ms.
+
+[bongo] bongo is serving.
+  Endpoint     : http://127.0.0.1:8080/v1
+  Model name   : bongo-iq2_xs
+  Backend      : Vulkan
+  Context      : 131072 tokens
+  Slot KV      : save/restore enabled at /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/slots
+  llama.cpp    : b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a)
+  Config       : /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/bongo-config.json
+  Server log   : /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/llama-server.log
+
+  Try it:
+    curl -s http://127.0.0.1:8080/v1/models | jq .
+    curl -s http://127.0.0.1:8080/v1/chat/completions -H 'Content-Type: application/json' \
+      -d '{"model":"bongo-iq2_xs","messages":[{"role":"user","content":"Hello"}]}' | jq .
+
+[bongo] System RAM:
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi        19Gi       5.4Gi       221Mi       5.9Gi        10Gi
+[bongo] llama-server RSS: 1965 MiB
+[bongo] Started in the background (pid 9633, log /tmp/paperclip-run-bas-163-96529724-835-wzV8u8/bongo-m45.DGwVKs/fallback/.bongo/run/llama-server.log).

@@ -21,6 +21,8 @@ set -uo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
+# shellcheck source=bench/gpu-lock.sh
+. "$repo/bench/gpu-lock.sh"
 
 tier="${BONGO_SWEEP_TIER:-iq2_xs}"
 configs="${1:-${BONGO_SWEEP_CONFIGS:-24,0,12,48}}"
@@ -217,6 +219,10 @@ run_config() {
 }
 
 log "sweep tier=$tier contexts=$contexts configs=$configs -> $out_root"
+# Serialise on the single GPU for the whole sweep (BAS-80). bongo.sh inherits
+# BONGO_GPU_LOCK_HELD=1 and will not re-acquire.
+bongo_gpu_lock_acquire "sweep-expert-placement tier=$tier configs=$configs" || exit 3
+trap 'bongo_gpu_lock_release' EXIT INT TERM
 IFS=',' read -r -a vals <<< "$configs"
 for n in "${vals[@]}"; do
   run_config "$n"

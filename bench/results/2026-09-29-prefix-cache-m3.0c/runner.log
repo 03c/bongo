@@ -1,0 +1,86 @@
+[m3.0c 03:49:58Z] holding the single-GPU lock after 1297s of queueing
+[m3.0c 03:49:58Z] === patched: engine=/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin save_slot_checkpoints=1 needle=1 ===
+[m3.0c 04:24:34Z] === patched rc=0 elapsed=2076s ===
+[m3.0c 04:24:34Z] === stock: engine=/home/cchild/.bongo/llama/b11223/vulkan save_slot_checkpoints=0 needle=0 ===
+[m3.0c 04:58:58Z] === stock rc=0 elapsed=2064s ===
+[m3.0c 04:58:58Z] done patched_rc=0 stock_rc=0; results under /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-prefix-cache-m3.0c
+<stdin>:6: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+{
+  "patched_rc": 0,
+  "stock_rc": 0,
+  "finished_at": "2026-09-29T04:58:58Z",
+  "cases": {
+    "patched": {
+      "cache_n": 127998,
+      "after_restore_prompt_tokens": 1,
+      "restore_ttft_ms": null,
+      "restore_reuse": true,
+      "restore_verified": false,
+      "after_restore": {
+        "status": 200,
+        "wall_ms": 871.73,
+        "prompt_tokens": 1,
+        "prompt_ms": 761.738,
+        "prompt_tps": 1.3127873363282387,
+        "output_tokens": 1,
+        "output_ms": 0.001,
+        "output_tps": 0.0,
+        "cache_n": 127998,
+        "cached_tokens": 127998,
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 127999,
+          "total_tokens": 128000,
+          "prompt_tokens_details": {
+            "cached_tokens": 127998
+          }
+        },
+        "text": "",
+        "ttft_ms": null,
+        "ttfb_ms": 871.6,
+        "stream_total_ms": 871.73,
+        "stream_error": null,
+        "stream_text": "",
+        "label": "slot0_after_restore_p127999",
+        "cache_prompt": true,
+        "ts": 1790654900.1436183
+      }
+    },
+    "stock": {
+      "cache_n": 0,
+      "after_restore_prompt_tokens": 127999,
+      "restore_ttft_ms": null,
+      "restore_reuse": false,
+      "restore_verified": false,
+      "after_restore": {
+        "status": 200,
+        "wall_ms": 963812.67,
+        "prompt_tokens": 127999,
+        "prompt_ms": 963720.061,
+        "prompt_tps": 132.81761496920836,
+        "output_tokens": 1,
+        "output_ms": 0.001,
+        "output_tps": 0.0,
+        "cache_n": 0,
+        "cached_tokens": 0,
+        "usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 127999,
+          "total_tokens": 128000,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "text": "",
+        "ttft_ms": null,
+        "ttfb_ms": 30093.75,
+        "stream_total_ms": 963812.67,
+        "stream_error": null,
+        "stream_text": "",
+        "label": "slot0_after_restore_p127999",
+        "cache_prompt": true,
+        "ts": 1790657938.0535548
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+[bongo] bongo.sh 0.1.0 — Fedora Linux 44 (Server Edition)
+[bongo] Kernel driver: xe (loaded)
+[bongo] Render node: /dev/dri/renderD128
+[bongo] Provisioning compute runtime (mode: dir)...
+[bongo] Runtime library path: /home/cchild/.bongo/runtime/opt/intel/oneapi/redist/lib:/home/cchild/.bongo/runtime/usr/lib64:/home/cchild/.bongo/runtime/usr/lib64/llvm15/lib
+[bongo] Using existing llama.cpp build at /home/cchild/.bongo/llama/b11223/sycl
+[bongo] Runtime library path: /home/cchild/.bongo/runtime/opt/intel/oneapi/redist/lib:/home/cchild/.bongo/runtime/usr/lib64:/home/cchild/.bongo/runtime/usr/lib64/llvm15/lib
+[bongo] Using existing iq2_xs download at /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs — skipping download.
+[bongo] Wrote generated config: /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/bongo-config.json
+[bongo] Wrote generated config: /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/bongo-config.env
+
+bongo plan
+  GPU            : Intel Corporation Battlemage G31 [Arc Pro B70] (8086:e223), 32 GB VRAM
+  Backend        : SYCL0
+  Runtime        : mode=dir dir=/home/cchild/.bongo/runtime
+  llama.cpp      : b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a)
+  Model          : ukisai/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF [iq2_xs]
+  Context        : 131072
+  MoE placement  : --n-gpu-layers 99 --n-cpu-moe 16
+  Prefix cache   : cache_prompt=1 slot_save_path=/home/cchild/.bongo/ab-2026-09-28/home-sycl/run/slots save_slot_checkpoints=0 warmup=1
+  Endpoint       : http://127.0.0.1:8080/v1
+  Exact flags    : --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --cache-prompt --slot-save-path /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/slots
+
+[bongo] Starting llama-server:
+[bongo]   /home/cchild/.bongo/llama/b11223/sycl/llama-server --model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --cache-prompt --slot-save-path /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/slots
+[bongo] Waiting for the server to become healthy (model load can take minutes)...
+[bongo]   ...still loading (30s)
+[bongo]   ...still loading (60s)
+[bongo]   ...still loading (90s)
+[bongo] Server ready: http://127.0.0.1:8080/v1
+[bongo] Warming the server (compiles the shader/kernel set)...
+[bongo] Warmup done in 1368 ms.
+
+[bongo] bongo is serving.
+  Endpoint     : http://127.0.0.1:8080/v1
+  Model name   : bongo-iq2_xs
+  Backend      : SYCL0
+  Context      : 131072 tokens
+  Slot KV      : save/restore enabled at /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/slots
+  llama.cpp    : b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a)
+  Config       : /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/bongo-config.json
+  Server log   : /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/llama-server.log
+
+  Try it:
+    curl -s http://127.0.0.1:8080/v1/models | jq .
+    curl -s http://127.0.0.1:8080/v1/chat/completions -H 'Content-Type: application/json' \
+      -d '{"model":"bongo-iq2_xs","messages":[{"role":"user","content":"Hello"}]}' | jq .
+
+[bongo] System RAM:
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi       6.7Gi       423Mi       106Mi        23Gi        23Gi
+[bongo] llama-server RSS: 1874 MiB
+[bongo] Started in the background (pid 2801713, log /home/cchild/.bongo/ab-2026-09-28/home-sycl/run/llama-server.log).

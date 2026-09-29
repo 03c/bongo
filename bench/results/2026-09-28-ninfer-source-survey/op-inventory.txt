@@ -1,0 +1,182 @@
+# NInfer source inventory (read-only survey)
+# repo https://github.com/Neroued/ninfer
+# commit e31bc99b13f517c8aae70b997b7c4a49b4dcdc5d
+# date Sat Sep 26 23:24:49 2026 +0800
+
+## include/ninfer/ops/*.h (semantic Op contracts)
+add_bias.h
+argmax.h
+attention_geometry.h
+attn_input_proj.h
+candidate_selector.h
+cast.h
+causal_conv1d_silu.h
+context_kv_materialize.h
+dynamic_grouped_conv.h
+embedding.h
+gated_delta_net.h
+gated_rmsnorm.h
+gdn_gating.h
+gdn_gating_proj.h
+gdn_input_proj.h
+gdn_replay.h
+gelu.h
+kimi_delta_attention.h
+kv_cache_append.h
+l2norm.h
+layer_norm.h
+linear_add.h
+linear.h
+linear_pair.h
+linear_swiglu.h
+linear_topk.h
+mtp_pack.h
+mtp_round.h
+position.h
+prepare_masked_block.h
+prepare_ragged_prefix.h
+residual_add.h
+rmsnorm.h
+rmsnorm_pack_tail.h
+rmsnorm_rope.h
+rope.h
+sampling.h
+scalar.h
+scatter.h
+sigmoid_mul.h
+silu_mul.h
+sliding_window_attention.h
+softmax_attention.h
+sparse_moe.h
+speculative_round.h
+target_logprobs.h
+vision_pos_embed.h
+weight_input.h
+
+## src/ops/ top-level families
+attn_input_proj/
+candidate_selector/
+common/
+context_kv_materialize/
+dynamic_grouped_conv/
+gdn_gating_proj/
+gdn_input_proj/
+kernel/
+kv_cache/
+launcher/
+linear/
+linear_add/
+linear_attention/
+linear_pair/
+linear_swiglu/
+linear_topk/
+rmsnorm_rope/
+softmax_attention/
+sparse_moe/
+wrapper/
+
+## src/ops/linear numeric formats
+bf16/
+common/
+fp8/
+nvfp4/
+q4/
+q5/
+q6/
+q8/
+
+## src/ops/linear/<fmt> registered shape files
+-- q4
+n1024_k5120.cu n131072_k2048.cu n131072_k5120.cu n3456_k1152.cpp n34816_k5120.cu n4096_k5120.cu n4304_k1152.cpp n5120_k6144.cu n6144_k5120.cu n7168_k5120.cu 
+-- q5
+n1024_k5120.cpp n1152_k1152.cpp n1152_k4304.cpp n5120_k17408.cu n5120_k6144.cu n6144_k5120.cu n7168_k5120.cu 
+-- q6
+n1152_k1536.cpp n248320_k2048.cpp n248320_k5120.cpp 
+-- q8
+n1024_k2048.cpp n1024_k5120.cpp n12288_k2048.cpp n14336_k5120.cu n2048_k16384.cu n2048_k4096.cu n2048_k4608.cpp n248320_k5120.cu n34816_k5120.cu n4608_k4608.cpp n5120_k10240.cu n5120_k17408.cu n5120_k25600.cu n5120_k4608.cpp n5120_k6144.cu n6144_k5120.cu n9216_k2048.cpp 
+-- fp8
+n14336_k5120.cu n16384_k5120.cu n248320_k5120.cu n34816_k5120.cu n5120_k17408.cu n5120_k6144.cu 
+-- nvfp4
+n14336_k5120.cu n16384_k5120.cu n34816_k5120.cu n5120_k17408.cu n5120_k6144.cu 
+-- bf16
+n14336_k5120.cu n256_k5120.cu n5120_k6144.cu 
+
+## src/ops/linear_attention families
+src/ops/linear_attention:
+gated_delta_net
+kimi_delta_attention
+sources.cmake
+
+src/ops/linear_attention/gated_delta_net:
+chunked
+common.cuh
+common.h
+gated_delta_net.cpp
+launch.h
+recurrent.cu
+recurrent.cuh
+replay.cpp
+
+src/ops/linear_attention/gated_delta_net/chunked:
+launch.h
+prepare.cu
+recurrence.cu
+
+src/ops/linear_attention/kimi_delta_attention:
+chunked
+kimi_delta_attention.cpp
+launch.h
+recurrent.cu
+recurrent.cuh
+
+src/ops/linear_attention/kimi_delta_attention/chunked:
+prepare.cu
+recurrence.cu
+
+## src/ops/softmax_attention families
+src/ops/softmax_attention/dense/causal_cache/causal_softmax_attention.cpp
+src/ops/softmax_attention/dense/causal_cache/prompt.cu
+src/ops/softmax_attention/dense/causal_cache/prompt_fp8.cu
+src/ops/softmax_attention/dense/causal_cache/prompt_k8v4.cu
+src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4.cu
+src/ops/softmax_attention/dense/causal_cache/prompt_nvfp4_non_rdc.cu
+src/ops/softmax_attention/dense/causal_cache/small_t.cu
+src/ops/softmax_attention/dense/causal_cache/small_t_fp8.cu
+src/ops/softmax_attention/dense/causal_cache/small_t_k8v4.cu
+src/ops/softmax_attention/dense/causal_cache/small_t_nvfp4.cu
+src/ops/softmax_attention/dense/context/context_softmax_attention.cpp
+src/ops/softmax_attention/dense/context/launch.cu
+src/ops/softmax_attention/dense/packed/launch.cu
+src/ops/softmax_attention/dense/packed/packed_softmax_attention.cpp
+src/ops/softmax_attention/sliding_window/launch.cu
+src/ops/softmax_attention/sliding_window/sliding_window_attention.cpp
+
+## docs read
+docs/cli.md
+docs/maintainer/artifact-container.md
+docs/maintainer/build-system.md
+docs/maintainer/dflash.md
+docs/maintainer/engine-architecture.md
+docs/maintainer/examples/artifact-v3-mixed-sharded.json
+docs/maintainer/examples/artifact-v3-text.json
+docs/maintainer/examples/q4-linear.md
+docs/maintainer/examples/q4-linear.svg
+docs/maintainer/linear-benchmark.md
+docs/maintainer/linear-tuning.md
+docs/maintainer/logging.md
+docs/maintainer/op-development.md
+docs/maintainer/paged-kv-cache.md
+docs/maintainer/qwen3_5-model.md
+docs/maintainer/replayssm-gdn.md
+docs/maintainer/resource-scheduling-and-context-cache.md
+docs/maintainer/storage-layouts.md
+docs/maintainer/tensor-formats.md
+docs/performance.md
+docs/performance/methodology.md
+docs/performance/qwen3.6-27b.md
+docs/performance/qwen3.6-35b-a3b.md
+docs/performance/qwen3.8-27b.md
+docs/perplexity.md
+docs/README.md
+docs/serving.md
+docs/weight-conversion.md

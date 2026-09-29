@@ -1,0 +1,5 @@
+[m4.3 07:55:52Z] needle: shipped_default
+[needle 07:55:52Z] shipped_default: starting llama-server flags: --load-mode none env: GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
+[needle 07:57:35Z] shipped_default: needle exit 0
+[needle 07:57:35Z] done (rc=0); results in bench/results/2026-09-29-m4.3-shipped-default/needle
+[m4.3 07:57:35Z] done (rc=0); results in bench/results/2026-09-29-m4.3-shipped-default

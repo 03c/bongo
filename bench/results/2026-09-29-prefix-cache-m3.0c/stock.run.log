@@ -1,0 +1,21 @@
+starting bongo.sh: Vulkan, n-cpu-moe=16, ctx=131072, port=8080, slots=/home/cchild/.bongo/prefix-cache-m3.0c/slots-stock
+    Endpoint       : http://127.0.0.1:8080/v1
+  [bongo] Server ready: http://127.0.0.1:8080/v1
+  [bongo] Warmup done in 1192 ms.
+    Endpoint     : http://127.0.0.1:8080/v1
+    Slot KV      : save/restore enabled at /home/cchild/.bongo/prefix-cache-m3.0c/slots-stock
+server pid=3854452; running measurement
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=24578.867 prompt_tps=10.374766257533352 ttft_ms=24639.24 out_tps=0.0 wall_ms=24640.76
+
+== prefix target 128000 (actual 127999); with delta actual 128510 ==
+cold_p128000               status=200 prompt_n=127999 cache_n=0 prompt_ms=971668.913 prompt_tps=131.73108482477508 ttft_ms=971808.52 out_tps=6.262250527594608 wall_ms=972288.47
+hit_p128000                status=200 prompt_n=4 cache_n=127995 prompt_ms=413.032 prompt_tps=9.68447965290825 ttft_ms=505.1 out_tps=7.518476656383061 wall_ms=905.02
+grow_p128000_d512          status=200 prompt_n=515 cache_n=127995 prompt_ms=6121.187 prompt_tps=84.13400864897608 ttft_ms=6214.17 out_tps=7.856364702924662 wall_ms=6597.13
+grow_p128000_repeat        status=200 prompt_n=4 cache_n=128506 prompt_ms=363.637 prompt_tps=10.999980750033687 ttft_ms=456.2 out_tps=7.525964577793387 wall_ms=855.63
+
+== slot save/restore at prefix 128000 (actual 127999) ==
+slot0_prime_p127999        status=200 prompt_n=4 cache_n=127995 prompt_ms=520.809 prompt_tps=7.680358826364368 ttft_ms=610.79 out_tps=0.0 wall_ms=611.75
+slot0_after_restore_p127999 status=200 prompt_n=127999 cache_n=0 prompt_ms=963720.061 prompt_tps=132.81761496920836 ttft_ms=None out_tps=0.0 wall_ms=963812.67
+
+wrote /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-prefix-cache-m3.0c/ctx128k-stock/prefix-cache.json
+saved /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-prefix-cache-m3.0c/ctx128k-stock/prefix-cache.json

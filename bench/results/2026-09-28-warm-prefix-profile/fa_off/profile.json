@@ -1,0 +1,12 @@
+{
+  "schema": "bongo.warm-prefix-profile.v1",
+  "label": "fa_off",
+  "tier": "iq2_xs",
+  "flags": "--flash-attn off",
+  "fit": false,
+  "fatal_error": {
+    "stage": "server load",
+    "message": "0.00.851.635 E common_fit_params: encountered an error while trying to fit params to free device memory: failed to create llama_context from model 1.26.522.286 E srv  llama_server: exiting due to model loading error "
+  },
+  "generated_at": "2026-09-28T23:40:47.540353+00:00"
+}

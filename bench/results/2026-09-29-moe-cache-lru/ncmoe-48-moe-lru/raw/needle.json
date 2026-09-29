@@ -1,0 +1,10 @@
+{
+  "context": 131072,
+  "needle": "VAULT-COORD-7391-QXZ",
+  "status": "pass",
+  "prompt_tokens": 126767,
+  "answer": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ\n\nThe secret access code for the vault is VAULT-COORD-7391-QXZ.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Enginee",
+  "http_status": 200,
+  "error": null,
+  "folded_into_context": 131072
+}

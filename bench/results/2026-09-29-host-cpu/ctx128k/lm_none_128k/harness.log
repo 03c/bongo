@@ -1,0 +1,12 @@
+warmup prefill status=200
+warmup                       status=200 prompt_n=255 cache_n=0 prompt_ms=1934.146 wall_ms=2014.15 cpu_ms=1920.0 read_bytes=446464 majflt=59
+
+== prefix target 128000 (actual 127999) ==
+cold_p127999                 status=200 prompt_n=127999 cache_n=0 prompt_ms=957772.704 wall_ms=957950.23 cpu_ms=527480.0 read_bytes=6356992 majflt=1446
+   worker tids (0): []
+hit_p127999                  status=200 prompt_n=4 cache_n=127995 prompt_ms=393.908 wall_ms=493.01 cpu_ms=860.0 read_bytes=4096 majflt=1
+grow_p127999_d512            status=200 prompt_n=516 cache_n=127995 prompt_ms=5480.575 wall_ms=5575.36 cpu_ms=3650.0 read_bytes=1744896 majflt=426
+hit2_p127999                 status=200 prompt_n=4 cache_n=127995 prompt_ms=424.58 wall_ms=522.53 cpu_ms=960.0 read_bytes=4096 majflt=1
+decode_p127999               status=200 prompt_n=4 cache_n=127995 prompt_ms=394.348 wall_ms=4445.86 cpu_ms=11590.0 read_bytes=1179648 majflt=202
+
+wrote bench/results/2026-09-29-host-cpu/ctx128k/lm_none_128k/profile-host-split.json

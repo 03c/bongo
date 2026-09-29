@@ -1,0 +1,9 @@
+{
+  "pid": 2138883,
+  "cgroup_path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/paperclipai.service",
+  "requested_memory_max": "noneG",
+  "memory.max": "max",
+  "memory.current_after_load": "24714739712",
+  "memory.swap.max": "max",
+  "memory.events_after_load": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 47208"
+}

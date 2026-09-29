@@ -1,0 +1,8 @@
+# device-side spin watchdog probe (2026-09-28T07:55:40Z)
+## journal before
+-- No entries --
+## probe
+budget=25000000   wall=    890.7 ms sync_rc=0x0 result=0
+budget=100000000  wall=   3429.4 ms sync_rc=0x0 result=0
+## journal after
+-- No entries --

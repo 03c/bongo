@@ -1,0 +1,548 @@
+{
+  "schema": "bongo-bench/1",
+  "generated_at": "2026-09-28T09:31:09+00:00",
+  "harness": {
+    "version": "1.0.0",
+    "argv": [
+      "bench/harness.py",
+      "--repo-root",
+      "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture",
+      "--tier",
+      "iq2_xs",
+      "--contexts",
+      "4096,131072",
+      "--repeats",
+      "1",
+      "--max-tokens",
+      "128",
+      "--needle-context",
+      "131072",
+      "--hash-mode",
+      "none",
+      "--out-dir",
+      "bench/results/2026-09-28-capacity-sensitivity/uncapped-ncmoe24"
+    ],
+    "command": "bench/run.sh --repo-root /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture --tier iq2_xs --contexts 4096,131072 --repeats 1 --max-tokens 128 --needle-context 131072 --hash-mode none --out-dir bench/results/2026-09-28-capacity-sensitivity/uncapped-ncmoe24"
+  },
+  "endpoint": {
+    "base_url": "http://127.0.0.1:8080/v1",
+    "model": "bongo-iq2_xs",
+    "models_response": {
+      "models": [
+        {
+          "name": "bongo-iq2_xs",
+          "model": "bongo-iq2_xs",
+          "modified_at": "",
+          "size": "",
+          "digest": "",
+          "type": "model",
+          "description": "",
+          "tags": [
+            ""
+          ],
+          "capabilities": [
+            "completion"
+          ],
+          "parameters": "",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "",
+            "families": [
+              ""
+            ],
+            "parameter_size": "",
+            "quantization_level": ""
+          }
+        }
+      ],
+      "object": "list",
+      "data": [
+        {
+          "id": "bongo-iq2_xs",
+          "aliases": [
+            "bongo-iq2_xs"
+          ],
+          "tags": [],
+          "object": "model",
+          "created": 1790586632,
+          "owned_by": "llamacpp",
+          "meta": {
+            "vocab_type": 2,
+            "n_vocab": 248320,
+            "n_ctx": 131072,
+            "n_ctx_train": 262144,
+            "n_embd": 2560,
+            "n_params": 176943899520,
+            "size": 68141143040,
+            "ftype": "IQ2_XS - 2.3125 bpw"
+          }
+        }
+      ]
+    }
+  },
+  "tier": "iq2_xs",
+  "config": {
+    "contexts": [
+      4096,
+      131072
+    ],
+    "repeats": 1,
+    "repeats_deep": 0,
+    "deep_threshold": 0,
+    "max_tokens": 128,
+    "ttft_tokens": 8,
+    "needle_context": 131072,
+    "needle_tokens": 64,
+    "context_limit": 131072,
+    "hash_mode": "none"
+  },
+  "machine": {
+    "hostname": "localhost.localdomain",
+    "uname": "Linux localhost.localdomain 7.0.13-200.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Jun 19 22:51:30 UTC 2026 x86_64 GNU/Linux",
+    "os_release": "NAME=\"Fedora Linux\"\nVERSION=\"44 (Server Edition)\"\nRELEASE_TYPE=stable\nID=fedora\nVERSION_ID=44\nVERSION_CODENAME=\"\"\nPRETTY_NAME=\"Fedora Linux 44 (Server Edition)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=fedora-logo-icon\nCPE_NAME=\"cpe:/o:fedoraproject:fedora:44\"\nHOME_URL=\"https://fedoraproject.org/\"\nDOCUMENTATION_URL=\"https://docs.fedoraproject.org/en-US/fedora/f44/\"\nSUPPORT_URL=\"https://ask.fedoraproject.org/\"\nBUG_REPORT_URL=\"https://bugzilla.redhat.com/\"\nREDHAT_BUGZILLA_PRODUCT=\"Fedora\"\nREDHAT_BUGZILLA_PRODUCT_VERSION=44\nREDHAT_SUPPORT_PRODUCT=\"Fedora\"\nREDHAT_SUPPORT_PRODUCT_VERSION=44\nSUPPORT_END=2027-05-19\nVARIANT=\"Server Edition\"\nVARIANT_ID=server\n",
+    "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           48 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  16\nOn-line CPU(s) list:                     0-15\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen 7 9700X 8-Core Processor\nCPU family:                              26\nModel:                                   68\nThread(s) per core:                      2\nCore(s) per socket:                      8\nSocket(s):                               1\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      45%\nCPU max MHz:                             5582.3008\nCPU min MHz:                             605.3100\nBogoMIPS:                                7585.36\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze\nVirtualization:                          AMD-V\nL1d cache:                               384 KiB (8 instances)\nL1i cache:                               256 KiB (8 instances)\nL2 cache:                                8 MiB (8 instances)\nL3 cache:                                32 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-15\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Mitigation; IBPB on VMEXIT only\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB on VMEXIT",
+    "memory": "total        used        free      shared  buff/cache   available\nMem:     32699588608  5178273792   300548096    68354048 27774644224 27521314816\nSwap:    25769795584  5144543232 20625252352",
+    "meminfo": "MemTotal:       31933192 kB\nMemFree:          293504 kB\nMemAvailable:   26876284 kB\nBuffers:            2088 kB\nCached:         26731720 kB\nSwapCached:       596008 kB\nActive:          6751852 kB\nInactive:       21486076 kB\nActive(anon):     794392 kB\nInactive(anon):   776512 kB\nActive(file):    5957460 kB\nInactive(file): 20709564 kB\nUnevictable:           0 kB\nMlocked:               0 kB\nSwapTotal:      25165816 kB\nSwapFree:       20141848 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:                36 kB\nWriteback:             0 kB\nAnonPages:       1472608 kB\nMapped:         11550728 kB\nShmem:             66752 kB\nKReclaimable:     389868 kB\nSlab:             976808 kB\nSReclaimable:     389868 kB\nSUnreclaim:       586940 kB\nKernelStack:       25888 kB\nPageTables:       177932 kB\nSecPageTables:     30204 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    41132412 kB\nCommitted_AS:   16553204 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:      143876 kB\nVmallocChunk:          0 kB\nPercpu:            20288 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:               0 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:      432868 kB\nDirectMap2M:    22757376 kB\nDirectMap1G:     9437184 kB\n",
+    "pci_display": "03:00.0 VGA compatible controller [0300]: Intel Corporation Battlemage G31 [Arc Pro B70] [8086:e223]\n12:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Granite Ridge [Radeon Graphics] [1002:13c0] (rev c5)",
+    "dri_nodes": [
+      "/dev/dri/by-path",
+      "/dev/dri/card0",
+      "/dev/dri/card1",
+      "/dev/dri/renderD128",
+      "/dev/dri/renderD129"
+    ],
+    "drm_cards": {
+      "card0": "DRIVER=xe\nPCI_CLASS=30000\nPCI_ID=8086:E223\nPCI_SUBSYS_ID=172F:0105\nPCI_SLOT_NAME=0000:03:00.0\nMODALIAS=pci:v00008086d0000E223sv0000172Fsd00000105bc03sc00i00\n",
+      "card1": "DRIVER=amdgpu\nPCI_CLASS=30000\nPCI_ID=1002:13C0\nPCI_SUBSYS_ID=1002:13C0\nPCI_SLOT_NAME=0000:12:00.0\nMODALIAS=pci:v00001002d000013C0sv00001002sd000013C0bc03sc00i00\n"
+    },
+    "drivers": {
+      "card0": "xe",
+      "card1": "amdgpu"
+    },
+    "modules": {
+      "xe": {
+        "version": null,
+        "refcnt": "4"
+      },
+      "amdgpu": {
+        "version": null,
+        "refcnt": "1"
+      }
+    }
+  },
+  "bongo_config": null,
+  "server": {
+    "pids": [
+      2138883,
+      2139974,
+      2140858
+    ],
+    "flags": [
+      "/home/cchild/.bongo/llama/b11223/vulkan/llama-server",
+      "--model",
+      "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+      "--ctx-size",
+      "131072",
+      "--jinja",
+      "--flash-attn",
+      "on",
+      "--cache-type-k",
+      "q8_0",
+      "--cache-type-v",
+      "q8_0",
+      "--n-gpu-layers",
+      "99",
+      "--n-cpu-moe",
+      "24",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "8080",
+      "--parallel",
+      "1",
+      "--alias",
+      "bongo-iq2_xs",
+      "--metrics",
+      "--device",
+      "Vulkan1",
+      ""
+    ],
+    "llama_cpp_build_info": "b11223-4da633776",
+    "props": {
+      "default_generation_settings": {
+        "params": {
+          "seed": 4294967295,
+          "temperature": 1.0,
+          "dynatemp_range": 0.0,
+          "dynatemp_exponent": 1.0,
+          "top_k": 20,
+          "top_p": 0.949999988079071,
+          "min_p": 0.05000000074505806,
+          "top_n_sigma": -1.0,
+          "xtc_probability": 0.0,
+          "xtc_threshold": 0.10000000149011612,
+          "typical_p": 1.0,
+          "repeat_last_n": 64,
+          "repeat_penalty": 1.0,
+          "presence_penalty": 0.0,
+          "frequency_penalty": 0.0,
+          "dry_multiplier": 0.0,
+          "dry_base": 1.75,
+          "dry_allowed_length": 2,
+          "dry_penalty_last_n": 64,
+          "mirostat": 0,
+          "mirostat_tau": 5.0,
+          "mirostat_eta": 0.10000000149011612,
+          "adaptive_target": -1.0,
+          "adaptive_decay": 0.8999999761581421,
+          "max_tokens": -1,
+          "n_predict": -1,
+          "n_keep": 0,
+          "n_discard": 0,
+          "ignore_eos": false,
+          "stream": false,
+          "n_probs": 0,
+          "min_keep": 0,
+          "chat_format": "Content-only",
+          "reasoning_format": "none",
+          "reasoning_in_content": false,
+          "generation_prompt": "",
+          "samplers": [
+            "penalties",
+            "dry",
+            "top_n_sigma",
+            "top_k",
+            "typ_p",
+            "top_p",
+            "min_p",
+            "xtc",
+            "temperature"
+          ],
+          "speculative.types": "none",
+          "timings_per_token": false,
+          "post_sampling_probs": false,
+          "backend_sampling": false,
+          "lora": []
+        },
+        "n_ctx": 131072
+      },
+      "total_slots": 1,
+      "model_alias": "bongo-iq2_xs",
+      "model_ftype": "IQ2_XS - 2.3125 bpw",
+      "model_path": "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+      "modalities": {
+        "vision": false,
+        "video": false,
+        "audio": false
+      },
+      "media_marker": "<__media_JX7tvAHktrFZyIMcOq1Ux7D4an3eDn0U__>",
+      "endpoint_slots": true,
+      "endpoint_props": false,
+      "endpoint_metrics": true,
+      "ui": true,
+      "ui_settings": {},
+      "chat_template": "{%- set image_count = namespace(value=0) %}\n{%- set video_count = namespace(value=0) %}\n{%- macro render_content(content, do_vision_count, is_system_content=false) %}\n    {%- if content is string %}\n        {{- content }}\n    {%- elif content is iterable and content is not mapping %}\n        {%- for item in content %}\n            {%- if 'image' in item or 'image_url' in item or item.type == 'image' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain images.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set image_count.value = image_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Picture ' ~ image_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|image_pad|><|vision_end|>' }}\n            {%- elif 'video' in item or item.type == 'video' %}\n                {%- if is_system_content %}\n                    {{- raise_exception('System message cannot contain videos.') }}\n                {%- endif %}\n                {%- if do_vision_count %}\n                    {%- set video_count.value = video_count.value + 1 %}\n                {%- endif %}\n                {%- if add_vision_id %}\n                    {{- 'Video ' ~ video_count.value ~ ': ' }}\n                {%- endif %}\n                {{- '<|vision_start|><|video_pad|><|vision_end|>' }}\n            {%- elif 'text' in item %}\n                {{- item.text }}\n            {%- else %}\n                {{- raise_exception('Unexpected item type in content.') }}\n            {%- endif %}\n        {%- endfor %}\n    {%- elif content is none or content is undefined %}\n        {{- '' }}\n    {%- else %}\n        {{- raise_exception('Unexpected content type.') }}\n    {%- endif %}\n{%- endmacro %}\n{%- if not messages %}\n    {{- raise_exception('No messages provided.') }}\n{%- endif %}\n{%- set reasoning_instructions = '' %}\n{%- if enable_thinking is undefined or enable_thinking is true %}\n    {%- set resolved_reasoning_effort = reasoning_effort|default('xhigh') %}\n    {%- if resolved_reasoning_effort not in ('xhigh', 'medium', 'low') %}\n        {{- raise_exception('Unexpected reasoning effort ' ~ reasoning_effort ~ '. Supported types are xhigh (default), medium, and low.') }}\n    {%- endif %}\n    {%- if resolved_reasoning_effort == 'xhigh' %}\n        {%- set reasoning_instructions = 'Reasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.' %}\n    {%- elif resolved_reasoning_effort == 'low' %}\n        {%- set reasoning_instructions = 'Reasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration.' %}\n    {%- endif %}\n{%- endif %}\n{%- if tools and tools is iterable and tools is not mapping %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if reasoning_instructions %}\n        {{- reasoning_instructions + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou have access to the following functions:\\n\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\" }}\n    {{- '\\n\\nIf you choose to call a function ONLY reply in the following format with NO suffix:\\n\\n<tool_call>\\n<function=example_function_name>\\n<parameter=example_parameter_1>\\nvalue_1\\n</parameter>\\n<parameter=example_parameter_2>\\nThis is the value for the second parameter\\nthat can span\\nmultiple lines\\n</parameter>\\n</function>\\n</tool_call>\\n\\n<IMPORTANT>\\nReminder:\\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\\n- Required parameters MUST be specified\\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\\n</IMPORTANT>' }}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '\\n\\n' + content }}\n        {%- endif %}\n    {%- endif %}\n    {{- '<|im_end|>\\n' }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {%- set content = render_content(messages[0].content, false, true)|trim %}\n        {%- if content %}\n            {{- '<|im_start|>system\\n' + (reasoning_instructions + '\\n\\n' if reasoning_instructions else '')  + content + '<|im_end|>\\n' }}\n        {%- elif reasoning_instructions %}\n            {{- '<|im_start|>system\\n' + reasoning_instructions + '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- elif reasoning_instructions %}\n        {{- '<|im_start|>system\\n' + reasoning_instructions + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- if ns.multi_step_tool and message.role == \"user\" %}\n        {%- set content = render_content(message.content, false)|trim %}\n        {%- if not(content.startswith('<tool_response>') and content.endswith('</tool_response>')) %}\n            {%- set ns.multi_step_tool = false %}\n            {%- set ns.last_query_index = index %}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if ns.multi_step_tool %}\n    {{- raise_exception('No user query found in messages.') }}\n{%- endif %}\n{%- for message in messages %}\n    {%- set content = render_content(message.content, true)|trim %}\n    {%- if message.role == \"system\" %}\n        {%- if not loop.first %}\n            {{- raise_exception('System message must be at the beginning.') }}\n        {%- endif %}\n    {%- elif message.role == \"user\" %}\n        {{- '<|im_start|>' + message.role + '\\n' + content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is string %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- endif %}\n        {%- set reasoning_content = reasoning_content|trim %}\n        {%- if preserve_thinking is undefined or preserve_thinking is true or loop.index0 > ns.last_query_index %}\n            {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content + '\\n</think>\\n\\n' + content }}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls and message.tool_calls is iterable and message.tool_calls is not mapping %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if tool_call.function is defined %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {%- if loop.first %}\n                    {%- if content|trim %}\n                        {{- '\\n\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- else %}\n                        {{- '<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                    {%- endif %}\n                {%- else %}\n                    {{- '\\n<tool_call>\\n<function=' + tool_call.name + '>\\n' }}\n                {%- endif %}\n                {%- if tool_call.arguments is defined and tool_call.arguments != '' %}\n                    {%- for args_name, args_value in tool_call.arguments|items %}\n                        {{- '<parameter=' + args_name + '>\\n' }}\n                        {%- set args_value = args_value | string if args_value is string else args_value | tojson | safe %}\n                        {{- args_value }}\n                        {{- '\\n</parameter>\\n' }}\n                    {%- endfor %}\n                {%- endif %}\n                {{- '</function>\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.previtem and loop.previtem.role != \"tool\" %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- content }}\n        {{- '\\n</tool_response>' }}\n        {%- if not loop.last and loop.nextitem.role != \"tool\" %}\n            {{- '<|im_end|>\\n' }}\n        {%- elif loop.last %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- else %}\n        {{- raise_exception('Unexpected message role.') }}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- else %}\n        {{- '<think>\\n' }}\n    {%- endif %}\n{%- endif %}",
+      "chat_template_caps": {
+        "supports_object_arguments": true,
+        "supports_parallel_tool_calls": true,
+        "supports_preserve_reasoning": true,
+        "supports_reasoning_effort": true,
+        "supports_string_content": true,
+        "supports_system_role": true,
+        "supports_tool_calls": true,
+        "supports_tools": true,
+        "supports_typed_content": true
+      },
+      "bos_token": "<|endoftext|>",
+      "eos_token": "<|im_end|>",
+      "build_info": "b11223-4da633776",
+      "is_sleeping": false,
+      "cors_proxy_enabled": false
+    }
+  },
+  "model": {
+    "id": "bongo-iq2_xs",
+    "gguf_dir": "/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs",
+    "shards": [
+      {
+        "path": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf",
+        "sha256": null,
+        "hash_mode": "none",
+        "size_bytes": 39788473344
+      },
+      {
+        "path": "Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00002-of-00002.gguf",
+        "sha256": null,
+        "hash_mode": "none",
+        "size_bytes": 28363693824
+      }
+    ]
+  },
+  "warmup": {
+    "status": 200,
+    "wall_ms": 1514.14,
+    "prompt_tokens": 2,
+    "prompt_ms": 324.944,
+    "prompt_tps": 6.1549066916145545,
+    "output_tokens": 8,
+    "output_ms": 1109.1,
+    "output_tps": 6.311423676855108,
+    "usage": {
+      "completion_tokens": 8,
+      "prompt_tokens": 2,
+      "total_tokens": 10,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "text": " I am a 20 year old"
+  },
+  "results": [
+    {
+      "target_context": 4096,
+      "status": "ok",
+      "runs": [
+        {
+          "status": 200,
+          "wall_ms": 42628.9,
+          "prompt_tokens": 4097,
+          "prompt_ms": 31458.633,
+          "prompt_tps": 130.23452099778143,
+          "output_tokens": 128,
+          "output_ms": 11106.205,
+          "output_tps": 11.435049145950394,
+          "usage": {
+            "completion_tokens": 128,
+            "prompt_tokens": 4097,
+            "total_tokens": 4225,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain",
+          "ttft_ms": 31522.66,
+          "ttfb_ms": 30072.9,
+          "stream_total_ms": 42628.9,
+          "stream_error": null,
+          "stream_text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance",
+          "repeat": 1,
+          "memory": {
+            "vram_peak_bytes": 24959578112.0,
+            "vram_method": "fdinfo",
+            "system_ram_peak_bytes": 14884294656.0,
+            "system_ram_process_hwm_bytes": 19614244864.0,
+            "system_ram_method": "proc_status_sum",
+            "samples": 170
+          }
+        }
+      ],
+      "summary": {
+        "prompt_tps": {
+          "n": 1,
+          "median": 130.235,
+          "mean": 130.235,
+          "min": 130.235,
+          "max": 130.235
+        },
+        "output_tps": {
+          "n": 1,
+          "median": 11.435,
+          "mean": 11.435,
+          "min": 11.435,
+          "max": 11.435
+        },
+        "ttft_ms": {
+          "n": 1,
+          "median": 31522.66,
+          "mean": 31522.66,
+          "min": 31522.66,
+          "max": 31522.66
+        },
+        "prompt_tokens": {
+          "n": 1,
+          "median": 4097,
+          "mean": 4097.0,
+          "min": 4097,
+          "max": 4097
+        }
+      },
+      "planned_prompt_tokens": 4096,
+      "builder_uses_server_tokenizer": true,
+      "repeats_planned": 1,
+      "memory": {
+        "vram_peak_bytes": 24959578112.0,
+        "vram_method": "fdinfo",
+        "system_ram_peak_bytes": 14884294656.0,
+        "system_ram_process_hwm_bytes": 19614244864.0,
+        "system_ram_method": "proc_status_sum",
+        "samples": 170
+      },
+      "actual_prompt_tokens_median": 4097
+    },
+    {
+      "target_context": 131072,
+      "status": "ok",
+      "runs": [
+        {
+          "status": 200,
+          "wall_ms": 1169595.8,
+          "prompt_tokens": 130861,
+          "prompt_ms": 1152503.727,
+          "prompt_tps": 113.54496903939297,
+          "output_tokens": 128,
+          "output_ms": 16909.806,
+          "output_tps": 7.510435069450234,
+          "usage": {
+            "completion_tokens": 128,
+            "prompt_tokens": 130861,
+            "total_tokens": 130989,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n\nThe secret access code for the vault is VAULT-COORD-7391-QXZ.\nallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more t",
+          "ttft_ms": 1152685.02,
+          "ttfb_ms": 30187.06,
+          "stream_total_ms": 1169595.8,
+          "stream_error": null,
+          "stream_text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n\nThe secret access code for the vault is VAULT-COORD-7391-QXZ.\nallow channel ",
+          "repeat": 1,
+          "memory": {
+            "vram_peak_bytes": 25428033536.0,
+            "vram_method": "fdinfo",
+            "system_ram_peak_bytes": 17451888640.0,
+            "system_ram_process_hwm_bytes": 19614244864.0,
+            "system_ram_method": "proc_status_sum",
+            "samples": 4664
+          }
+        }
+      ],
+      "summary": {
+        "prompt_tps": {
+          "n": 1,
+          "median": 113.545,
+          "mean": 113.545,
+          "min": 113.545,
+          "max": 113.545
+        },
+        "output_tps": {
+          "n": 1,
+          "median": 7.51,
+          "mean": 7.51,
+          "min": 7.51,
+          "max": 7.51
+        },
+        "ttft_ms": {
+          "n": 1,
+          "median": 1152685.02,
+          "mean": 1152685.02,
+          "min": 1152685.02,
+          "max": 1152685.02
+        },
+        "prompt_tokens": {
+          "n": 1,
+          "median": 130861,
+          "mean": 130861.0,
+          "min": 130861,
+          "max": 130861
+        }
+      },
+      "planned_prompt_tokens": 130816,
+      "builder_uses_server_tokenizer": true,
+      "repeats_planned": 1,
+      "memory": {
+        "vram_peak_bytes": 25428033536.0,
+        "vram_method": "fdinfo",
+        "system_ram_peak_bytes": 17451888640.0,
+        "system_ram_process_hwm_bytes": 19614244864.0,
+        "system_ram_method": "proc_status_sum",
+        "samples": 4664
+      },
+      "actual_prompt_tokens_median": 130861
+    }
+  ],
+  "needle": {
+    "context": 131072,
+    "needle": "VAULT-COORD-7391-QXZ",
+    "status": "pass",
+    "prompt_tokens": 130861,
+    "answer": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\n\nThe secret access code for the vault is VAULT-COORD-7391-QXZ.\nallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more t",
+    "http_status": 200,
+    "error": null,
+    "folded_into_context": 131072
+  },
+  "error_cases": [
+    {
+      "name": "empty_prompt",
+      "kind": "json",
+      "http_status": 200,
+      "handled": true,
+      "is_error_status": false,
+      "response_excerpt": "{\"choices\":[{\"text\":\"\",\"index\":0,\"logprobs\":null,\"finish_reason\":\"length\"}],\"created\":1790587847,\"model\":\"bongo-iq2_xs\",\"system_fingerprint\":\"b11223-4da633776\",\"object\":\"text_completion\",\"usage\":{\"completion_tokens\":0,\"prompt_tokens\":0,\"total_tokens\":0,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"id\":\"chatcmpl-rVxKtJcIZvuIiyGBQ1z4psTYLVqg54v0\",\"timings\":{\"cache_n\":0,\"prompt_n\":0,\"prompt_ms\":0.0,\"prompt_per_token_ms\":0.0,\"prompt_per_second\":0.0,\"predicted_n\":0,\"predicted_ms\":0.0,\"predicted_per_token_ms\":0.0,\"predicted_per_second\":0.0}}",
+      "note": "empty string prompt"
+    },
+    {
+      "name": "missing_prompt_field",
+      "kind": "json",
+      "http_status": 400,
+      "handled": true,
+      "is_error_status": true,
+      "response_excerpt": "{\"error\":{\"code\":400,\"message\":\"[json.exception.out_of_range.403] key 'prompt' not found\",\"type\":\"invalid_request_error\"}}",
+      "note": "no prompt key"
+    },
+    {
+      "name": "unknown_model",
+      "kind": "json",
+      "http_status": 200,
+      "handled": true,
+      "is_error_status": false,
+      "response_excerpt": "{\"choices\":[{\"text\":\".\\n\\n<think>\\n\",\"index\":0,\"logprobs\":null,\"finish_reason\":\"length\"}],\"created\":1790587847,\"model\":\"bongo-iq2_xs\",\"system_fingerprint\":\"b11223-4da633776\",\"object\":\"text_completion\",\"usage\":{\"completion_tokens\":4,\"prompt_tokens\":1,\"total_tokens\":5,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"id\":\"chatcmpl-2GCFeZeCkuA0HXQRulxmHmfvOheFk9wM\",\"timings\":{\"cache_n\":0,\"prompt_n\":1,\"prompt_ms\":106.182,\"prompt_per_token_ms\":106.182,\"prompt_per_second\":9.41779209282176,\"predicted_n\":4,\"predicted_ms\":205.483,\"predicted_per_token_ms\":68.49433333333333,\"predicted_per_second\":14.599747911019403}}",
+      "note": "unknown model id"
+    },
+    {
+      "name": "negative_max_tokens",
+      "kind": "json",
+      "http_status": 200,
+      "handled": true,
+      "is_error_status": false,
+      "response_excerpt": "{\"choices\":[{\"text\":\", I\u2019m writing a novel.\\n\\n<think>\\n\\n</think>\\n\\nHello! That\u2019s exciting! Writing a novel is a significant and rewarding endeavor.\\n\\nHow can I help you? Here are a few ways I can assist:\\n\\n- **Brainstorming**: Generate ideas for plot, characters, settings, or themes.\\n- **Outlining**: Help structure your story (e.g., three-act structure, beat sheet, hero\u2019s journey).\\n- **Character Development**: Create detailed character profiles, backstories, motivations, and arcs.\\n- **World-Building**: Design the rules, history, culture, and geography of your fictional world.\\n- **Writing Samples**: Provide examples of dialogue, descriptions, or scene transitions.\\n- **Feedback**: Review snippets of your writing for tone, clarity, pacing, or style.\\n- **Overcoming Block**: Suggest prompts to jump-start your writing when you\u2019re stuck.\\n\\nLet me know:\\n1. What genre are you writing?\\n2. What stage are you at (planning, drafting, revising)?\\n3. Is there a specific challenge you\u2019re facing right now?\\n\\nI\u2019m here to support you! \ud83d\udcda\u2728\",\"index\":0,\"logprobs\":null,\"finish_reason\":\"stop\"}],\"created\":1790587869,\"model\":\"bongo-iq2_xs\",\"system_fingerprint\":\"b11223-4da633776\",\"object\":\"text",
+      "note": "negative max_tokens"
+    },
+    {
+      "name": "prompt_exceeds_context",
+      "kind": "json",
+      "http_status": 400,
+      "handled": true,
+      "is_error_status": true,
+      "response_excerpt": "{\"error\":{\"code\":400,\"message\":\"request (133121 tokens) exceeds the available context size (131072 tokens), try increasing it\",\"type\":\"exceed_context_size_error\",\"n_prompt_tokens\":133121,\"n_ctx\":131072}}",
+      "note": "prompt ~133120 whitespace tokens > n_ctx"
+    },
+    {
+      "name": "non_json_body",
+      "kind": "raw",
+      "http_status": 500,
+      "handled": true,
+      "is_error_status": true,
+      "response_excerpt": "{\"error\":{\"code\":500,\"message\":\"[json.exception.parse_error.101] parse error at line 1, column 2: syntax error while parsing value - invalid literal; last read: 'th'\",\"type\":\"server_error\"}}",
+      "note": "invalid JSON body"
+    }
+  ],
+  "memory": {
+    "vram_peak_bytes": 25428033536.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 17451888640.0,
+    "system_ram_process_hwm_bytes": 19614244864.0,
+    "system_ram_method": "proc_status_sum"
+  },
+  "failures": [],
+  "highest_working_context": 131072,
+  "verdict": {
+    "ok": true,
+    "failed_contexts": [],
+    "needle": "pass",
+    "notes": [
+      "server reported n_ctx=131072"
+    ]
+  }
+}

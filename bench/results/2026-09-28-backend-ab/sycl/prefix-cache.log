@@ -1,0 +1,19 @@
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=1701.758 prompt_tps=149.84504259712602 ttft_ms=2159.21 out_tps=0.0 wall_ms=2159.28
+
+== prefix target 4096 (actual 4097); with delta actual 4607 ==
+cold_p4096                 status=200 prompt_n=4097 cache_n=0 prompt_ms=12677.779 prompt_tps=323.16386016825186 ttft_ms=12725.31 out_tps=6.187072318625975 wall_ms=13210.22
+hit_p4096                  status=200 prompt_n=4 cache_n=4093 prompt_ms=357.609 prompt_tps=11.18540081485645 ttft_ms=362.91 out_tps=6.390171064879406 wall_ms=832.36
+grow_p4096_d512            status=200 prompt_n=514 cache_n=4093 prompt_ms=2541.311 prompt_tps=202.25781102745788 ttft_ms=2547.39 out_tps=6.09778406527068 wall_ms=3039.38
+grow_p4096_repeat          status=200 prompt_n=4 cache_n=4603 prompt_ms=353.094 prompt_tps=11.32842812395566 ttft_ms=358.82 out_tps=6.362146079115408 wall_ms=830.41
+
+== prefix target 31744 (actual 31743); with delta actual 32254 ==
+cold_p31744                status=200 prompt_n=31743 cache_n=0 prompt_ms=141444.517 prompt_tps=224.4201519667249 ttft_ms=141476.67 out_tps=5.686966609923377 wall_ms=142004.31
+hit_p31744                 status=200 prompt_n=4 cache_n=31739 prompt_ms=370.09000000000003 prompt_tps=10.808181793617768 ttft_ms=407.6 out_tps=5.842987246706502 wall_ms=921.13
+grow_p31744_d512           status=200 prompt_n=515 cache_n=31739 prompt_ms=3892.453 prompt_tps=132.3073136657013 ttft_ms=3924.54 out_tps=5.6916276157771915 wall_ms=4451.78
+grow_p31744_repeat         status=200 prompt_n=4 cache_n=32250 prompt_ms=369.427 prompt_tps=10.827578926283135 ttft_ms=402.67 out_tps=5.805728706038538 wall_ms=919.56
+
+== slot save/restore at prefix 31744 (actual 31743) ==
+slot0_prime_p31743         status=200 prompt_n=4 cache_n=31739 prompt_ms=376.258 prompt_tps=10.631003194616461 ttft_ms=408.35 out_tps=0.0 wall_ms=408.54
+slot0_after_restore_p31743 status=200 prompt_n=31743 cache_n=0 prompt_ms=142290.929 prompt_tps=223.08519751107957 ttft_ms=142325.2 out_tps=0.0 wall_ms=142325.4
+
+wrote /home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-28-backend-ab/sycl/prefix-cache/prefix-cache.json

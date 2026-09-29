@@ -1,0 +1,8 @@
+file=/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf
+size=39788473344 blocks=4KiB n=2000 threads=1
+  elapsed=1.099s  iops=1,819  bw=7.5 MB/s
+  lat us: mean=549.6 p50=358.3 p95=1296.1 p99=1753.1 max=4298.6
+
+threads=8 n=2000
+  elapsed=0.131s  iops=15,213  bw=62.3 MB/s
+  lat us: mean=504.3 p50=450.4 p95=1008.9 p99=1439.1

@@ -1,0 +1,40 @@
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -ENOENT
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Engine memory CAT error [18]: class=ccs, logical_mask: 0x1, guc_id=8
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Engine reset: engine_class=ccs, logical_mask: 0x1, guc_id=8, state=0x249
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Timedout job: seqno=4294967169, lrc_seqno=4294967169, guc_id=8, flags=0x20 in python3 [2016987]
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Xe device coredump has been created
+Sep 28 08:32:54 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Check your /sys/class/drm/card0/device/devcoredump/data
+Sep 28 08:32:56 localhost.localdomain kernel: xe 0000:03:00.0: [drm] exec queue reset detected
+Sep 28 08:32:56 localhost.localdomain kernel: xe 0000:03:00.0: [drm] exec queue reset detected
+Sep 28 08:32:56 localhost.localdomain kernel: xe 0000:03:00.0: [drm] exec queue reset detected
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -ENOENT
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -ENOENT
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:40:41 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Engine reset: engine_class=ccs, logical_mask: 0x1, guc_id=8, state=0x289
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -ENOENT
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: 
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Fault response: Unsuccessful -EINVAL
+Sep 28 08:46:38 localhost.localdomain kernel: xe 0000:03:00.0: [drm] Tile0: GT0: Engine reset: engine_class=ccs, logical_mask: 0x1, guc_id=8, state=0x289

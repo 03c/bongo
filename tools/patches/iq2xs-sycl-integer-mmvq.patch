@@ -1,0 +1,226 @@
+diff --git a/ggml/src/ggml-sycl/ggml-sycl.cpp b/ggml/src/ggml-sycl/ggml-sycl.cpp
+index 99ebdb3e1..7c4dd3a7c 100644
+--- a/ggml/src/ggml-sycl/ggml-sycl.cpp
++++ b/ggml/src/ggml-sycl/ggml-sycl.cpp
+@@ -117,6 +117,13 @@ int g_ggml_sycl_enable_sparse_fa = 0;
+ int g_ggml_sycl_debug_sparse_fa = 0;
+ int g_ggml_sycl_sparse_fa_margin = 256;
+ 
++// M3.1 (BAS-74): activation-batch cap for the i-quant integer multi-column MMVQ path
++// (IQ2_XS / IQ2_XXS / IQ2_S / IQ1_M). The stock value (MMVQ_MAX_BATCH_SIZE = 8) leaves
++// expert/dense i-quant weights to the FP16-expanding dequantise+GEMM path as soon as an
++// expert is routed more than 8 tokens. Raising it keeps those weights on the integer dp4a
++// route. Default is the pinned baseline, so `GGML_SYCL_IQUANT_MMVQ_MAX=8` reproduces b11223.
++int g_ggml_sycl_iquant_mmvq_max = MMVQ_MAX_BATCH_SIZE;
++
+ static ggml_sycl_device_info ggml_sycl_init() {
+     GGML_SYCL_DEBUG("[SYCL] call ggml_sycl_init\n");
+     ggml_sycl_device_info info = {};
+@@ -391,6 +398,11 @@ static void ggml_check_sycl() try {
+         g_ggml_sycl_debug_sparse_fa = ggml_sycl_get_env("GGML_SYCL_SPARSE_FA_DEBUG", 0);
+         g_ggml_sycl_sparse_fa_margin = ggml_sycl_get_env("GGML_SYCL_SPARSE_FA_MARGIN", 256);
+ 
++        g_ggml_sycl_iquant_mmvq_max = ggml_sycl_get_env("GGML_SYCL_IQUANT_MMVQ_MAX", MMVQ_MAX_BATCH_SIZE);
++        if (g_ggml_sycl_iquant_mmvq_max < 1) {
++            g_ggml_sycl_iquant_mmvq_max = 1;
++        }
++
+         GGML_SYCL_DEBUG("[SYCL] call ggml_check_sycl\n");
+ 
+         GGML_LOG_INFO("Build with Macros:\n");
+@@ -502,6 +514,8 @@ static void ggml_check_sycl() try {
+         GGML_LOG_INFO("  GGML_SYCL_SPARSE_FA: %d\n", g_ggml_sycl_enable_sparse_fa);
+         GGML_LOG_INFO("  GGML_SYCL_SPARSE_FA_DEBUG: %d\n", g_ggml_sycl_debug_sparse_fa);
+         GGML_LOG_INFO("  GGML_SYCL_SPARSE_FA_MARGIN: %d\n", g_ggml_sycl_sparse_fa_margin);
++        GGML_LOG_INFO("  GGML_SYCL_IQUANT_MMVQ_MAX: %d (%s)\n", g_ggml_sycl_iquant_mmvq_max,
++                      g_ggml_sycl_iquant_mmvq_max != MMVQ_MAX_BATCH_SIZE ? "M3.1 integer tap" : "pinned baseline");
+ 
+ /* NOT REMOVE, keep it for next optimize for XMX.
+ #if defined(SYCL_USE_XMX)
+@@ -4770,8 +4784,16 @@ static bool can_use_dequantize_mul_mat_vec(const ggml_tensor * src0, const ggml_
+ }
+ 
+ static bool can_use_mul_mat_vec_q(const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
+-    return ggml_is_quantized(src0->type) && src1->type == GGML_TYPE_F32 && dst->type == GGML_TYPE_F32 &&
+-           src1->ne[1] <= MMVQ_MAX_BATCH_SIZE;
++    if (!(ggml_is_quantized(src0->type) && src1->type == GGML_TYPE_F32 && dst->type == GGML_TYPE_F32)) {
++        return false;
++    }
++    // M3.1 (BAS-74): the i-quant types with an integer multi-column MMVQ kernel handle more
++    // than MMVQ_MAX_BATCH_SIZE columns without expanding the weights to FP16, so honour the
++    // tunable cap for those types. Every other type keeps the stock cap.
++    const bool iquant_multicol = src0->type == GGML_TYPE_IQ2_XS || src0->type == GGML_TYPE_IQ2_XXS ||
++                                 src0->type == GGML_TYPE_IQ2_S  || src0->type == GGML_TYPE_IQ1_M;
++    const int64_t max_batch = iquant_multicol ? g_ggml_sycl_iquant_mmvq_max : MMVQ_MAX_BATCH_SIZE;
++    return src1->ne[1] <= max_batch;
+ }
+ 
+ static void ggml_sycl_mul_mat(ggml_backend_sycl_context & ctx, const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
+diff --git a/ggml/src/ggml-sycl/mmvq.cpp b/ggml/src/ggml-sycl/mmvq.cpp
+index 7e4f22dd1..e7569ff21 100644
+--- a/ggml/src/ggml-sycl/mmvq.cpp
++++ b/ggml/src/ggml-sycl/mmvq.cpp
+@@ -2114,6 +2114,55 @@ static void mul_mat_vec_iq2_xs_q8_1_sycl(const void *vx, const void *vy,
+     }
+ }
+ 
++// vec_dot_q_sycl_t does not carry the IQ2_XS grid tables, so bind them here. This lets the
++// generic multi-column MMVQ template (mul_mat_vec_q_ncols) handle IQ2_XS, which keeps the
++// expert/dense prefill path on the integer dp4a route instead of dequantising to FP16.
++static __dpct_inline__ float vec_dot_iq2_xs_q8_1_mmvq(const void *__restrict__ vbq,
++                                                      const block_q8_1 *__restrict__ bq8_1,
++                                                      const int & iqs) {
++    return vec_dot_iq2_xs_q8_1(vbq, bq8_1, iqs, iq2xs_grid, ksigns64);
++}
++
++template <int ncols_dst>
++static void mul_mat_vec_iq2_xs_q8_1_sycl_ncols(
++        const void * vx, const void * vy, float * dst,
++        const int ncols, const int nrows,
++        const int stride_col_y, const int stride_col_dst,
++        dpct::queue_ptr stream) {
++    GGML_ASSERT(ncols % QK_K == 0);
++    const int block_num_y = (nrows + GGML_SYCL_MMV_Y - 1) / GGML_SYCL_MMV_Y;
++    const sycl::range<3> block_nums(1, 1, block_num_y);
++    const sycl::range<3> block_dims(1, GGML_SYCL_MMV_Y, WARP_SIZE);
++    stream->submit([&](sycl::handler & cgh) {
++        cgh.parallel_for(
++            sycl::nd_range<3>(block_nums * block_dims, block_dims),
++            [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(WARP_SIZE)]] {
++                mul_mat_vec_q_ncols<QK_K, QI2_XS/2, block_iq2_xs, 1,
++                                    vec_dot_iq2_xs_q8_1_mmvq, ncols_dst>(
++                    vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, item_ct1);
++            });
++    });
++}
++
++static void mul_mat_vec_iq2_xs_q8_1_sycl_switch_ncols(
++        const void * vx, const void * vy, float * dst,
++        const int ncols, const int nrows,
++        const int ncols_dst,
++        const int stride_col_y, const int stride_col_dst,
++        dpct::queue_ptr stream) {
++    switch (ncols_dst) {
++        case 1: mul_mat_vec_iq2_xs_q8_1_sycl(vx, vy, dst, ncols, nrows, stream); break;
++        case 2: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<2>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        case 3: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<3>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        case 4: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<4>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        case 5: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<5>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        case 6: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<6>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        case 7: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<7>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        case 8: mul_mat_vec_iq2_xs_q8_1_sycl_ncols<8>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break;
++        default: GGML_ABORT("unsupported ncols_dst=%d for IQ2_XS multi-col MMVQ", ncols_dst);
++    }
++}
++
+ static void mul_mat_vec_iq2_s_q8_1_sycl(const void *vx, const void *vy,
+                                          float *dst, const int ncols,
+                                          const int nrows,
+@@ -2312,6 +2361,60 @@ static void mul_mat_vec_iq4_xs_q8_1_sycl_switch_ncols(
+     }
+ }
+ 
++// M3.1 (BAS-74): the IQ2_XS tier's expert tensors are actually IQ1_M / IQ2_S / IQ2_XXS / Q2_0
++// (there is no IQ2_XS tensor in the file), and the stock backend ships only a single-column
++// MMVQ kernel for the i-quant types. An expert routed n>1 tokens therefore launched n GEMVs,
++// and once n exceeded MMVQ_MAX_BATCH_SIZE the weights were expanded to FP16 for a dequantise +
++// GEMM. These wrappers run all n columns through the generic mul_mat_vec_q_ncols template in
++// one pass, binding the codebook tables, so the weights stay on the integer dp4a route.
++static __dpct_inline__ float vec_dot_iq2_xxs_q8_1_mmvq(const void *__restrict__ vbq,
++                                                      const block_q8_1 *__restrict__ bq8_1,
++                                                      const int & iqs) {
++    return vec_dot_iq2_xxs_q8_1(vbq, bq8_1, iqs, iq2xxs_grid, ksigns_iq2xs, kmask_iq2xs);
++}
++
++#define GGML_SYCL_MMVQ_NCOLS_WRAPPER(NAME, QK, QI, BQ, VDR, VDOT)                                          \
++    template <int ncols_dst>                                                                               \
++    static void NAME ## _ncols(const void * vx, const void * vy, float * dst,                              \
++                               const int ncols, const int nrows,                                           \
++                               const int stride_col_y, const int stride_col_dst,                            \
++                               dpct::queue_ptr stream) {                                                    \
++        GGML_ASSERT(ncols % QK == 0);                                                                       \
++        const int block_num_y = (nrows + GGML_SYCL_MMV_Y - 1) / GGML_SYCL_MMV_Y;                            \
++        const sycl::range<3> block_nums(1, 1, block_num_y);                                                 \
++        const sycl::range<3> block_dims(1, GGML_SYCL_MMV_Y, WARP_SIZE);                                     \
++        stream->submit([&](sycl::handler & cgh) {                                                           \
++            cgh.parallel_for(                                                                               \
++                sycl::nd_range<3>(block_nums * block_dims, block_dims),                                     \
++                [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(WARP_SIZE)]] {                   \
++                    mul_mat_vec_q_ncols<QK, QI, BQ, VDR, VDOT, ncols_dst>(                                  \
++                        vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, item_ct1);                 \
++                });                                                                                         \
++        });                                                                                                 \
++    }                                                                                                       \
++    static void NAME ## _switch_ncols(const void * vx, const void * vy, float * dst,                        \
++                                      const int ncols, const int nrows, const int ncols_dst,               \
++                                      const int stride_col_y, const int stride_col_dst,                     \
++                                      dpct::queue_ptr stream) {                                             \
++        switch (ncols_dst) {                                                                                \
++            case 1: NAME(vx, vy, dst, ncols, nrows, stream); break;                                         \
++            case 2: NAME ## _ncols<2>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            case 3: NAME ## _ncols<3>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            case 4: NAME ## _ncols<4>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            case 5: NAME ## _ncols<5>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            case 6: NAME ## _ncols<6>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            case 7: NAME ## _ncols<7>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            case 8: NAME ## _ncols<8>(vx, vy, dst, ncols, nrows, stride_col_y, stride_col_dst, stream); break; \
++            default: GGML_ABORT("unsupported ncols_dst=%d for " #NAME " multi-col MMVQ", ncols_dst);     \
++        }                                                                                                   \
++    }
++
++GGML_SYCL_MMVQ_NCOLS_WRAPPER(mul_mat_vec_iq2_xxs_q8_1_sycl, QK_K, QI2_XXS/2, block_iq2_xxs, 1, vec_dot_iq2_xxs_q8_1_mmvq)
++GGML_SYCL_MMVQ_NCOLS_WRAPPER(mul_mat_vec_iq2_s_q8_1_sycl,   QK_K, QI2_S/2,   block_iq2_s,   1, vec_dot_iq2_s_q8_1)
++GGML_SYCL_MMVQ_NCOLS_WRAPPER(mul_mat_vec_iq1_m_q8_1_sycl,   QK_K, QI1_S,     block_iq1_m,   1, vec_dot_iq1_m_q8_1)
++
++#undef GGML_SYCL_MMVQ_NCOLS_WRAPPER
++
+ void ggml_sycl_op_mul_mat_vec_q(ggml_backend_sycl_context & ctx, const ggml_tensor * src0, const ggml_tensor * src1,
+                                 ggml_tensor * dst, const char * src0_dd_i, const float * src1_ddf_i,
+                                 const char * src1_ddq_i, float * dst_dd_i, const int64_t row_low,
+@@ -2330,6 +2433,46 @@ void ggml_sycl_op_mul_mat_vec_q(ggml_backend_sycl_context & ctx, const ggml_tens
+     // the main device has a larger memory buffer to hold the results from all GPUs
+     // nrows_dst == nrows of the matrix that the kernel writes into
+ 
++    // IQ2_XS-family prefill: process the activation batch in multi-column MMVQ chunks so the
++    // expert/dense weights stay on the integer dp4a route and are never expanded to FP16.
++    // The generic per-column loop below would otherwise run a separate GEMV per token, and
++    // above MMVQ_MAX_BATCH_SIZE the call would leave MMVQ for a dequantise + FP16 GEMM.
++    if (src1_ncols > 1 &&
++        (src0->type == GGML_TYPE_IQ2_XS || src0->type == GGML_TYPE_IQ2_XXS ||
++         src0->type == GGML_TYPE_IQ2_S  || src0->type == GGML_TYPE_IQ1_M)) {
++        const int stride_col_y   = (int) (src1_padded_col_size / QK8_1);
++        const int stride_col_dst = (int) dst->ne[0];
++        int col = 0;
++        while (col < (int) src1_ncols) {
++            const int remaining  = (int) (src1_ncols - col);
++            const int ncols_dst  = remaining > MMVQ_MAX_BATCH_SIZE ? MMVQ_MAX_BATCH_SIZE : remaining;
++            const char * y_col   = src1_ddq_i + (size_t) col * src1_padded_col_size * q8_1_ts / q8_1_bs;
++            float *      d_col   = dst_dd_i + (size_t) col * dst->ne[0];
++            switch (src0->type) {
++                case GGML_TYPE_IQ2_XS:
++                    GGML_SYCL_DEBUG("Calling mul_mat_vec_iq2_xs_q8_1_sycl_switch_ncols ncols=%d\n", ncols_dst);
++                    mul_mat_vec_iq2_xs_q8_1_sycl_switch_ncols(src0_dd_i, y_col, d_col, (int) ne00, (int) row_diff, ncols_dst, stride_col_y, stride_col_dst, stream);
++                    break;
++                case GGML_TYPE_IQ2_XXS:
++                    GGML_SYCL_DEBUG("Calling mul_mat_vec_iq2_xxs_q8_1_sycl_switch_ncols ncols=%d\n", ncols_dst);
++                    mul_mat_vec_iq2_xxs_q8_1_sycl_switch_ncols(src0_dd_i, y_col, d_col, (int) ne00, (int) row_diff, ncols_dst, stride_col_y, stride_col_dst, stream);
++                    break;
++                case GGML_TYPE_IQ2_S:
++                    GGML_SYCL_DEBUG("Calling mul_mat_vec_iq2_s_q8_1_sycl_switch_ncols ncols=%d\n", ncols_dst);
++                    mul_mat_vec_iq2_s_q8_1_sycl_switch_ncols(src0_dd_i, y_col, d_col, (int) ne00, (int) row_diff, ncols_dst, stride_col_y, stride_col_dst, stream);
++                    break;
++                case GGML_TYPE_IQ1_M:
++                    GGML_SYCL_DEBUG("Calling mul_mat_vec_iq1_m_q8_1_sycl_switch_ncols ncols=%d\n", ncols_dst);
++                    mul_mat_vec_iq1_m_q8_1_sycl_switch_ncols(src0_dd_i, y_col, d_col, (int) ne00, (int) row_diff, ncols_dst, stride_col_y, stride_col_dst, stream);
++                    break;
++                default:
++                    GGML_ABORT("unsupported type for i-quant multi-column MMVQ");
++            }
++            col += ncols_dst;
++        }
++        return;
++    }
++
+     for (int i = 0; i < src1_ncols; i++) {
+         const size_t src1_ddq_i_offset = i * src1_padded_col_size * q8_1_ts / q8_1_bs;
+         const char * src1_ddq_i_bs     = src1_ddq_i + src1_ddq_i_offset;

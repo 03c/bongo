@@ -1,5 +1,8 @@
 # bongo roadmap
 
+For the single-page review of the goal, the approach, and the final speed numbers, see
+[`final-overview.md`](final-overview.md).
+
 Milestones follow [ADR-0001](adr/0001-runtime-architecture.md). Each milestone is one or more issues; the
 parent is [BAS-48](/BAS/issues/BAS-48) (Project setup).
 
@@ -45,29 +48,111 @@ Peak VRAM 29.27 GiB, peak RSS 14.07 GiB; 128K needle recalled. Raw data:
 **Runtime caveat:** the Intel compute stack (Level Zero / SYCL) does not enumerate the B70 (NEO abort), so
 these numbers are on the **Vulkan** fallback. [BAS-57](/BAS/issues/BAS-57) tracks restoring SYCL.
 
-## M2 — Expert placement (Stage 1) — decision made (no-go)
+## M2 — Expert placement (Stage 1) — resolved, then superseded by R1–R7
 
 Close the gap between static llama.cpp placement and Strata's adaptive expert cache.
 
 - [x] [BAS-53](/BAS/issues/BAS-53) expert-placement spike + Stage 1 go/no-go — Coder, **done**
   ([doc](research/expert-placement.md), [raw](../bench/results/2026-09-27-expert-placement/)).
-- **Decision: no-go** on a custom adaptive VRAM expert cache. At 128K, decode is flat across the feasible
-  static range (`--n-cpu-moe` 16 vs 24 differ ~1.2%); the static split is already at the VRAM edge (n=12
-  dies at 128K), so a cache cannot add residency. Prefill is the only lever, worth a low single digit.
+- **First decision: no-go** on a custom adaptive VRAM expert cache as a *128K decode* optimisation. At 128K,
+  decode is flat across the feasible static range (`--n-cpu-moe` 16 vs 24 differ ~1.2%); the static split is
+  already at the VRAM edge (n=12 dies at 128K), so a cache cannot add residency.
 - [x] Resolution of the M2 exit target: **IQ3_XXS does not fit this hardware** — 75,955,048,960 B
   (70.74 GiB) of tensor data against 32 GB VRAM + 32 GB RAM. Q2_0 (66,538,928,640 B / 61.97 GiB) is the
   nearest higher-quant candidate and is tracked in [BAS-59](/BAS/issues/BAS-59).
-- Follow-ups recorded from BAS-53, if Stage 1 is revisited: locate the exact 128K feasibility edge
-  (`--n-cpu-moe` 13/14/15), and measure expert-activation skew before writing any cache.
+- **Superseded in part by [BAS-62](/BAS/issues/BAS-62) R1–R7 (2026-09-28).** The M2 verdict was right for 128K
+  decode but too broad. Measured on bongo's own model: a frequency-ranked hot set covers 98.5% of activations
+  vs 66.0% for the layer rule (worth +18–27% 128K prefill, +25–37% 4K decode, ~0% 128K decode); the real gap is
+  the dequantising kernel path, not residency; RAM capacity is worth 0 tok/s. See
+  [gap analysis](research/engine-gap-analysis.md).
 
-## M3 — Optimised engine (Stage 2, gated)
+## M3 — Engine work (Stage 2 gate now open) — decided by [ADR-0003](adr/0003-engine-direction.md)
 
-Only if M2 shows llama.cpp cannot reach target throughput. Port Strata's MoE dispatch, i-quant GEMV, fused
-attention, and linear-attention mixers to SYCL. **MTP is not on this list**: the base model's head is not in
-the published GGUF and llama.cpp `qwen4exp` cannot convert or run it ([research §2.1](research/intel-arc-b70.md));
-adding it would be a separate converter + runtime feature, not a SYCL port. Requires a written gap analysis
-and a new ADR. Gate not triggered: M2 found the target context (128K), not expert placement, is the binding
-cost, and no engine-level gap analysis exists yet.
+The M2 gate asked "can llama.cpp reach the target?". The R1–R7 research is the missing gap analysis and it
+answers: the gap is kernel maturity and scheduling, reachable by patching llama.cpp's SYCL backend — **not** a
+from-scratch engine. The gate is therefore open for a **patch-based** engine plan, not for a SYCL rewrite.
+See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements are in below.
+
+- [x] M3.0 Backend A/B: warm SYCL vs Vulkan at 4K/128K. **Vulkan stays the default** — SYCL did not clear the
+  1.3x 128K gate ([BAS-72](/BAS/issues/BAS-72), [ADR-0002](adr/0002-baseline-engine.md) amended).
+- [x] M3.0a Prefix-cache serving for agentic turns. 512-token turn **4.51 s** at 31K, full hit **0.29 s**
+  ([BAS-73](/BAS/issues/BAS-73)). Slot save/restore at 256K measured ([BAS-83](/BAS/issues/BAS-83)), and the
+  restore-reuse gap is fixed by the checkpoint sidecar ([BAS-86](/BAS/issues/BAS-86)).
+- [x] M3.1 Quantized-weight (integer MMVQ) path. Correct and flag-gated, but **~1.05x** on the cached turn —
+  below the 1.3x gate ([BAS-74](/BAS/issues/BAS-74)). The expert matmul is 3.4% of the turn (M3.6).
+- [x] M3.2 Suffix/n-gram speculation, measured. **Negative on Vulkan**: 0.92-1.22x, no row reaches 1.3x, and
+  greedy output is not bit-stable at 128K ([BAS-131](/BAS/issues/BAS-131)). No `bongo.sh` change.
+- [x] M3.3 Placement Step 1: byte-budget `-ot` **+2.91%** 128K prefill / +0.74% decode, +4.25 pp coverage
+  ([BAS-76](/BAS/issues/BAS-76)). Step 2, the dynamic VRAM LRU over RAM-pinned experts, is [BAS-139](/BAS/issues/BAS-139).
+- [x] M3.4 PLE/n-gram second-shard reader: opt-in behind `--ple-reader off`; the engine A/B measured neutral
+  ([BAS-79](/BAS/issues/BAS-79)) — [ADR-0004](adr/0004-ple-reader-disposition.md).
+- [x] M3.5 Long context: **256K** shipped default q8 KV + `--n-cpu-moe 18`. Real 256K prefill, 128K needle
+  PASS, peak 30.92 GiB ([BAS-78](/BAS/issues/BAS-78)); cached delta turn 10.87 s / 30.86 GiB
+  ([BAS-132](/BAS/issues/BAS-132)).
+- [x] M3.6 Warm-prefix profile: the cached turn is **80.1% host/CPU**, the MoE expert matmul 3.4%
+  ([BAS-130](/BAS/issues/BAS-130)).
+
+**Target status.** The turn targets are **met on the shipped default** since M4.3: 512-token turn 2.72 s at
+16K (target <=3 s) and 4.67 s at 128K (target <=5 s), with the M4.2-patched engine and the upload
+levers on by default; 256K is met. **The 4K decode target is `>=19.0 tok/s` median of 3 runs (nominal
+steady-state ~19.5)**, on the shipped default at `--ctx 131072`, per the CEO decisions
+[BAS-164](/BAS/issues/BAS-164) and the superseding [BAS-171](/BAS/issues/BAS-171): the measured host-side
+ceiling is 19.59 tok/s (placement) and the GPU-busy floor is 38.7 ms/step. **`>=25 tok/s` is retired as a
+current commitment** and becomes the goal of the unfunded GPU milestone [BAS-166](/BAS/issues/BAS-166)
+(backlog, low). M4.5 ([BAS-163](/BAS/issues/BAS-163)) shipped `--placement auto` as the default, and the
+shipped default reproduces the target (three independent session medians 19.556 / 19.421 / 19.444). Umbrella
+[BAS-62](/BAS/issues/BAS-62) closes as met-with-re-baselined-target.
+
+## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
+
+M3 measured the planned GPU lever as 3.4% of the turn, so M4 targets the dominant term. The mechanism is the
+per-batch host->VRAM **upload of host-resident MoE expert weights** on the main thread (2180 ms / 38.4% at 16K;
+CPU workers 0%).
+
+- [x] M4.1 ([BAS-144](/BAS/issues/BAS-144)) Decompose the host term and measure a lever. `--load-mode none`
+  (anonymous RAM, no `mmap` re-read) gives **-10.4% at 16K / -7.1% at 128K** vs the M3.6 baseline. Opt-in and
+  revertible.
+- [x] M3.3b ([BAS-139](/BAS/issues/BAS-139)) Dynamic VRAM LRU over RAM-pinned experts: **measured negative**
+  (-49% to -85%) and stopped — [ADR-0006](adr/0006-moe-expert-lru-disposition.md). Step-1 `-ot` remains the
+  placement result.
+- [x] M3.0c ([BAS-145](/BAS/issues/BAS-145)) Checkpoint-sidecar restore reuse confirmed at ~128K (`cache_n`
+  = 127998).
+- [x] M4.2 ([BAS-155](/BAS/issues/BAS-155)) Located the upload and fixed the root cause: the Vulkan host buffer
+  type was pinned to `devices[0]` (the AMD iGPU), so every copy staged through CPU and synchronised. Device-local
+  host buffer + transfer queue: **16K -23.7% (2721.8 ms), 128K -14.95% (4661.0 ms)**, needle pass. Env-gated,
+  default off.
+- [x] M4.3 ([BAS-158](/BAS/issues/BAS-158)) Shipped the M4.2 upload fix as the `bongo.sh` default
+  (patched engine + `--load-mode none` + the two `GGML_VK` levers, built/selected reproducibly) with a
+  no-rebuild `--engine stage0` opt-out. Shipped default: **16K 2 716 ms (−23.9%), 128K 4 669 ms
+  (−14.80%)**, cold prefill within 0.05% of M4.2, needle pass, 256K fit 30.65 GiB. Corrects the RAM
+  premise: the default's VmRSS is 2.4 GiB (the ~10 GiB set is the `mmap` opt-out's working set).
+  ([doc](research/m4.3-shipped-default.md), [raw](../bench/results/2026-09-29-m4.3-shipped-default/))
+- [x] M4.4 ([BAS-159](/BAS/issues/BAS-159)) Decode profiled: dense matmuls 40.3%, flash attention 20.5%, MoE
+  expert matmul 10.3%, host ~34%. The MoE term is not dominant, and decode does **no** expert upload (batch 1 is
+  below the Vulkan offload threshold of 32, so the host-resident experts run on the CPU). Placement is the only
+  lever found: `--n-cpu-moe 12` gives **19.59 tok/s (+15.5%)**; 10/8 OOM at 131072, so that is the ceiling.
+  `--placement auto` is landed but opt-in. ([doc](research/m4.4-decode-profile.md),
+  [raw](../bench/results/2026-09-29-m4.4-decode/))
+- [x] M4.5 ([BAS-163](/BAS/issues/BAS-163)) Made `--placement auto` the default **with an automatic load fallback**, so the
+  decode gain ships without sitting on the VRAM load edge. Shipped default: `--n-cpu-moe 12` at 131072 (**19.56 tok/s** 4K
+  decode, +15.3%), the measured large-context split **18** above 131072 (the ticket's 16 device-losts there), one retry at
+  the safe split on a load failure, 16K/128K turn within 0.2/1.6% of M4.3 and needle pass. Config-only; 70 unit cases pass.
+  ([doc](research/m4.5-auto-placement-default.md), [raw](../bench/results/2026-09-29-m4.5-auto-default/))
+- [x] M4.6 ([BAS-167](/BAS/issues/BAS-167)) Record the re-baseline in
+  [ADR-0005](adr/0005-host-cpu-critical-path.md) and this roadmap, and close [BAS-62](/BAS/issues/BAS-62) as
+  met-with-re-baselined-target. Docs and the CTO reproduction are recorded; [BAS-62](/BAS/issues/BAS-62) is
+  closed under the superseding `>=19.0` target.
+- [x] CEO call ([BAS-164](/BAS/issues/BAS-164)): re-baseline decode to `>=19.5 tok/s`, median of 3, on the
+  shipped default; `>=25 tok/s` retired to the unfunded GPU milestone [BAS-166](/BAS/issues/BAS-166)
+  (backlog, low — not started).
+- [x] CEO call ([BAS-171](/BAS/issues/BAS-171), superseding [BAS-164](/BAS/issues/BAS-164)): the CTO
+  reproduction showed the default straddles `>=19.5` at the ceiling (session medians 19.556 / 19.421 /
+  19.444), so the target is corrected to **`>=19.0 tok/s` median (nominal steady-state ~19.5)**; the shipped
+  default meets it.
+- Deferred: Level Zero command-list capture (R1c).
+
+MTP is **not** on this list: the base model's head is not in the published GGUF and llama.cpp `qwen4exp` cannot
+convert or run it ([research §2.1](research/intel-arc-b70.md)).
 
 ## Cross-cutting
 

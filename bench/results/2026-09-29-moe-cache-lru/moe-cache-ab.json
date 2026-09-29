@@ -1,0 +1,185 @@
+{
+  "schema": "bongo.moe-cache-ab.v1",
+  "a_label": "moe-lru",
+  "b_label": "stage0-ncmoe16",
+  "contexts": [
+    "4096",
+    "131072"
+  ],
+  "a": {
+    "4096": {
+      "status": "ok",
+      "prompt_tps": 2.519,
+      "output_tps": 2.503,
+      "ttft_ms": 1266.78,
+      "vram_peak_bytes": 31262355456.0,
+      "delta": {
+        "prompt_tps_pct": -83.00728548300054,
+        "output_tps_pct": -85.37283777466106,
+        "ttft_pct": 392.22101336649047
+      }
+    },
+    "131072": {
+      "status": "ok",
+      "prompt_tps": 66.771,
+      "output_tps": 3.041,
+      "ttft_ms": 1898792.47,
+      "vram_peak_bytes": 31730810880.0,
+      "delta": {
+        "prompt_tps_pct": -49.34529950840565,
+        "output_tps_pct": -62.19542516161114,
+        "ttft_pct": 97.40236564822595
+      }
+    }
+  },
+  "b": {
+    "4096": {
+      "status": "ok",
+      "prompt_tps": 14.824,
+      "output_tps": 17.112,
+      "ttft_ms": 257.36,
+      "vram_peak_bytes": 31217545216.0
+    },
+    "131072": {
+      "status": "ok",
+      "prompt_tps": 131.816,
+      "output_tps": 8.044,
+      "ttft_ms": 961889.42,
+      "vram_peak_bytes": 31686000640.0
+    }
+  },
+  "needle": {
+    "a": "pass",
+    "b": "pass"
+  },
+  "cache": {
+    "steps": 632,
+    "hits": 262723,
+    "misses": 13167,
+    "hit_rate": 0.952274,
+    "layers": 47,
+    "slots": [
+      459,
+      435,
+      442,
+      338,
+      352,
+      379,
+      392,
+      390,
+      373,
+      358,
+      394,
+      374,
+      388,
+      408,
+      366,
+      265,
+      288,
+      360,
+      389,
+      358,
+      360,
+      385,
+      398,
+      368,
+      371,
+      340,
+      376,
+      352,
+      376,
+      393,
+      360,
+      276,
+      285,
+      370,
+      385,
+      351,
+      325,
+      357,
+      374,
+      295,
+      303,
+      301,
+      336,
+      301,
+      308,
+      288,
+      293
+    ]
+  },
+  "sources": {
+    "a_matrix": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-moe-cache-lru/ncmoe-48-moe-lru/matrix.json",
+    "b_matrix": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-moe-cache-lru/ncmoe-16-stage0/matrix.json",
+    "a_prefix": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-moe-cache-lru/ncmoe-48-moe-lru/prefix-cache/prefix-cache.json",
+    "b_prefix": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-moe-cache-lru/ncmoe-16-stage0/prefix-cache/prefix-cache.json",
+    "cache_stats": "/home/cchild/.paperclip/instances/default/projects/c1ccf5ff-cc7d-4b68-a23c-def2d29bb0a3/15f9f0b7-0021-4164-ae30-902276def736/bongo/.paperclip/worktrees/BAS-62-improve-speed-architecture/bench/results/2026-09-29-moe-cache-lru/moe-cache-stats.json"
+  },
+  "turn_ttft": {
+    "grow_p16384_d512": {
+      "a_ttft_ms": 43919.19,
+      "b_ttft_ms": 3502.67,
+      "ttft_pct": 1153.8774706152735,
+      "a_output_tps": 1.5652375352308883,
+      "b_output_tps": 12.896902164100183,
+      "output_pct": -87.86346119932674
+    },
+    "grow_p16384_repeat": {
+      "a_ttft_ms": 572.27,
+      "b_ttft_ms": 236.63,
+      "ttft_pct": 141.84169378354392,
+      "a_output_tps": 6.752392034878357,
+      "b_output_tps": 13.183741809600402,
+      "output_pct": -48.78243117624418
+    },
+    "grow_p24576_d512": {
+      "a_ttft_ms": 46675.86,
+      "b_ttft_ms": 3883.49,
+      "ttft_pct": 1101.9049875241085,
+      "a_output_tps": 1.1768790344884403,
+      "b_output_tps": 12.153966446949962,
+      "output_pct": -90.31691390933716
+    },
+    "grow_p24576_repeat": {
+      "a_ttft_ms": 690.88,
+      "b_ttft_ms": 260.84,
+      "ttft_pct": 164.8673516331851,
+      "a_output_tps": 5.319762029311889,
+      "b_output_tps": 12.621959685460762,
+      "output_pct": -57.85312137037069
+    },
+    "grow_p4096_d512": {
+      "a_ttft_ms": 43418.49,
+      "b_ttft_ms": 2979.05,
+      "ttft_pct": 1357.4609355331395,
+      "a_output_tps": 2.2228874418714932,
+      "b_output_tps": 15.336404022227562,
+      "output_pct": -85.50581062777306
+    },
+    "grow_p4096_repeat": {
+      "a_ttft_ms": 670.85,
+      "b_ttft_ms": 179.83,
+      "ttft_pct": 273.0467663904799,
+      "a_output_tps": 3.7745724667585985,
+      "b_output_tps": 16.90836231238763,
+      "output_pct": -77.67629769801407
+    }
+  },
+  "acceptance": {
+    "thresholds": {
+      "turn_ttft_pct": -15.0,
+      "decode_4k_pct": 20.0,
+      "long_context_regression_tol_pct": -2.0
+    },
+    "decode_4k_pct": -85.37283777466106,
+    "decode_4k_pass": false,
+    "turn_ttft_pass": false,
+    "throughput_pass": false,
+    "needle_pass": true,
+    "long_context_regressions": [
+      "131072 prefill -49.35%",
+      "131072 decode -62.20%"
+    ],
+    "pass": false
+  }
+}

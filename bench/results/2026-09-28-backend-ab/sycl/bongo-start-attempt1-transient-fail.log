@@ -1,0 +1,12 @@
+[bongo] bongo.sh 0.1.0 — Fedora Linux 44 (Server Edition)
+[bongo] Kernel driver: xe (loaded)
+[bongo] Render node: /dev/dri/renderD128
+[bongo] Provisioning compute runtime (mode: dir)...
+[bongo] Runtime library path: /home/cchild/.bongo/runtime/opt/intel/oneapi/redist/lib:/home/cchild/.bongo/runtime/usr/lib64
+[bongo] Using existing llama.cpp build at /home/cchild/.bongo/llama/b11223/sycl
+[bongo] Runtime library path: /home/cchild/.bongo/runtime/opt/intel/oneapi/redist/lib:/home/cchild/.bongo/runtime/usr/lib64
+[bongo] Backend 'sycl' requested but no SYCL device was found.
+  - Is the Intel compute runtime installed? Try: ./bongo.sh --check --runtime system
+  - Is the GPU usable? Check 'lspci -nn | grep -i intel' and 'ls /dev/dri'.
+  - Fall back with: ./bongo.sh --backend vulkan
+[bongo] Run './bongo.sh --help' for options.

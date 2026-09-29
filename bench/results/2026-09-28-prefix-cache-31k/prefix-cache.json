@@ -1,0 +1,117 @@
+{
+  "schema": "bongo.prefix-cache.v1",
+  "generated_at": "2026-09-28T10:53:14+00:00",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "delta_tokens": 512,
+  "runs": [
+    {
+      "prefix_target": 31744,
+      "status": 200,
+      "wall_ms": 180369.86,
+      "prompt_tokens": 31743,
+      "prompt_ms": 180006.67,
+      "prompt_tps": 176.3434654949175,
+      "output_tokens": 4,
+      "output_ms": 291.682,
+      "output_tps": 10.28517357944611,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 31743,
+        "total_tokens": 31747,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "text": "\n\n<think>\n\n</think>",
+      "ttft_ms": 180077.97,
+      "ttfb_ms": 30074.83,
+      "stream_total_ms": 180369.86,
+      "stream_error": null,
+      "stream_text": "\n\n<think>\n\n</think>",
+      "label": "cold_p31744",
+      "ts": 1790592979.0738707
+    },
+    {
+      "prefix_target": 31744,
+      "status": 200,
+      "wall_ms": 562.47,
+      "prompt_tokens": 4,
+      "prompt_ms": 276.381,
+      "prompt_tps": 14.472774901313768,
+      "output_tokens": 4,
+      "output_ms": 261.927,
+      "output_tps": 11.45357294207928,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 31743,
+        "total_tokens": 31747,
+        "prompt_tokens_details": {
+          "cached_tokens": 31739
+        }
+      },
+      "text": "\n\n<think>\n\n</think>",
+      "ttft_ms": 300.36,
+      "ttfb_ms": 300.32,
+      "stream_total_ms": 562.47,
+      "stream_error": null,
+      "stream_text": "\n\n<think>\n\n</think>",
+      "label": "hit_p31744",
+      "ts": 1790592979.6367478
+    },
+    {
+      "prefix_target": 31744,
+      "status": 200,
+      "wall_ms": 4586.24,
+      "prompt_tokens": 515,
+      "prompt_ms": 4292.198,
+      "prompt_tps": 119.98514514008906,
+      "output_tokens": 4,
+      "output_ms": 269.008,
+      "output_tps": 11.152084696365907,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 32254,
+        "total_tokens": 32258,
+        "prompt_tokens_details": {
+          "cached_tokens": 31739
+        }
+      },
+      "text": "\n\n<think>\n\n</think>",
+      "ttft_ms": 4317.1,
+      "ttfb_ms": 4317.07,
+      "stream_total_ms": 4586.24,
+      "stream_error": null,
+      "stream_text": "\n\n<think>\n\n</think>",
+      "label": "grow_p31744_d512",
+      "ts": 1790592984.2234354
+    },
+    {
+      "prefix_target": 31744,
+      "status": 200,
+      "wall_ms": 534.86,
+      "prompt_tokens": 4,
+      "prompt_ms": 256.938,
+      "prompt_tps": 15.567958028785155,
+      "output_tokens": 4,
+      "output_ms": 253.767,
+      "output_tps": 11.821868091595835,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 32254,
+        "total_tokens": 32258,
+        "prompt_tokens_details": {
+          "cached_tokens": 32250
+        }
+      },
+      "text": "\n\n<think>\n\n</think>",
+      "ttft_ms": 280.92,
+      "ttfb_ms": 280.89,
+      "stream_total_ms": 534.86,
+      "stream_error": null,
+      "stream_text": "\n\n<think>\n\n</think>",
+      "label": "grow_p31744_repeat",
+      "ts": 1790592984.7585425
+    }
+  ]
+}

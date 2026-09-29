@@ -1,0 +1,8 @@
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=1,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  852 runs -  5869.46 us/run - 117.44 MFLOP/run - [1;34m 20.01 GFLOPS[0m
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=2,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  426 runs -  5345.69 us/run - 234.88 MFLOP/run - [1;34m 43.94 GFLOPS[0m
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=3,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  284 runs -  5993.05 us/run - 352.32 MFLOP/run - [1;34m 58.79 GFLOPS[0m
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=4,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  639 runs -  7743.06 us/run - 469.76 MFLOP/run - [1;34m 60.67 GFLOPS[0m
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=5,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  513 runs -  4660.40 us/run - 587.20 MFLOP/run - [1;34m126.00 GFLOPS[0m
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=8,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  214 runs - 10869.71 us/run - 939.52 MFLOP/run - [1;34m 86.44 GFLOPS[0m
+  MUL_MAT(type_a=iq2_xs,type_b=f32,m=4096,n=512,k=14336,bs=[1,1],nr=[1,1],per=[0,1,2,3],k_v=0,o=1,src_overlap=0):                  8 runs - 143871.88 us/run -  60.13 GFLOP/run - [1;34m417.94 GFLOPS[0m
+  Backend SYCL0: [1;32mOK[0m

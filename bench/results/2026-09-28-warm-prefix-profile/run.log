@@ -1,0 +1,37 @@
+[warm-prefix 23:08:38Z] baseline: starting llama-server (ctx=131072 perf=0) flags: 
+[warm-prefix 23:10:29Z] baseline: server healthy after 110s; pid=3426631
+[warm-prefix 23:11:16Z] baseline: profiling prefixes=16384,128000 deltas=128,512,1024
+[warm-prefix 23:30:02Z] baseline: profile exit 0
+[warm-prefix 23:30:03Z] baseline_perf: starting llama-server (ctx=131072 perf=1) flags: 
+[warm-prefix 23:30:53Z] baseline_perf: server healthy after 50s; pid=3468235
+[warm-prefix 23:31:23Z] baseline_perf: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 23:33:11Z] baseline_perf: profile exit 0
+[warm-prefix 23:33:11Z] ncmoe24: starting llama-server (ctx=131072 perf=0) flags: --n-cpu-moe 24
+[warm-prefix 23:34:32Z] ncmoe24: server healthy after 80s; pid=3472461
+[warm-prefix 23:35:42Z] ncmoe24: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 23:37:51Z] ncmoe24: profile exit 0
+[warm-prefix 23:37:51Z] ncmoe8: starting llama-server (ctx=131072 perf=0) flags: --n-cpu-moe 8
+[warm-prefix 23:39:17Z] ncmoe8: server failed to become healthy: 1.20.183.297 E alloc_tensor_range: failed to allocate Vulkan1 buffer of size 641728512 1.20.187.576 E llama_init_from_model: failed to initialize the context: failed to allocate buffer for kv cache 1.20.192.044 E srv  llama_server: exiting due to model loading error 
+[warm-prefix 23:39:17Z] fa_off: starting llama-server (ctx=131072 perf=0) flags: --flash-attn off
+[warm-prefix 23:40:47Z] fa_off: server failed to become healthy: 0.00.851.635 E common_fit_params: encountered an error while trying to fit params to free device memory: failed to create llama_context from model 1.26.522.286 E srv  llama_server: exiting due to model loading error 
+[warm-prefix 23:40:47Z] ub128: starting llama-server (ctx=131072 perf=0) flags: --ubatch-size 128
+[warm-prefix 23:41:52Z] ub128: server healthy after 65s; pid=3482776
+[warm-prefix 23:43:19Z] ub128: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 23:47:49Z] ub128: profile exit 0
+[warm-prefix 23:47:50Z] ub1024: starting llama-server (ctx=131072 perf=0) flags: --ubatch-size 1024
+[warm-prefix 23:49:25Z] ub1024: server healthy after 95s; pid=3491783
+[warm-prefix 23:50:12Z] ub1024: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 23:51:32Z] ub1024: profile exit 0
+[warm-prefix 23:51:33Z] attn_cpu: starting llama-server (ctx=131072 perf=0) flags: -ot attn_qkv=CPU,attn_output=CPU,attn_gate=CPU,attn_q=CPU,attn_k=CPU,attn_v=CPU
+[warm-prefix 23:53:03Z] attn_cpu: server healthy after 90s; pid=3496622
+[warm-prefix 23:54:08Z] attn_cpu: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 23:56:14Z] attn_cpu: profile exit 0
+[warm-prefix 23:56:15Z] ssm_cpu: starting llama-server (ctx=131072 perf=0) flags: -ot ssm_out=CPU,ssm_conv1d=CPU,ssm_alpha=CPU,ssm_beta=CPU
+[warm-prefix 23:58:00Z] ssm_cpu: server healthy after 105s; pid=3502600
+[warm-prefix 23:58:57Z] ssm_cpu: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 00:00:46Z] ssm_cpu: profile exit 0
+[warm-prefix 00:00:46Z] hc_cpu: starting llama-server (ctx=131072 perf=0) flags: -ot hc_.*=CPU
+[warm-prefix 00:02:16Z] hc_cpu: server healthy after 90s; pid=3508638
+[warm-prefix 00:03:14Z] hc_cpu: profiling prefixes=16384 deltas=128,512,1024
+[warm-prefix 00:05:12Z] hc_cpu: profile exit 0
+[warm-prefix 00:05:13Z] done; results in bench/results/2026-09-28-warm-prefix-profile
