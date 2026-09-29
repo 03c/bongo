@@ -43,6 +43,7 @@ higher-quant tiers are not shipped. See the overview's "What is not done".
 - [`docs/research/intel-arc-b70.md`](docs/research/intel-arc-b70.md) — hardware, model, memory budget, runtime options.
 - [`docs/research/gguf-inventory.md`](docs/research/gguf-inventory.md) — exact tensor inventory (1,224 tensors, all three tiers) and the 32 GB VRAM / 30 GiB RAM buffer-placement plan.
 - [`docs/research/expert-placement.md`](docs/research/expert-placement.md) — the `--n-cpu-moe` sweep on the B70, the VRAM feasibility edge, and the Stage 1 adaptive-cache go/no-go.
+- [`docs/research/moe4all-arc-b70-eval.md`](docs/research/moe4all-arc-b70-eval.md) — first-pass evaluation of MoE4All/INFR on the Arc B70 (quant speeds, the Intel host-DMA hang, and the Qwen3.8 MTP sidecar pairing) — [BAS-179](/BAS/issues/BAS-179).
 - [`bench/results/2026-09-28-q2_0/RECOMMENDATION.md`](bench/results/2026-09-28-q2_0/RECOMMENDATION.md) — Q2_0 at 128K (smallest fitting `--n-cpu-moe` = 11) and why IQ2_XS stays the default.
 - [`tools/gguf-inventory.py`](tools/gguf-inventory.py) — the header-range-read inventory tool (no weight download).
 - [`docs/adr/0001-runtime-architecture.md`](docs/adr/0001-runtime-architecture.md) — the staged runtime decision.
