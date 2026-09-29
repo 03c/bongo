@@ -289,8 +289,8 @@ parse_args() {
       --n-cpu-moe) N_CPU_MOE="${2:?--n-cpu-moe needs a value}"; shift 2;;
       --n-gpu-layers) N_GPU_LAYERS="${2:?--n-gpu-layers needs a value}"; shift 2;;
       --threads) THREADS="${2:?--threads needs a value}"; shift 2;;
-      --load-mode) LOAD_MODE="${2:?--load-mode needs a value}"; LOAD_MODE_SET=1; shift 2;;
-      --no-mmap) LOAD_MODE="none"; LOAD_MODE_SET=1; shift;;
+      --load-mode) LOAD_MODE="${2:?--load-mode needs a value}"; shift 2;;
+      --no-mmap) LOAD_MODE="none"; shift;;
       # The published GGUF has no MTP/NextN head and llama.cpp qwen4exp cannot convert or run one;
       # speculation is the n-gram/PLE table. Refuse the flag with an actionable message.
       --mtp) die "--mtp is not supported for this model: the published GGUF has no MTP head and llama.cpp qwen4exp cannot run one. Speculation uses the lazy-read n-gram/PLE table. See docs/research/intel-arc-b70.md section 2.1.";;

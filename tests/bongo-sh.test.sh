@@ -150,7 +150,7 @@ reset_cache_state() {
   HOST=127.0.0.1; PORT=8080; PARALLEL=1; SELECTED_BACKEND=Vulkan; SERVER_BIN=""
   FLASH_ATTN=on; CACHE_TYPE_K=q8_0; CACHE_TYPE_V=q8_0; THREADS=""; LOAD_MODE=""; KEEP_ALIVE=1
   # M4.3 (BAS-158) shipped default: the M4.2-patched engine with the levers on.
-  ENGINE_MODE=m42; M42_UPLOAD=1; ENGINE_PATCHED=1; LOAD_MODE_SET=0; SERVER_ENV=()
+  ENGINE_MODE=m42; M42_UPLOAD=1; ENGINE_PATCHED=1; SERVER_ENV=()
 }
 flags_have() { local needle="$1" f; for f in "${SERVER_FLAGS[@]}"; do [[ "$f" == "$needle" ]] && return 0; done; return 1; }
 flags_pair() {
