@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 886179.81,
+  "prompt_tokens": 130861,
+  "prompt_ms": 867540.105,
+  "prompt_tps": 150.84144150315677,
+  "output_tokens": 128,
+  "output_ms": 18543.23,
+  "output_tps": 6.848860743246997,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 130861,
+    "total_tokens": 130989,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger, comparing it again",
+  "ttft_ms": 867640.75,
+  "ttfb_ms": 30101.02,
+  "stream_total_ms": 886179.81,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\n\n</think>\n\nVAULT-COORD-7391-QXZ.\nThe mountain road curved past the reservoir, where the morning fog had not ye",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 33497485312.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 7082835968.0,
+    "system_ram_process_hwm_bytes": 16597716992.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 3532
+  }
+}

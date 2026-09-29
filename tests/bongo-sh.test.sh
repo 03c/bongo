@@ -93,6 +93,92 @@ else
 fi
 unset -f dnf rpm2cpio cpio
 
+# --- BAS-57 F1: oneAPI ABI packages are pinned and extracted last ----------
+# The pinned llama.cpp SYCL asset links libsycl.so.8 (oneAPI 2025.3). An
+# unpinned download now also resolves to 2026.1 (libsycl.so.9), so the pinned
+# packages must be requested by version and extracted after any newer copy.
+home="$TMP/home-pin"
+BONGO_HOME="$home"; RUNTIME_DIR="$home/runtime"
+mkdir -p "$home"
+PIN_DNF_LOG="$TMP/dnf-pin.log"
+RPM_LOG="$TMP/rpm-pin.log"
+LDCONF_LOG="$TMP/ldconfig-pin.log"
+dnf() {
+  printf 'dnf %s\n' "$*" >> "$PIN_DNF_LOG"
+  # Simulate the download dir: finer pinned packages plus newer transitive
+  # copies that dnf --resolve pulls in through the meta-packages.
+  mkdir -p "$BONGO_HOME/tmp/runtime"
+  : > "$BONGO_HOME/tmp/runtime/intel-oneapi-runtime-dpcpp-sycl-core-2026.1.1-325.x86_64.rpm"
+  : > "$BONGO_HOME/tmp/runtime/intel-oneapi-runtime-mkl-2026.1.1-325.x86_64.rpm"
+  : > "$BONGO_HOME/tmp/runtime/intel-oneapi-runtime-mkl-2025.3.1-8.x86_64.rpm"
+  : > "$BONGO_HOME/tmp/runtime/intel-oneapi-runtime-dpcpp-sycl-core-2025.3.3-30.x86_64.rpm"
+  return 0
+}
+rpm2cpio() { printf '%s\n' "$1" >> "$RPM_LOG"; cat >/dev/null; return 0; }
+cpio() {
+  mkdir -p "$RUNTIME_DIR/usr/lib64" "$RUNTIME_DIR/usr/bin" "$RUNTIME_DIR/opt/intel/oneapi/redist/lib"
+  : > "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/libsycl.so.8"
+  # The prefix's ldconfig recreates SONAME symlinks for extracted libs.
+  printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\n' "$LDCONF_LOG" > "$RUNTIME_DIR/usr/bin/ldconfig"
+  chmod +x "$RUNTIME_DIR/usr/bin/ldconfig"
+  cat >/dev/null 2>/dev/null || true
+  return 0
+}
+install_runtime_user >/dev/null 2>&1
+if grep -q 'intel-oneapi-runtime-dpcpp-sycl-core-2025.3.3-30' "$PIN_DNF_LOG"; then
+  t_ok "BAS-57 pins the SYCL core package to the 2025.3 ABI"
+else
+  t_bad "BAS-57 pins the SYCL core package to the 2025.3 ABI"
+fi
+if grep -q 'intel-oneapi-runtime-mkl-2025.3.1-8' "$PIN_DNF_LOG"; then
+  t_ok "BAS-57 pins the MKL runtime package to the .so.5 ABI"
+else
+  t_bad "BAS-57 pins the MKL runtime package to the .so.5 ABI"
+fi
+pin_sycl_line="$(grep -n 'intel-oneapi-runtime-dpcpp-sycl-core-2025.3.3-30' "$RPM_LOG" | tail -n1 | cut -d: -f1)"
+new_sycl_line="$(grep -n 'intel-oneapi-runtime-dpcpp-sycl-core-2026.1.1-325' "$RPM_LOG" | tail -n1 | cut -d: -f1)"
+pin_mkl_line="$(grep -n 'intel-oneapi-runtime-mkl-2025.3.1-8' "$RPM_LOG" | tail -n1 | cut -d: -f1)"
+new_mkl_line="$(grep -n 'intel-oneapi-runtime-mkl-2026.1.1-325' "$RPM_LOG" | tail -n1 | cut -d: -f1)"
+if [[ -n "$pin_sycl_line" && -n "$new_sycl_line" && "$pin_sycl_line" -gt "$new_sycl_line" ]] \
+   && [[ -n "$pin_mkl_line" && -n "$new_mkl_line" && "$pin_mkl_line" -gt "$new_mkl_line" ]]; then
+  t_ok "BAS-57 extracts the pinned packages after any newer copies"
+else
+  t_bad "BAS-57 extracts the pinned packages after any newer copies"
+fi
+if [[ -e "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/libsycl.so.8" ]]; then
+  t_ok "BAS-57 pinned prefix carries libsycl.so.8"
+else
+  t_bad "BAS-57 pinned prefix carries libsycl.so.8"
+fi
+if grep -q 'intel-oneapi-umf-1.0' "$PIN_DNF_LOG"; then
+  t_ok "BAS-57 requests libumf (intel-oneapi-umf-1.0)"
+else
+  t_bad "BAS-57 requests libumf (intel-oneapi-umf-1.0)"
+fi
+if grep -q -- '-n' "$LDCONF_LOG" 2>/dev/null; then
+  t_ok "BAS-57 repairs SONAME symlinks with prefix ldconfig"
+else
+  t_bad "BAS-57 repairs SONAME symlinks with prefix ldconfig"
+fi
+unset -f dnf rpm2cpio cpio
+
+# --- BAS-57: setup_runtime_env exposes UMF and IGC's LLVM libraries ---------
+home="$TMP/home-env"
+BONGO_HOME="$home"; RUNTIME_DIR="$home/runtime"
+mkdir -p "$RUNTIME_DIR/opt/intel/oneapi/redist/lib" \
+         "$RUNTIME_DIR/opt/intel/oneapi/umf/1.0/lib" \
+         "$RUNTIME_DIR/usr/lib64/llvm15/lib" \
+         "$RUNTIME_DIR/usr/lib64"
+LD_LIBRARY_PATH=""
+setup_runtime_env >/dev/null 2>&1
+for probe_dir in "opt/intel/oneapi/umf/1.0/lib" "usr/lib64/llvm15/lib"; do
+  case ":$LD_LIBRARY_PATH:" in
+    *":$RUNTIME_DIR/$probe_dir:"*) t_ok "BAS-57 LD_LIBRARY_PATH includes $probe_dir" ;;
+    *) t_bad "BAS-57 LD_LIBRARY_PATH includes $probe_dir" ;;
+  esac
+done
+LD_LIBRARY_PATH=""
+
 # --- F3/F4: --uninstall output is correct and --yes performs removal --------
 out="$(BONGO_HOME="$TMP/does-not-exist" bash "$SRC" --uninstall 2>&1)"
 case "$out" in

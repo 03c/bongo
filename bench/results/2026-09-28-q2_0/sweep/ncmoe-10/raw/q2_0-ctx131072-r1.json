@@ -1,0 +1,27 @@
+{
+  "status": 500,
+  "wall_ms": 821960.37,
+  "prompt_tokens": null,
+  "prompt_ms": null,
+  "prompt_tps": null,
+  "output_tokens": null,
+  "output_ms": null,
+  "output_tps": null,
+  "usage": null,
+  "text": "",
+  "ttft_ms": null,
+  "ttfb_ms": 30194.91,
+  "stream_total_ms": 821960.37,
+  "stream_error": null,
+  "stream_text": "",
+  "error": "{\"error\":{\"code\":500,\"message\":\"decode() failed: vk::Queue::submit: ErrorDeviceLost\",\"type\":\"server_error\"}}",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 34199261184.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 6852997120.0,
+    "system_ram_process_hwm_bytes": 22624792576.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 3274
+  }
+}

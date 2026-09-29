@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "wall_ms": 28964.68,
+  "prompt_tokens": 4097,
+  "prompt_ms": 15982.424,
+  "prompt_tps": 256.34409398724495,
+  "output_tokens": 128,
+  "output_ms": 12927.793,
+  "output_tps": 9.8237959100985,
+  "usage": {
+    "completion_tokens": 128,
+    "prompt_tokens": 4097,
+    "total_tokens": 4225,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "text": "\n\n<think>\nThe user has pasted a repeated paragraph many times, ending abruptly with \"The turbin\" - cut off mid-word. This appears to be a test of how I handle repetitive text, or perhaps they want me ",
+  "ttft_ms": 16036.84,
+  "ttfb_ms": 16036.81,
+  "stream_total_ms": 28964.68,
+  "stream_error": null,
+  "stream_text": "\n\n<think>\nThe user has pasted a repeated paragraph many times, ending abruptly with \"The turbin\" - cut off mid-word. Thi",
+  "repeat": 1,
+  "memory": {
+    "vram_peak_bytes": 30197592064.0,
+    "vram_method": "fdinfo",
+    "system_ram_peak_bytes": 9077084160.0,
+    "system_ram_process_hwm_bytes": 14609956864.0,
+    "system_ram_method": "proc_status_sum",
+    "samples": 115
+  }
+}

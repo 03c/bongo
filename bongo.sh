@@ -521,32 +521,63 @@ check_disk() {
 ONEAPI_REPO_URL="https://yum.repos.intel.com/oneapi"
 ONEAPI_REPO_FILE_URL="https://yum.repos.intel.com/oneapi/file/intel-oneapi.repo"
 
+# oneAPI runtime ABI pins (BAS-57 F1).
+# The pinned llama.cpp prebuilt is linked against the oneAPI 2025.3 ABI:
+# libsycl.so.8, libmkl_sycl_blas.so.5 and a libdnnl.so.3 built against SYCL 8.
+# The oneAPI repository now also serves 2026.1 (libsycl.so.9 / MKL .so.6).
+# Installing those packages unpinned produces a runtime that cannot load the
+# pinned binary ("libsycl.so.8: cannot open shared object file"), so the three
+# ABI-bearing packages are pinned here and extracted last (see
+# install_runtime_user).
+ONEAPI_SYCL_CORE_PKG="intel-oneapi-runtime-dpcpp-sycl-core-2025.3.3-30"
+ONEAPI_MKL_PKG="intel-oneapi-runtime-mkl-2025.3.1-8"
+ONEAPI_DNNL_PKG="intel-oneapi-runtime-dnnl-2025.3.0-409"
+# The SONAME the pinned llama.cpp SYCL asset was built against.
+ONEAPI_SYCL_SONAME="8"
+
 setup_runtime_env() {
   local base="$RUNTIME_DIR"
   local -a libdirs=()
-  [[ -d "$base/opt/intel/oneapi/redist/lib" ]] && libdirs+=("$base/opt/intel/oneapi/redist/lib")
-  [[ -d "$base/usr/lib64" ]] && libdirs+=("$base/usr/lib64")
+  local dir
   # NEO only keeps the IGC/LLVM backend loaded when llvm15/lib is on the link
   # path. Without it the Level Zero probe dies in gmm_helper/resource_info.cpp
   # (SIGABRT, no device) and --backend sycl reports "no SYCL device was found"
   # even though the GPU is healthy. See bench/micro/levelzero_probe.py.
-  [[ -d "$base/usr/lib64/llvm15/lib" ]] && libdirs+=("$base/usr/lib64/llvm15/lib")
-  [[ -d "$base/lib" ]] && libdirs+=("$base/lib")
+  # The oneAPI 2025.3 SYCL runtime also keeps its Level Zero Unified Runtime
+  # adapter (libur_adapter_level_zero.so) dependent on libumf.so.1, shipped in
+  # intel-oneapi-umf-1.0; that lives outside opt/intel/oneapi/redist/lib, so it
+  # is added explicitly. The absolute paths (and /usr/lib64/llvm15/lib) cover a
+  # system-wide '--runtime system' install (BAS-57 F1).
+  for dir in \
+    "$base/opt/intel/oneapi/redist/lib" \
+    "$base/opt/intel/oneapi/umf/1.0/lib" \
+    "$base/opt/intel/oneapi/umf/1.1/lib" \
+    "$base/usr/lib64/llvm15/lib" \
+    "$base/usr/lib64" \
+    "$base/lib" \
+    /opt/intel/oneapi/redist/lib \
+    /opt/intel/oneapi/umf/1.0/lib \
+    /opt/intel/oneapi/umf/1.1/lib \
+    /usr/lib64/llvm15/lib; do
+    [[ -d "$dir" ]] || continue
+    case ":${LD_LIBRARY_PATH:-}:" in *":$dir:"*) continue;; esac
+    libdirs+=("$dir")
+  done
   if (( ${#libdirs[@]} )); then
     local joined
     joined="$(IFS=:; echo "${libdirs[*]}")"
     export LD_LIBRARY_PATH="${joined}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    # ZEL_LIBRARY_PATH must name exactly one directory. The Level Zero driver
-    # treats a colon-separated list as a single (invalid) path, enumerates zero
-    # devices and every SYCL call fails with "No device of requested type
-    # available". setup_runtime_env() can run twice in one invocation
-    # (provision_runtime + select_backend), so a naive prepend produced
-    # "<prefix>/usr/lib64:<prefix>/usr/lib64" and --backend sycl reported
-    # "no SYCL device was found" on a healthy Arc B70 (BAS-72).
-    if [[ "${ZEL_LIBRARY_PATH:-}" != "$base/usr/lib64" ]]; then
-      export ZEL_LIBRARY_PATH="$base/usr/lib64"
-    fi
     log "Runtime library path: $joined"
+  fi
+  # ZEL_LIBRARY_PATH must name exactly one directory. The Level Zero driver
+  # treats a colon-separated list as a single (invalid) path, enumerates zero
+  # devices and every SYCL call fails with "No device of requested type
+  # available". setup_runtime_env() can run twice in one invocation
+  # (provision_runtime + select_backend), so a naive prepend produced
+  # "<prefix>/usr/lib64:<prefix>/usr/lib64" and --backend sycl reported
+  # "no SYCL device was found" on a healthy Arc B70 (BAS-72).
+  if [[ -d "$base/usr/lib64" && "${ZEL_LIBRARY_PATH:-}" != "$base/usr/lib64" ]]; then
+    export ZEL_LIBRARY_PATH="$base/usr/lib64"
   fi
   # Expose runtime-provided tools (vulkaninfo, clinfo, sycl-ls, xpu-smi) when
   # the runtime was provisioned user-locally.
@@ -606,9 +637,15 @@ install_runtime_fedora() {
       $SUDO dnf config-manager addrepo --from-repofile="$ONEAPI_REPO_FILE_URL" >/dev/null 2>&1 || true
     fi
   fi
+  # Pin the ABI-bearing runtime packages to the SYCL 8 ABI the prebuilt needs
+  # (BAS-57 F1); the unpinned meta-packages may otherwise resolve to 2026.1.
+  # intel-oneapi-umf-1.0 provides libumf.so.1, which the Level Zero Unified
+  # Runtime adapter loads; intel-igc-libs provides the IGC compiler NEO needs
+  # to build its built-in kernels during device init.
   $SUDO dnf install -y \
-    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl \
-    intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb \
+    "$ONEAPI_SYCL_CORE_PKG" "$ONEAPI_MKL_PKG" "$ONEAPI_DNNL_PKG" \
+    intel-oneapi-umf-1.0 intel-igc-libs \
+    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-tbb \
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp \
     intel-oneapi-runtime-opencl \
     || warn "One or more oneAPI runtime packages failed to install; SYCL may be unavailable."
@@ -663,17 +700,18 @@ EOF
   # (intel-oneapi-runtime-dpcpp-sycl-core), so the prefix has no SYCL library and
   # every run re-provisions (BAS-58 F1).
   local oneapi_pkgs=(
-    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-dpcpp-sycl-core
-    intel-oneapi-runtime-mkl intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
+    "$ONEAPI_SYCL_CORE_PKG" "$ONEAPI_MKL_PKG" "$ONEAPI_DNNL_PKG"
+    intel-oneapi-umf-1.0
+    intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-tbb
     intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
     intel-oneapi-runtime-opencl
   )
   log "  downloading oneAPI runtime packages..."
   if ! ( cd "$tmp" && dnf -q --setopt=reposdir="$repo_dir" download --resolve "${oneapi_pkgs[@]}" ); then
-    warn "SYCL core runtime package unavailable from $ONEAPI_REPO_URL; retrying without it."
+    warn "Pinned oneAPI runtime packages unavailable from $ONEAPI_REPO_URL; retrying unpinned."
     oneapi_pkgs=(
       intel-oneapi-runtime-dpcpp-cpp intel-oneapi-runtime-mkl
-      intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb
+      intel-oneapi-runtime-dnnl intel-oneapi-runtime-tbb intel-oneapi-umf-1.0
       intel-oneapi-runtime-compilers intel-oneapi-runtime-openmp
       intel-oneapi-runtime-opencl
     )
@@ -684,15 +722,55 @@ EOF
   ( cd "$tmp" && dnf -q download --resolve intel-level-zero oneapi-level-zero intel-opencl intel-igc-libs intel-gmmlib clinfo ) \
     || die "Failed to download the Intel GPU runtime packages."
   log "  extracting packages into $RUNTIME_DIR..."
-  ( cd "$RUNTIME_DIR" && for r in "$tmp"/*.rpm; do
-      case "$r" in *.i686.rpm) continue;; esac
+  # dnf --resolve can pull a newer transitive copy of the ABI packages (for
+  # example a 2026 sycl-core required by the dpcpp-cpp meta-package). Extract
+  # the pinned packages last so their libraries win, regardless of glob order
+  # (BAS-57 F1).
+  local -a extract_first=() extract_last=()
+  local r
+  for r in "$tmp"/*.rpm; do
+    case "$r" in *.i686.rpm) continue;; esac
+    case "$(basename "$r")" in
+      "$ONEAPI_SYCL_CORE_PKG".*.rpm|"$ONEAPI_MKL_PKG".*.rpm|"$ONEAPI_DNNL_PKG".*.rpm)
+        extract_last+=("$r");;
+      *)
+        extract_first+=("$r");;
+    esac
+  done
+  ( cd "$RUNTIME_DIR" && for r in "${extract_first[@]}" "${extract_last[@]}"; do
       rpm2cpio "$r" | cpio -idmu --quiet --no-absolute-filenames 2>/dev/null || true
     done )
   rm -rf "$tmp"
+  # The Fedora intel-igc-libs RPM ships libigc.so.2.36.3+0 with SONAME
+  # libigc.so.2 but no matching symlink; a normal RPM install relies on
+  # ldconfig to create it, but a plain cpio extraction does not. NEO then
+  # cannot load the IGC compiler during device init and aborts in
+  # gmm_helper/resource_info.cpp. Recreate the SONAME symlinks for the prefix
+  # (BAS-57 F1).
+  if [[ -x "$RUNTIME_DIR/usr/bin/ldconfig" ]]; then
+    local libdir
+    for libdir in "$RUNTIME_DIR/usr/lib64" "$RUNTIME_DIR/usr/lib64/intel-opencl"; do
+      [[ -d "$libdir" ]] || continue
+      "$RUNTIME_DIR/usr/bin/ldconfig" -n "$libdir" >/dev/null 2>&1 || true
+    done
+  fi
   # Fail loudly instead of writing the sentinel on an empty/failed extraction.
   if ! compgen -G "$RUNTIME_DIR/usr/lib64/*.so*" >/dev/null \
      && ! compgen -G "$RUNTIME_DIR/opt/intel/oneapi/redist/lib/*.so*" >/dev/null; then
     die "Runtime extraction produced no shared libraries under $RUNTIME_DIR."
+  fi
+  # ABI guard (BAS-57 F1): the pinned llama.cpp SYCL asset links
+  # libsycl.so.${ONEAPI_SYCL_SONAME}. If the prefix only carries a newer SONAME,
+  # the helper cannot load and the failure would otherwise surface as a
+  # confusing "no SYCL device".
+  local soname_dir found_soname=0
+  for soname_dir in "$RUNTIME_DIR/opt/intel/oneapi/redist/lib" "$RUNTIME_DIR/usr/lib64"; do
+    if compgen -G "$soname_dir/libsycl.so.${ONEAPI_SYCL_SONAME}*" >/dev/null; then
+      found_soname=1; break
+    fi
+  done
+  if (( found_soname == 0 )); then
+    warn "The provisioned runtime has no libsycl.so.${ONEAPI_SYCL_SONAME}; llama.cpp $LLAMA_REV was built against that SONAME. SYCL will not be selectable."
   fi
   # Sentinel for sycl_runtime_present(): the user-local set can legitimately
   # lack libsycl.so, so the prefix itself is the reliable idempotency signal.
@@ -763,6 +841,16 @@ probe_sycl() {
   local out
   if ! out="$("$helper" 2>&1)"; then
     PROBE_SYCL_OUTPUT="$out"
+    # A missing or ABI-mismatched runtime library looks identical to "no
+    # device" unless we say so (BAS-57 F1): llama.cpp $LLAMA_REV links
+    # libsycl.so.${ONEAPI_SYCL_SONAME} (oneAPI 2025.3), while the oneAPI repo
+    # now also serves 2026.1 with libsycl.so.9.
+    if grep -qiE 'error while loading shared libraries|cannot open shared object file' <<<"$out"; then
+      warn "The SYCL helper could not load a runtime library:"
+      while IFS= read -r line; do warn "  $line"; done <<<"$out"
+      warn "This is usually an ABI mismatch: llama.cpp $LLAMA_REV needs the oneAPI 2025.3 runtime (libsycl.so.${ONEAPI_SYCL_SONAME})."
+      warn "Re-run with './bongo.sh --runtime user' to reprovision the pinned runtime."
+    fi
     return 1
   fi
   # The helper lists "Found N SYCL devices" and a device table.

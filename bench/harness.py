@@ -366,12 +366,6 @@ def run_error_cases(base_url, model, context_limit, args):
         "unknown model id",
     )
     record(
-        "negative_max_tokens",
-        "json",
-        post_json(base_url, "/completions", {"model": model, "prompt": "hi", "max_tokens": -1}, args.timeout),
-        "negative max_tokens",
-    )
-    record(
         "prompt_exceeds_context",
         "json",
         post_json(base_url, "/completions", {"model": model, "prompt": long_prompt, "max_tokens": 4}, args.timeout),
@@ -382,6 +376,23 @@ def run_error_cases(base_url, model, context_limit, args):
         "raw",
         post_raw(base_url, "/completions", b"this is not json", "application/json", args.timeout),
         "invalid JSON body",
+    )
+    # Keep this case last and bound it with a short client timeout.  llama.cpp
+    # treats a negative max_tokens as "generate until EOS/context", so a real
+    # server can stream for many minutes and block every later request behind
+    # it.  A client-side timeout records "the server accepted the negative value
+    # and started generating" without hanging the suite.
+    record(
+        "negative_max_tokens",
+        "json",
+        post_json(
+            base_url,
+            "/completions",
+            {"model": model, "prompt": "hi", "max_tokens": -1},
+            args.error_timeout,
+        ),
+        f"negative max_tokens; bounded by --error-timeout ({args.error_timeout:g}s), "
+        "a timeout means the server accepted it and generated unboundedly",
     )
     return cases
 
@@ -914,6 +925,12 @@ def parse_args(argv=None):
     p.add_argument("--needle-context", type=int, default=int(os.environ.get("BONGO_NEEDLE_CONTEXT", "131072")))
     p.add_argument("--needle-tokens", type=int, default=64)
     p.add_argument("--timeout", type=float, default=float(os.environ.get("BONGO_TIMEOUT", "3600")))
+    p.add_argument(
+        "--error-timeout",
+        type=float,
+        default=float(os.environ.get("BONGO_ERROR_TIMEOUT", "120")),
+        help="client timeout for the unbounded negative_max_tokens error case",
+    )
     p.add_argument("--server-pid", type=int, action="append", default=None)
     p.add_argument("--gguf-dir", default=None)
     p.add_argument("--hash-mode", choices=["full", "sampled", "none"], default="full")
