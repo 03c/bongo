@@ -106,6 +106,38 @@ CFG_CTX[hc_cpu]="131072"; CFG_PREFIXES[hc_cpu]="16384"
 CFG_FLAGS[hc_cpu]="-ot hc_.*=CPU"
 CFG_NOTE[hc_cpu]="hyper-connection tensors forced to CPU (48 layers, BF16)"
 
+# ---------------------------------------------------------------------------
+# M4.1 (BAS-144) host/CPU critical-path levers.  Each config is a single
+# change vs the shipped baseline.  `lm_none` is the loader's own suggestion for
+# `-ot`/`--n-cpu-moe` (the host weights are otherwise mmap'd from the GGUF and
+# can be re-read from the page cache/SSD per ubatch); `no_op_offload` stops the
+# Vulkan backend from taking host-weight MoE ops and uploading the used experts;
+# `threads16` gives the CPU backend the SMT sibling threads.
+# ---------------------------------------------------------------------------
+CFG_CTX[lm_none]="131072"; CFG_PREFIXES[lm_none]="16384"
+CFG_FLAGS[lm_none]="--load-mode none"
+CFG_NOTE[lm_none]="host-resident expert weights read into anonymous RAM instead of mmap (loader hint)"
+
+CFG_CTX[no_op_offload]="131072"; CFG_PREFIXES[no_op_offload]="16384"
+CFG_FLAGS[no_op_offload]="--no-op-offload"
+CFG_NOTE[no_op_offload]="host-weight MoE matmuls stay on the CPU backend instead of being uploaded to Vulkan per split"
+
+CFG_CTX[threads16]="131072"; CFG_PREFIXES[threads16]="16384"
+CFG_FLAGS[threads16]="--threads 16 --threads-batch 16"
+CFG_NOTE[threads16]="CPU backend thread pool 8 -> 16 (both SMT siblings)"
+
+CFG_CTX[lm_none_128k]="131072"; CFG_PREFIXES[lm_none_128k]="128000"
+CFG_FLAGS[lm_none_128k]="--load-mode none"
+CFG_NOTE[lm_none_128k]="host-resident expert weights in anonymous RAM, at ~128K"
+
+CFG_CTX[no_op_offload_128k]="131072"; CFG_PREFIXES[no_op_offload_128k]="128000"
+CFG_FLAGS[no_op_offload_128k]="--no-op-offload"
+CFG_NOTE[no_op_offload_128k]="host-weight MoE matmuls stay on the CPU backend, at ~128K"
+
+CFG_CTX[threads16_128k]="131072"; CFG_PREFIXES[threads16_128k]="128000"
+CFG_FLAGS[threads16_128k]="--threads 16 --threads-batch 16"
+CFG_NOTE[threads16_128k]="CPU backend thread pool 16, at ~128K"
+
 ALL_CONFIGS="baseline baseline_perf ncmoe24 ncmoe8 fa_off ub128 ub1024 attn_cpu ssm_cpu hc_cpu"
 
 log() { printf '[warm-prefix %s] %s\n' "$(date -u +%H:%M:%SZ)" "$*" >&2; }
@@ -168,6 +200,19 @@ run_config() {
   local note="${CFG_NOTE[$name]:-}"
   local server_log="$out_dir/llama-server.log"
   local pidfile="$out_dir/llama-server.pid"
+  # The host/CPU split probe writes a distinct raw file so the two profiles can
+  # coexist under one label and the resumable skip does not confuse them.
+  local profile_name="profile.json"
+  local profiler="bench/profile-warm-prefix.py"
+  if [[ "${BONGO_HOST_SPLIT:-0}" == "1" ]]; then
+    profile_name="profile-host-split.json"
+    profiler="bench/profile-host-split.py"
+  fi
+  local profile_out="$out_dir/$profile_name"
+  if [[ -f "$profile_out" ]]; then
+    log "$name already measured ($profile_out); skipping"
+    return 0
+  fi
 
   # shellcheck disable=SC2206
   local extra=($flags)
@@ -210,7 +255,7 @@ PY
     why="$(grep -iE 'out of memory|failed to allocate|error|abort|ggml_vk|vk::' "$server_log" | tail -n 3 | tr '\n' ' ' | cut -c1-400)"
     log "$name: server failed to become healthy: ${why:-timeout}"
     stop_server "$pid"
-    python3 - "$out_dir/profile.json" "$name" "$tier" "$flags" "${why:-timeout}" <<'PY'
+    python3 - "$profile_out" "$name" "$tier" "$flags" "${why:-timeout}" <<'PY'
 import json, sys, datetime
 out, name, tier, flags, why = sys.argv[1:6]
 json.dump({"schema": "bongo.warm-prefix-profile.v1", "label": name, "tier": tier,
@@ -239,9 +284,12 @@ PY
 
   local note_full="engine=llama.cpp b11223 backend=Vulkan tier=$tier ctx=$ctx flags=${flags:-<baseline>} note=$note"
   log "$name: profiling prefixes=$prefixes deltas=$deltas"
-  python3 bench/profile-warm-prefix.py \
+  if [[ "${BONGO_HOST_SPLIT:-0}" == "1" ]]; then
+    log "$name: host/CPU split probe (BONGO_HOST_SPLIT=1)"
+  fi
+  python3 "$profiler" \
     --prefixes "$prefixes" --deltas "$deltas" --ctx "$ctx" \
-    --out "$out_dir/profile.json" --label "$name" \
+    --out "$profile_out" --label "$name" \
     --server-pid "$pid" --flags-note "$note_full" \
     >> "$out_dir/harness.log" 2>&1
   local rc=$?
