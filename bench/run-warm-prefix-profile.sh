@@ -245,7 +245,11 @@ PY
 
   local waited=0
   local started=0
-  while (( waited < 900 )); do
+  # Server load includes the model read. A config that changes the load mode
+  # (--load-mode none) can take much longer to read the 63 GiB GGUF, so the wait
+  # is tunable; the default keeps the historical 900 s.
+  local load_timeout="${BONGO_PROFILE_LOAD_TIMEOUT:-900}"
+  while (( waited < load_timeout )); do
     if healthy; then started=1; break; fi
     if ! kill -0 "$pid" 2>/dev/null; then break; fi
     sleep 5; waited=$(( waited + 5 ))
