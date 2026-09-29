@@ -43,7 +43,8 @@ Run `./bongo.sh --help` for the full list. The most-used options:
 | `--m42-upload` / `--no-m42-upload` | `--m42-upload` | Turn the host-expert upload levers on/off while keeping the selected engine |
 | `--load-mode MODE` | `none` | Model load mode. `none` is the default when the upload levers are on; `auto`/`mmap`/`mlock`/`mmap+mlock`/`dio` are selectable, and the Stage 0 opt-out omits it |
 | `--no-mmap` | — | Alias for `--load-mode none` |
-| `--n-cpu-moe N` | per tier | Explicit number of MoE layers kept on the CPU |
+| `--n-cpu-moe N` | per tier | Explicit number of MoE layers kept on the CPU. Overrides `--placement` and is never overridden by the auto fallback |
+| `--placement MODE` | `auto` | `auto` spends the VRAM a small context leaves free (12 layers at `--ctx <= 131072` for `iq2_xs`) and retries at the tier split (16) if the load fails. `tier` is the opt-out to the fixed per-tier split. See [Auto placement and the load fallback](#auto-placement-and-the-load-fallback) |
 | `--port N` / `--host H` | `8080` / `127.0.0.1` | Bind address |
 | `--runtime MODE` | `auto` | `system`, `user`, `dir`, or `auto` |
 | `--runtime-dir DIR` | `$BONGO_HOME/runtime` | Use a pre-provisioned runtime prefix |
@@ -314,10 +315,37 @@ layers; it is an estimate and is meant to be tuned by measurement (see
 experts on the GPU, and `--cpu-moe` (pass all experts to the CPU) is available by passing a
 large value.
 
+### Auto placement and the load fallback
+
+Since M4.5 ([BAS-163](/BAS/issues/BAS-163)) the default is `--placement auto`. At
+`--ctx <= 131072` `auto` spends the VRAM the smaller context leaves free on expert
+residency: for `iq2_xs` it keeps **12** layers of experts on the CPU instead of the tier
+split's 16. On the reference box that takes the 4K decode from **16.96 to 19.59 tok/s
+(+15.5%)** with the 16K/128K cached turn and the needle recall unchanged; 12 is the last
+value that loads at `--ctx 131072` (10 and 8 fail with `ErrorOutOfDeviceMemory`), so it is
+the load edge by construction ([`docs/research/m4.4-decode-profile.md`](research/m4.4-decode-profile.md)).
+
+Because 12 is an edge, the default is guarded: if the server exits or fails the
+`/v1/models` health check at the auto placement, `bongo.sh` retries **once** at the tier
+split (16) and keeps serving. The failed attempt's log is kept at
+`$BONGO_HOME/run/llama-server-auto-12.log`. The active value and the fallback are recorded
+in `bongo-config.json` (`placement.policy`, `placement.n_cpu_moe_requested`,
+`placement.n_cpu_moe`, `placement.auto_fallback`, `placement.auto_fallback_reason`), in
+`bongo-config.env` (`BONGO_N_CPU_MOE_REQUESTED`, `BONGO_PLACEMENT_FALLBACK`,
+`BONGO_PLACEMENT_FALLBACK_REASON`), and in the printed plan.
+
+The fallback is only reachable when the policy actually lowered the split, so above
+131072, where `auto` already resolves to the tier value, there is nothing to fall back to.
+
+**Escape hatches.** `./bongo.sh --placement tier` pins the fixed per-tier split and
+restores the pre-M4.5 placement. An explicit `./bongo.sh --n-cpu-moe N` overrides both
+policies and is **never** overridden by the fallback.
+
 ### Long context (256K) — the shipped default
 
-The per-tier `--n-cpu-moe` above is the default for a **131072** context. At the model's native
-**262144** limit that placement does not fit, so the 256K default is explicit:
+The per-tier `--n-cpu-moe` above is the default for a **131072** context. Above that `auto`
+resolves to the same per-tier value. At the model's native **262144** limit that placement
+does not fit with a safe margin, so the 256K default is explicit:
 
 ```sh
 ./bongo.sh --ctx 262144 --n-cpu-moe 18      # q8 KV (the shipped KV default)
@@ -333,9 +361,10 @@ The fit was measured directly ([`bench/results/2026-09-28-ctx256-fit/`](../bench
 
 **Shipped 256K default: q8 KV with `--n-cpu-moe 18`.** `q4 KV` with the tier default `n=16`
 is the documented alternative when expert residency is worth more than KV precision. This is a
-placement recommendation, not an automatic switch: `bongo.sh` does not change `--n-cpu-moe` on
-`--ctx`, so a 256K run must pass `--n-cpu-moe 18` explicitly. The pinned Stage 0 baseline
-(`--ctx 131072 --n-cpu-moe 16`) stays selectable and unchanged.
+placement recommendation, not an automatic switch: the `auto` policy resolves to the tier
+split (`n=16`) above 131072, so a 256K run must pass `--n-cpu-moe 18` explicitly to get the
+~1.5 GiB margin. The pinned Stage 0 baseline (`--ctx 131072 --n-cpu-moe 16`) stays selectable
+and unchanged.
 
 The default was then exercised end-to-end:
 

@@ -74,10 +74,16 @@ LLAMA_REV="$LLAMA_CPP_REV_DEFAULT"
 LLAMA_BIN_DIR=""
 N_GPU_LAYERS=99
 N_CPU_MOE=""
-# M4.4 (BAS-159) expert placement policy. 'tier' = the fixed per-tier split (the
-# 256K-safe value); 'auto' = spend the VRAM that the configured context leaves
-# free on expert residency. An explicit --n-cpu-moe overrides either.
-PLACEMENT="tier"
+N_CPU_MOE_SET=0          # 1 once --n-cpu-moe is given (disables the auto fallback)
+N_CPU_MOE_REQUESTED=""   # the split the placement policy chose, before any fallback
+PLACEMENT_FALLBACK=0     # 1 once --placement auto fell back to the tier split
+PLACEMENT_FALLBACK_REASON=""
+# M4.5 (BAS-163) expert placement policy. 'auto' (default) = spend the VRAM that
+# the configured context leaves free on expert residency, then retry once at the
+# tier split if the server fails to load there (M4.4/BAS-159 measured the gain).
+# 'tier' = the fixed per-tier split (the large-context-safe value). An explicit
+# --n-cpu-moe overrides either and is never overridden by the fallback.
+PLACEMENT="auto"
 THREADS=""
 FLASH_ATTN="on"
 CACHE_TYPE_K="q8_0"
@@ -227,12 +233,15 @@ Serving:
                          plus GGML_VK_HOST_BUFT_PER_DEVICE=1 and GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
   --no-m42-upload        Keep the selected engine but turn the upload levers off (Stage 0 defaults)
   --n-cpu-moe N          MoE layers with experts on CPU (explicit placement)
-  --placement MODE       Expert placement policy. tier (default) = the fixed per-tier
-                         split. auto = spend the VRAM the configured context leaves free on
-                         expert residency: iq2_xs keeps 12 instead of 16 layers of experts on
-                         the CPU at --ctx 131072 and below, and falls back to 16 above, which
-                         measures 17.0 -> 19.6 tok/s on 4K decode (BAS-159). --n-cpu-moe
-                         overrides it.
+  --placement MODE       Expert placement policy. auto (default) = spend the VRAM the
+                         configured context leaves free on expert residency: iq2_xs keeps
+                         12 instead of 16 layers of experts on the CPU at --ctx 131072
+                         and below, and 16 above, which measures 17.0 -> 19.6 tok/s on 4K
+                         decode (BAS-159). If the auto placement fails to load, bongo.sh
+                         retries once at the tier split (16) and keeps serving (BAS-163).
+                         tier = the fixed per-tier split (the opt-out). An explicit
+                         --n-cpu-moe overrides either and is never overridden by the
+                         fallback.
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
   --load-mode MODE       Model loading mode: none (default when the M4.2 upload levers are on),
@@ -305,7 +314,7 @@ parse_args() {
       --engine) ENGINE_MODE="${2:?--engine needs a value}"; shift 2;;
       --m42-upload) M42_UPLOAD=1; shift;;
       --no-m42-upload) M42_UPLOAD=0; shift;;
-      --n-cpu-moe) N_CPU_MOE="${2:?--n-cpu-moe needs a value}"; shift 2;;
+      --n-cpu-moe) N_CPU_MOE="${2:?--n-cpu-moe needs a value}"; N_CPU_MOE_SET=1; shift 2;;
       --placement) PLACEMENT="${2:?--placement needs a value}"; shift 2;;
       --n-gpu-layers) N_GPU_LAYERS="${2:?--n-gpu-layers needs a value}"; shift 2;;
       --threads) THREADS="${2:?--threads needs a value}"; shift 2;;
@@ -390,6 +399,7 @@ validate_args() {
       N_CPU_MOE="${TIER_N_CPU_MOE[$TIER]}"
     fi
   fi
+  N_CPU_MOE_REQUESTED="$N_CPU_MOE"
   if [[ -n "$GGUF_DIR" && ! -d "$GGUF_DIR" ]]; then
     die "--gguf-dir '$GGUF_DIR' does not exist or is not a directory."
   fi
@@ -1196,6 +1206,10 @@ write_config() {
   },
   "placement": {
     "n_gpu_layers": $N_GPU_LAYERS,
+    "policy": "$(json_escape "$PLACEMENT")",
+    "auto_fallback": $(if (( PLACEMENT_FALLBACK )); then echo true; else echo false; fi),
+    "auto_fallback_reason": $(if (( PLACEMENT_FALLBACK )); then printf '"%s"' "$(json_escape "$PLACEMENT_FALLBACK_REASON")"; else echo null; fi),
+    "n_cpu_moe_requested": ${N_CPU_MOE_REQUESTED:-$N_CPU_MOE},
     "n_cpu_moe": $N_CPU_MOE,
     "load_mode": "$(json_escape "$EFFECTIVE_LOAD_MODE")",
     "cache_type_k": "$(json_escape "$CACHE_TYPE_K")",
@@ -1223,7 +1237,10 @@ EOF
     echo "BONGO_TIER=$(printf '%q' "$TIER")"
     echo "BONGO_CTX=$(printf '%q' "$CTX")"
     echo "BONGO_N_CPU_MOE=$(printf '%q' "$N_CPU_MOE")"
+    echo "BONGO_N_CPU_MOE_REQUESTED=$(printf '%q' "${N_CPU_MOE_REQUESTED:-$N_CPU_MOE}")"
     echo "BONGO_PLACEMENT=$(printf '%q' "$PLACEMENT")"
+    echo "BONGO_PLACEMENT_FALLBACK=$(printf '%q' "$PLACEMENT_FALLBACK")"
+    echo "BONGO_PLACEMENT_FALLBACK_REASON=$(printf '%q' "$PLACEMENT_FALLBACK_REASON")"
     echo "BONGO_CACHE_PROMPT=$(printf '%q' "$CACHE_PROMPT")"
     echo "BONGO_SLOT_SAVE_PATH=$(printf '%q' "$SLOT_SAVE_PATH")"
     printf 'BONGO_SERVER_FLAGS=('
@@ -1252,7 +1269,11 @@ print_plan() {
   echo "  Server env     : ${SERVER_ENV[*]:-<none>}"
   echo "  Model          : $MODEL_REPO [$TIER]"
   echo "  Context        : $CTX"
-  echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE ($PLACEMENT)"
+  local placement_note="$PLACEMENT"
+  if (( PLACEMENT_FALLBACK )); then
+    placement_note="$PLACEMENT -> tier (auto load fallback: ${PLACEMENT_FALLBACK_REASON:-load failure})"
+  fi
+  echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE ($placement_note)"
   echo "  Prefix cache   : cache_prompt=$CACHE_PROMPT slot_save_path=${SLOT_SAVE_PATH:-disabled} save_slot_checkpoints=$SAVE_SLOT_CHECKPOINTS warmup=$WARMUP"
   echo "  Endpoint       : http://$HOST:$PORT/v1"
   echo "  Exact flags    : ${SERVER_FLAGS[*]:-<not built>}"
@@ -1296,6 +1317,58 @@ stop_existing() {
     kill -9 "$old" 2>/dev/null || true
   fi
   rm -f "$PID_FILE"
+}
+
+# ---------------------------------------------------------------------------
+# M4.5 (BAS-163) auto-placement load fallback
+# ---------------------------------------------------------------------------
+# --placement auto spends the VRAM that a small context leaves free
+# (--n-cpu-moe 12 at --ctx 131072), which is the measured load edge. If the
+# server cannot load or health-check there, retry once at the tier split and
+# keep serving. The fallback never overrides an explicit --n-cpu-moe.
+placement_fallback_eligible() {
+  (( N_CPU_MOE_SET == 0 )) || return 1
+  (( PLACEMENT_FALLBACK == 0 )) || return 1
+  local tier_val="${TIER_N_CPU_MOE[$TIER]:-}"
+  [[ -n "$tier_val" ]] || return 1
+  [[ "$N_CPU_MOE" != "$tier_val" ]]
+}
+
+# Classify the failed load for the record. The fallback itself triggers on any
+# load failure, so an unknown driver OOM message on another box is still guarded;
+# this only labels the config and the log message.
+load_failure_reason() {
+  if [[ -n "$LOG_FILE" && -f "$LOG_FILE" ]] \
+     && grep -qiE 'ErrorOutOfDeviceMemory|out of (device )?memory|OutOfMemory|failed to allocate|device.?lost|allocateMemory' "$LOG_FILE" 2>/dev/null; then
+    printf 'out_of_device_memory'
+  else
+    printf 'load_failure'
+  fi
+}
+
+# Switch the active split to the tier value, keep the failed attempt's log, and
+# record the fallback so it lands in bongo-config.json / the plan output.
+apply_placement_fallback() {
+  local tier_val="${TIER_N_CPU_MOE[$TIER]}"
+  PLACEMENT_FALLBACK_REASON="$(load_failure_reason)"
+  if [[ -n "$LOG_FILE" && -f "$LOG_FILE" ]]; then
+    cp "$LOG_FILE" "$RUN_DIR/llama-server-auto-$N_CPU_MOE.log" 2>/dev/null || true
+  fi
+  warn "the auto placement (--n-cpu-moe $N_CPU_MOE) failed to load ($PLACEMENT_FALLBACK_REASON); falling back to the tier placement (--n-cpu-moe $tier_val)."
+  N_CPU_MOE="$tier_val"
+  PLACEMENT_FALLBACK=1
+}
+
+# Start the server; on an auto-placement load failure fall back once to the tier
+# split, rebuild the flags + config, and try again.
+start_server_guarded() {
+  start_server && return 0
+  placement_fallback_eligible || return 1
+  apply_placement_fallback
+  build_server_flags
+  write_config
+  print_plan
+  start_server
 }
 
 start_server() {
@@ -1565,7 +1638,7 @@ main() {
     trap 'bongo_gpu_lock_release' EXIT INT TERM
   fi
 
-  start_server
+  start_server_guarded || die "llama-server failed to start; see ${LOG_FILE:-the server log}."
   print_ready
   print_resource_usage
 

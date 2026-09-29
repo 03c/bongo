@@ -147,6 +147,7 @@ fi
 reset_cache_state() {
   CACHE_PROMPT=1; CACHE_IDLE_SLOTS=""; CTX_CHECKPOINTS=""; SLOT_SAVE_PATH=""; SLOT_SAVE_PATH_SET=0; WARMUP=1
   TIER=iq2_xs; MODEL_SHARDS=(/m/model.gguf); N_GPU_LAYERS=99; N_CPU_MOE=16; CTX=131072
+  N_CPU_MOE_SET=0; N_CPU_MOE_REQUESTED=""; PLACEMENT_FALLBACK=0; PLACEMENT_FALLBACK_REASON=""
   HOST=127.0.0.1; PORT=8080; PARALLEL=1; SELECTED_BACKEND=Vulkan; SERVER_BIN=""
   FLASH_ATTN=on; CACHE_TYPE_K=q8_0; CACHE_TYPE_V=q8_0; THREADS=""; LOAD_MODE=""; KEEP_ALIVE=1
   # M4.3 (BAS-158) shipped default: the M4.2-patched engine with the levers on.
@@ -384,6 +385,111 @@ if ( validate_args ) >/dev/null 2>&1; then
   t_bad "M4.4 --placement rejects an unknown mode"
 else
   t_ok "M4.4 --placement rejects an unknown mode"
+fi
+
+# --- M4.5: auto is the default, with an OOM fallback to the tier split -------
+# 'auto' becomes the shipped default (BAS-163) but must not sit on the VRAM load
+# edge: a failed load at the auto split retries once at the tier split and keeps
+# serving. An explicit --n-cpu-moe is never overridden.
+m45_reset() {
+  reset_cache_state
+  N_CPU_MOE=""; PLACEMENT=auto
+  N_CPU_MOE_SET=0; N_CPU_MOE_REQUESTED=""; PLACEMENT_FALLBACK=0; PLACEMENT_FALLBACK_REASON=""
+  RUN_DIR="$TMP/m45-run"; mkdir -p "$RUN_DIR"
+  LOG_FILE="$RUN_DIR/llama-server.log"; PID_FILE="$RUN_DIR/llama-server.pid"
+}
+
+if grep -qE '^PLACEMENT="auto"' "$SRC"; then
+  t_ok "M4.5 shipped default is --placement auto"
+else
+  t_bad "M4.5 shipped default is --placement auto"
+fi
+
+# No flag at all resolves to the measured 128K split and records the request.
+m45_reset; validate_args
+if [[ "$N_CPU_MOE" == "12" && "$N_CPU_MOE_REQUESTED" == "12" ]]; then
+  t_ok "M4.5 default uses the auto 128K split (12)"
+else
+  t_bad "M4.5 default uses the auto 128K split (got '$N_CPU_MOE' requested '$N_CPU_MOE_REQUESTED')"
+fi
+
+# The explicit opt-out still pins the tier split.
+m45_reset; PLACEMENT=tier; validate_args
+if [[ "$N_CPU_MOE" == "16" ]]; then
+  t_ok "M4.5 --placement tier opts out to the tier split (16)"
+else
+  t_bad "M4.5 --placement tier opts out to the tier split (got '$N_CPU_MOE')"
+fi
+
+# A forced OOM at the auto split retries once at 16 and serves.
+m45_reset; validate_args
+: > "$LOG_FILE"; printf 'vk::Device::allocateMemory: ErrorOutOfDeviceMemory\n' >> "$LOG_FILE"
+server_attempts=0
+start_server() { server_attempts=$((server_attempts + 1)); return $(( server_attempts < 2 ? 1 : 0 )); }
+if start_server_guarded >"$TMP/m45-plan.out" 2>/dev/null; then
+  t_ok "M4.5 auto fallback serves on the retry"
+else
+  t_bad "M4.5 auto fallback serves on the retry"
+fi
+if grep -q 'auto -> tier' "$TMP/m45-plan.out"; then
+  t_ok "M4.5 fallback is shown in the plan output"
+else
+  t_bad "M4.5 fallback is shown in the plan output"
+fi
+if [[ "$server_attempts" == "2" ]]; then
+  t_ok "M4.5 auto fallback retries exactly once"
+else
+  t_bad "M4.5 auto fallback retries exactly once (got $server_attempts)"
+fi
+if [[ "$N_CPU_MOE" == "16" && "$PLACEMENT_FALLBACK" == "1" ]]; then
+  t_ok "M4.5 fallback switches the active split to the tier value"
+else
+  t_bad "M4.5 fallback switches the active split to the tier value (got '$N_CPU_MOE' fallback '$PLACEMENT_FALLBACK')"
+fi
+if [[ "$PLACEMENT_FALLBACK_REASON" == "out_of_device_memory" ]]; then
+  t_ok "M4.5 fallback classifies the OOM reason"
+else
+  t_bad "M4.5 fallback classifies the OOM reason (got '$PLACEMENT_FALLBACK_REASON')"
+fi
+if grep -q '"auto_fallback": true' "$RUN_DIR/bongo-config.json" \
+   && grep -q '"n_cpu_moe_requested": 12' "$RUN_DIR/bongo-config.json" \
+   && grep -q '"n_cpu_moe": 16' "$RUN_DIR/bongo-config.json"; then
+  t_ok "M4.5 fallback is recorded in bongo-config.json"
+else
+  t_bad "M4.5 fallback is recorded in bongo-config.json"
+fi
+if python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$RUN_DIR/bongo-config.json" 2>/dev/null; then
+  t_ok "M4.5 fallback config is valid JSON"
+else
+  t_bad "M4.5 fallback config is valid JSON"
+fi
+if [[ -f "$RUN_DIR/llama-server-auto-12.log" ]]; then
+  t_ok "M4.5 keeps the failed auto-placement log"
+else
+  t_bad "M4.5 keeps the failed auto-placement log"
+fi
+
+# An explicit --n-cpu-moe is never overridden by the fallback.
+m45_reset; N_CPU_MOE=12; N_CPU_MOE_SET=1; validate_args
+server_attempts=0
+start_server() { server_attempts=$((server_attempts + 1)); return 1; }
+if start_server_guarded; then
+  t_bad "M4.5 explicit --n-cpu-moe failure is not retried"
+else
+  t_ok "M4.5 explicit --n-cpu-moe failure is not retried"
+fi
+if [[ "$server_attempts" == "1" && "$N_CPU_MOE" == "12" ]]; then
+  t_ok "M4.5 explicit --n-cpu-moe is preserved"
+else
+  t_bad "M4.5 explicit --n-cpu-moe is preserved (attempts $server_attempts, n_cpu_moe '$N_CPU_MOE')"
+fi
+
+# Above 131072 auto already uses the tier split, so there is nothing to fall back to.
+m45_reset; CTX=262144; validate_args
+if [[ "$N_CPU_MOE" == "16" ]] && ! placement_fallback_eligible; then
+  t_ok "M4.5 256K auto has no fallback target"
+else
+  t_bad "M4.5 256K auto has no fallback target (got '$N_CPU_MOE')"
 fi
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
