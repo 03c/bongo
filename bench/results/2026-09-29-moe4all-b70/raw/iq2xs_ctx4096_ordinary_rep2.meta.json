@@ -1,0 +1,1 @@
+{"case":"iq2xs_ctx4096_ordinary_rep2","kind":"mtp-ab","mode":"ordinary","rep":2,"exit":0,"wall_secs":123,"alpha":null,"prompt":"List the first ten prime numbers as a comma-separated list, then stop.","max_new":32}

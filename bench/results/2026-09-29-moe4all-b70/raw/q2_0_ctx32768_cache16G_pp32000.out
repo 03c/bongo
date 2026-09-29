@@ -1,0 +1,1 @@
+[{"avg_ts": 128.11, "reps_ts": [128.06, 126.82, 129.45], "ubatch": 512, "ubatch_pinned": true, "kv_q8": true, "kv_layout": "q8_0", "submit_cap": 64}]

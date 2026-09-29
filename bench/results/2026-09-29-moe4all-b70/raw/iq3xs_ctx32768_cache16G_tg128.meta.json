@@ -1,0 +1,1 @@
+{"case":"iq3xs_ctx32768_cache16G_tg128","kind":"bench","model":"iq3xs","ctx":32768,"cache":"16GiB","depth":0,"prefill":0,"decode":128,"reps":3,"exit":0,"wall_secs":423,"json":[{"avg_ts": 1.67, "reps_ts": [1.55, 1.67, 1.79], "ubatch": 512, "ubatch_pinned": true, "kv_q8": true, "kv_layout": "q8_0", "submit_cap": 16}]}
