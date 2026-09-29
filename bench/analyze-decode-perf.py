@@ -41,6 +41,18 @@ TOTAL_RE = parse_vk_perf.TOTAL_RE
 
 LAUNCH_RE = re.compile(r"launch_slot_?: id\s+\d+ \| task (?P<task>-?\d+) \|")
 EVAL_RE = re.compile(r"eval time =\s*(?P<ms>[0-9.]+) ms\s*/\s*(?P<tokens>\d+) tokens")
+# A one-token decode graph has exactly one query row; a prefill graph has more.
+FA_Q_RE = re.compile(r"q\(\d+,(?P<tokens>\d+),\d+,\d+\)")
+
+
+def has_multi_token_flash_attn(block) -> bool:
+    for raw in block["rows"]:
+        if "FLASH_ATTN_EXT" not in raw:
+            continue
+        m = FA_Q_RE.search(raw)
+        if m and int(m.group("tokens")) > 1:
+            return True
+    return False
 
 
 def blocks_with_positions(lines):
@@ -94,11 +106,26 @@ def main() -> int:
         if not evals:
             print("no 'eval time' line after the last launch; pass --steps", file=sys.stderr)
             return 2
-        steps = int(evals[-1].group("tokens")) + 1
+        # ``tokens`` is the generated-token count: one llama_decode = one
+        # one-token graph.  The suffix prefill graph is excluded above.
+        steps = int(evals[-1].group("tokens"))
 
     decode = [b for b in blocks_with_positions(lines) if b["start"] > launch_at]
     if not decode:
         print(f"no perf blocks after the measured launch in {args.log}", file=sys.stderr)
+        return 2
+
+    # The measured request still prefills its (short) uncached suffix before it
+    # decodes.  That prefill is the only graph in the window with a multi-token
+    # flash-attention query, so the decode steps start right after the last such
+    # block.
+    last_prefill = -1
+    for i, b in enumerate(decode):
+        if has_multi_token_flash_attn(b):
+            last_prefill = i
+    decode = decode[last_prefill + 1:]
+    if not decode:
+        print(f"no decode blocks after the suffix prefill in {args.log}", file=sys.stderr)
         return 2
 
     class_us: dict[str, float] = {}
@@ -132,6 +159,7 @@ def main() -> int:
     result = {
         "log": args.log,
         "measured_launch_line": launch_at,
+        "suffix_prefill_blocks": last_prefill + 1,
         "n_blocks_in_window": len(decode),
         "n_decode_steps": steps,
         "n_blocks_per_step": len(decode) / steps,

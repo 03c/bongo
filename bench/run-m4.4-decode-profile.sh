@@ -64,7 +64,7 @@ healthy() {
 # Config table.  Every config keeps the shipped decode flags and the M4.2
 # levers; a config changes exactly one thing on top of that.
 # ---------------------------------------------------------------------------
-declare -A CFG_CTX CFG_FLAGS CFG_ENV CFG_PERF CFG_REPS CFG_NOTE
+declare -A CFG_CTX CFG_FLAGS CFG_ENV CFG_PERF CFG_REPS CFG_NOTE CFG_MAX
 
 # Shipped decode flags, minus the lever-under-test.  --load-mode none is the
 # M4.1 lever; the two env vars are the M4.2 upload levers.
@@ -74,9 +74,34 @@ CFG_CTX[profile16]="131072"; CFG_FLAGS[profile16]=""; CFG_ENV[profile16]="$M42_E
 CFG_PERF[profile16]=1; CFG_REPS[profile16]=1
 CFG_NOTE[profile16]="shipped decode config (--n-cpu-moe 16, --load-mode none) + GGML_VK_PERF_LOGGER"
 
+CFG_CTX[stats16]="131072"; CFG_FLAGS[stats16]=""; CFG_ENV[stats16]="$M42_ENV GGML_SCHED_UPLOAD_STATS=1"
+CFG_PERF[stats16]=2; CFG_REPS[stats16]=1; CFG_MAX[stats16]=24
+CFG_NOTE[stats16]="upload probe: GGML_SCHED_UPLOAD_STATS per decode graph (M4.2 probe)"
+
 CFG_CTX[decode16]="131072"; CFG_FLAGS[decode16]=""; CFG_ENV[decode16]="$M42_ENV"
 CFG_PERF[decode16]=0; CFG_REPS[decode16]=$reps
 CFG_NOTE[decode16]="shipped decode config + M4.2 upload levers (the M4.4 reference)"
+
+CFG_CTX[decode_offload1]="131072"; CFG_FLAGS[decode_offload1]=""; CFG_ENV[decode_offload1]="$M42_ENV GGML_OP_OFFLOAD_MIN_BATCH=1"
+CFG_PERF[decode_offload1]=0; CFG_REPS[decode_offload1]=$reps
+CFG_NOTE[decode_offload1]="lever: offload the CPU-resident expert MUL_MAT_ID to Vulkan at batch 1"
+
+CFG_CTX[decode_offload1_nc12]="131072"; CFG_FLAGS[decode_offload1_nc12]="--n-cpu-moe 12"
+CFG_ENV[decode_offload1_nc12]="$M42_ENV GGML_OP_OFFLOAD_MIN_BATCH=1"
+CFG_PERF[decode_offload1_nc12]=0; CFG_REPS[decode_offload1_nc12]=$reps
+CFG_NOTE[decode_offload1_nc12]="lever + placement: offload at batch 1, 4 more layers on the GPU"
+
+CFG_CTX[decode_t16]="131072"; CFG_FLAGS[decode_t16]="--threads 16 --threads-batch 16"; CFG_ENV[decode_t16]="$M42_ENV"
+CFG_PERF[decode_t16]=0; CFG_REPS[decode_t16]=$reps
+CFG_NOTE[decode_t16]="CPU-side lever: 16 CPU threads for the host-resident expert matmuls"
+
+CFG_CTX[decode_nc10]="131072"; CFG_FLAGS[decode_nc10]="--n-cpu-moe 10"; CFG_ENV[decode_nc10]="$M42_ENV"
+CFG_PERF[decode_nc10]=0; CFG_REPS[decode_nc10]=$reps
+CFG_NOTE[decode_nc10]="placement ceiling probe: 10 CPU expert layers at the full 128K context"
+
+CFG_CTX[decode_nc8_128k]="131072"; CFG_FLAGS[decode_nc8_128k]="--n-cpu-moe 8"; CFG_ENV[decode_nc8_128k]="$M42_ENV"
+CFG_PERF[decode_nc8_128k]=0; CFG_REPS[decode_nc8_128k]=$reps
+CFG_NOTE[decode_nc8_128k]="placement ceiling probe: 8 CPU expert layers at the full 128K context"
 
 CFG_CTX[decode_nc12]="131072"; CFG_FLAGS[decode_nc12]="--n-cpu-moe 12"; CFG_ENV[decode_nc12]="$M42_ENV"
 CFG_PERF[decode_nc12]=0; CFG_REPS[decode_nc12]=$reps
@@ -136,6 +161,7 @@ run_config() {
   local flags="${CFG_FLAGS[$name]}"
   local env_flags="${CFG_ENV[$name]}"
   local nreps="${CFG_REPS[$name]}"
+  local cfg_max="${CFG_MAX[$name]:-$max_tokens}"
   mkdir -p "$out_dir"
   local server_log="$out_dir/llama-server.log"
 
@@ -153,6 +179,7 @@ run_config() {
 
   local marker="$out_dir/decode4k.json"
   [[ "$perf" == "1" ]] && marker="$out_dir/vk-perf-decode.json"
+  [[ "$perf" == "2" ]] && marker="$out_dir/upload-stats.json"
   if [[ -f "$marker" ]]; then
     log "$name already measured ($marker); skipping"
     return 0
@@ -219,13 +246,14 @@ print(f"profile run: status={r.get('status')} cache_n={r.get('cache_n')} "
       f"output_tokens={r.get('output_tokens')} output_tps={r.get('output_tps')}")
 PY
   else
-    python3 - "$tier" "$base_url" "$ctx_tokens" "$max_tokens" "$nreps" "$out_dir/decode4k.json" <<'PY' || rc=$?
+    python3 - "$tier" "$base_url" "$ctx_tokens" "$cfg_max" "$nreps" "$out_dir" "$perf" <<'PY' || rc=$?
 import json, sys
 sys.path.insert(0, "bench")
 from bench_lib import Tokenizer, CORPUS
 from harness import streaming_measure
-tier, base, ctx_tokens, max_tokens, reps, out = (
-    sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]), sys.argv[6])
+tier, base, ctx_tokens, max_tokens, reps, out, kind = (
+    sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]), sys.argv[6],
+    sys.argv[7])
 tk = Tokenizer(base, timeout=900)
 prompt = tk.size_to(ctx_tokens, CORPUS, hard_max=ctx_tokens)
 recs = []
@@ -236,8 +264,9 @@ for i in range(reps):
     recs.append(r)
     print(f"run{i}: prompt_ms={r.get('prompt_ms')} output_tokens={r.get('output_tokens')} "
           f"output_tps={r.get('output_tps')} status={r.get('status')}")
+name = "upload-stats.json" if kind == "2" else "decode4k.json"
 json.dump({"label": out, "ctx_tokens": ctx_tokens, "max_tokens": max_tokens, "runs": recs},
-          open(out, "w"), indent=2)
+          open(f"{out}/{name}", "w"), indent=2)
 PY
   fi
 
