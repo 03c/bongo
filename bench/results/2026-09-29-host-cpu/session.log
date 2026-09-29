@@ -1,0 +1,45 @@
+[m4.1 04:58:58Z] host-split: configs='baseline' prefixes=16384 deltas=512 root=bench/results/2026-09-29-host-cpu/ctx16k
+[warm-prefix 04:58:58Z] baseline: starting llama-server (ctx=131072 perf=0) flags: 
+[warm-prefix 05:00:44Z] baseline: server healthy after 105s; pid=3898086
+[warm-prefix 05:01:31Z] baseline: profiling prefixes=16384 deltas=512
+[warm-prefix 05:01:31Z] baseline: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 05:03:07Z] baseline: profile exit 0
+[warm-prefix 05:03:08Z] done; results in bench/results/2026-09-29-host-cpu/ctx16k
+[m4.1 05:03:08Z] warm-profile: configs='baseline lm_none no_op_offload threads16' prefixes=16384 deltas=512 root=bench/results/2026-09-29-host-cpu/ctx16k
+[warm-prefix 05:03:08Z] baseline: starting llama-server (ctx=131072 perf=0) flags: 
+[warm-prefix 05:05:03Z] baseline: server healthy after 115s; pid=3904415
+[warm-prefix 05:05:50Z] baseline: profiling prefixes=16384 deltas=512
+[warm-prefix 05:07:25Z] baseline: profile exit 0
+[warm-prefix 05:07:26Z] lm_none: starting llama-server (ctx=131072 perf=0) flags: --load-mode none
+[warm-prefix 05:08:56Z] lm_none: server healthy after 90s; pid=3909993
+[warm-prefix 05:09:15Z] lm_none: profiling prefixes=16384 deltas=512
+[warm-prefix 05:10:47Z] lm_none: profile exit 0
+[warm-prefix 05:10:48Z] no_op_offload: starting llama-server (ctx=131072 perf=0) flags: --no-op-offload
+[warm-prefix 05:12:28Z] no_op_offload: server healthy after 100s; pid=3914245
+[warm-prefix 05:13:38Z] no_op_offload: profiling prefixes=16384 deltas=512
+[warm-prefix 05:17:40Z] no_op_offload: profile exit 0
+[warm-prefix 05:17:41Z] threads16: starting llama-server (ctx=131072 perf=0) flags: --threads 16 --threads-batch 16
+[warm-prefix 05:19:21Z] threads16: server healthy after 100s; pid=3923188
+[warm-prefix 05:20:05Z] threads16: profiling prefixes=16384 deltas=512
+[warm-prefix 05:21:44Z] threads16: profile exit 0
+[warm-prefix 05:21:44Z] done; results in bench/results/2026-09-29-host-cpu/ctx16k
+[m4.1 05:21:44Z] 16K screen winner: lm_none 36.09% vs baseline; promoting 'lm_none'
+[m4.1 05:21:44Z] needle: configs='baseline lm_none'
+[needle 05:21:44Z] baseline: starting llama-server flags: <baseline>
+[needle 05:24:37Z] baseline: needle exit 0
+[needle 05:24:37Z] lm_none: starting llama-server flags: --load-mode none
+[needle 05:26:45Z] lm_none: needle exit 0
+[needle 05:26:45Z] done (rc=0); results in bench/results/2026-09-29-host-cpu/needle
+[m4.1 05:26:45Z] host-split: configs='lm_none_128k baseline' prefixes=128000 deltas=512 root=bench/results/2026-09-29-host-cpu/ctx128k
+[warm-prefix 05:26:45Z] lm_none_128k: starting llama-server (ctx=131072 perf=0) flags: --load-mode none
+[warm-prefix 05:28:11Z] lm_none_128k: server healthy after 85s; pid=3934903
+[warm-prefix 05:28:29Z] lm_none_128k: profiling prefixes=128000 deltas=512
+[warm-prefix 05:28:29Z] lm_none_128k: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 05:44:41Z] lm_none_128k: profile exit 0
+[warm-prefix 05:44:41Z] baseline: starting llama-server (ctx=131072 perf=0) flags: 
+[warm-prefix 05:45:21Z] baseline: server healthy after 40s; pid=3958086
+[warm-prefix 05:45:52Z] baseline: profiling prefixes=128000 deltas=512
+[warm-prefix 05:45:52Z] baseline: host/CPU split probe (BONGO_HOST_SPLIT=1)
+[warm-prefix 06:02:13Z] baseline: profile exit 0
+[warm-prefix 06:02:13Z] done; results in bench/results/2026-09-29-host-cpu/ctx128k
+[m4.1 06:02:13Z] done (rc=0); results in bench/results/2026-09-29-host-cpu

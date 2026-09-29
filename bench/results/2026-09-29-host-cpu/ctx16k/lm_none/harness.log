@@ -1,0 +1,23 @@
+warmup prefill status=200
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=1923.935 prompt_tps=132.54086026814835 ttft_ms=1999.19 out_n=1 out_tps=0.0 wall_ms=1999.28
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                status=200 prompt_n=16384 cache_n=0 prompt_ms=83401.034 prompt_tps=196.44840374521016 ttft_ms=83491.45 out_n=1 out_tps=0.0 wall_ms=83491.57
+hit_p16384                 status=200 prompt_n=4 cache_n=16380 prompt_ms=234.503 prompt_tps=17.05735107866424 ttft_ms=246.98 out_n=1 out_tps=0.0 wall_ms=247.1
+grow_p16384_d512           status=200 prompt_n=510 cache_n=16384 prompt_ms=3569.401 prompt_tps=142.8811164674409 ttft_ms=3582.39 out_n=1 out_tps=0.0 wall_ms=3582.59
+hit2_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=248.486 prompt_tps=16.097486377502154 ttft_ms=264.46 out_n=1 out_tps=0.0 wall_ms=264.59
+decode_p16384              status=200 prompt_n=4 cache_n=16380 prompt_ms=230.47 prompt_tps=17.355838070030806 ttft_ms=244.07 out_n=32 out_tps=12.85240464344942 wall_ms=2656.16
+
+wrote bench/results/2026-09-29-host-cpu/ctx16k/lm_none/profile.json
+warmup prefill status=200
+warmup                       status=200 prompt_n=255 cache_n=0 prompt_ms=1924.346 wall_ms=2004.06 cpu_ms=1920.0 read_bytes=348160 majflt=57
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                  status=200 prompt_n=16384 cache_n=0 prompt_ms=82519.318 wall_ms=82620.16 cpu_ms=48990.0 read_bytes=73728 majflt=57
+   worker tids (0): []
+hit_p16384                   status=200 prompt_n=4 cache_n=16380 prompt_ms=228.775 wall_ms=241.46 cpu_ms=630.0 read_bytes=0 majflt=0
+grow_p16384_d512             status=200 prompt_n=510 cache_n=16384 prompt_ms=3569.392 wall_ms=3582.19 cpu_ms=2680.0 read_bytes=1744896 majflt=426
+hit2_p16384                  status=200 prompt_n=4 cache_n=16380 prompt_ms=243.828 wall_ms=260.28 cpu_ms=720.0 read_bytes=0 majflt=0
+decode_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=233.979 wall_ms=2635.44 cpu_ms=10040.0 read_bytes=2351104 majflt=509
+
+wrote bench/results/2026-09-29-host-cpu/ctx16k/lm_none/profile-host-split.json

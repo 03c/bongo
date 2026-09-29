@@ -1,0 +1,11 @@
+warmup prefill status=200
+warmup                     status=200 prompt_n=255 cache_n=0 prompt_ms=1977.143 prompt_tps=128.97397912037724 ttft_ms=2053.74 out_n=1 out_tps=0.0 wall_ms=2053.82
+
+== prefix target 16384 (actual 16384) ==
+cold_p16384                status=200 prompt_n=16384 cache_n=0 prompt_ms=84263.593 prompt_tps=194.43747194592095 ttft_ms=84353.62 out_n=1 out_tps=0.0 wall_ms=84353.73
+hit_p16384                 status=200 prompt_n=4 cache_n=16380 prompt_ms=252.301 prompt_tps=15.854079056365215 ttft_ms=266.01 out_n=1 out_tps=0.0 wall_ms=266.12
+grow_p16384_d512           status=200 prompt_n=510 cache_n=16384 prompt_ms=5648.945 prompt_tps=90.28234475641027 ttft_ms=5661.37 out_n=1 out_tps=0.0 wall_ms=5661.48
+hit2_p16384                status=200 prompt_n=4 cache_n=16380 prompt_ms=312.76 prompt_tps=12.78935925310142 ttft_ms=325.54 out_n=1 out_tps=0.0 wall_ms=325.63
+decode_p16384              status=200 prompt_n=4 cache_n=16380 prompt_ms=252.373 prompt_tps=15.84955601431215 ttft_ms=264.87 out_n=32 out_tps=5.437196174739558 wall_ms=5966.46
+
+wrote bench/results/2026-09-29-host-cpu/ctx16k/threads16/profile.json

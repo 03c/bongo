@@ -190,10 +190,6 @@ run_config() {
   local name="$1"
   local out_dir="$out_root/$name"
   mkdir -p "$out_dir"
-  if [[ -f "$out_dir/profile.json" ]]; then
-    log "$name already measured ($out_dir/profile.json); skipping"
-    return 0
-  fi
   local ctx="${CFG_CTX[$name]:?unknown config $name}"
   local prefixes="${BONGO_PROFILE_PREFIXES:-${CFG_PREFIXES[$name]}}"
   local flags="${CFG_FLAGS[$name]:-}"
