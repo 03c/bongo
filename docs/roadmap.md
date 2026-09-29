@@ -91,10 +91,12 @@ See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements a
 
 **Target status.** The turn targets are **met on the shipped default** since M4.3: 512-token turn 2.72 s at
 16K (target <=3 s) and 4.67 s at 128K (target <=5 s), with the M4.2-patched engine and the upload
-levers on by default; 256K is met. **4K decode ~19.6 tok/s (target >=25) is not met**: the measured host-side
-ceiling is 19.59 tok/s (placement), and the GPU-busy floor is ~25.5-25.8 tok/s, so the target needs either a
-re-baseline or a GPU-side decode milestone. That call is with the CEO. Umbrella
-[BAS-62](/BAS/issues/BAS-62) stays open on the remaining M4 items.
+levers on by default; 256K is met. **The 4K decode target is re-baselined to `>=19.5 tok/s` (nominal ~20)**, a
+median of 3 runs, per the CEO decision [BAS-164](/BAS/issues/BAS-164): the measured host-side ceiling is
+19.59 tok/s (placement) and the GPU-busy floor is 38.7 ms/step. **`>=25 tok/s` is retired as a current
+commitment** and becomes the goal of the unfunded GPU milestone [BAS-166](/BAS/issues/BAS-166) (backlog, low).
+Umbrella [BAS-62](/BAS/issues/BAS-62) stays blocked by M4.5 ([BAS-163](/BAS/issues/BAS-163)) until the shipped
+default reproduces the re-baselined target.
 
 ## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
 
@@ -128,8 +130,13 @@ CPU workers 0%).
   [raw](../bench/results/2026-09-29-m4.4-decode/))
 - [ ] M4.5 Make `--placement auto` the default **with an automatic OOM fallback** to the tier placement, so the
   decode gain ships without sitting on the VRAM load edge.
-- [ ] CEO call: re-baseline decode to ~20 tok/s or fund a GPU-side decode milestone (flash attention + dense
-  matmuls, needing a ~25-30% GPU-side cut).
+- [x] M4.6 ([BAS-167](/BAS/issues/BAS-167)) Record the re-baseline in
+  [ADR-0005](adr/0005-host-cpu-critical-path.md) and this roadmap, and close [BAS-62](/BAS/issues/BAS-62) as
+  met-with-re-baselined-target once M4.5 lands. Docs carried the re-baseline; the closure waits on M4.5.
+- [x] CEO call ([BAS-164](/BAS/issues/BAS-164)): **re-baseline decode to `>=19.5 tok/s` (~20), median of 3, on
+  the shipped default**; `>=25 tok/s` is retired as a current commitment and moves to the unfunded GPU milestone
+  [BAS-166](/BAS/issues/BAS-166) (backlog, low — not started). The re-baselined target is met once M4.5
+  ([BAS-163](/BAS/issues/BAS-163)) ships the `--placement auto` default.
 - Deferred: Level Zero command-list capture (R1c).
 
 MTP is **not** on this list: the base model's head is not in the published GGUF and llama.cpp `qwen4exp` cannot

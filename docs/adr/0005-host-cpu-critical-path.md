@@ -1,8 +1,11 @@
-# ADR-0005 — engine direction, revision 2: the cached-turn bottleneck is host/CPU, not the expert kernel
+# ADR-0005 — engine direction, revision 3: the cached-turn bottleneck is host/CPU, not the expert kernel
 
 - Status: **Accepted** (2026-09-29; CTO decision, within the CEO-accepted [ADR-0003](0003-engine-direction.md)
   direction of "patch llama.cpp, do not build a new engine")
 - Date: 2026-09-29
+- Revision 3 (2026-09-29): the secondary decode target is re-baselined to **`>=19.5 tok/s` (nominal ~20)** on
+  the CEO decision [BAS-164](/BAS/issues/BAS-164); **`>=25 tok/s` is retired as a current commitment** and
+  becomes the goal of the unfunded GPU milestone [BAS-166](/BAS/issues/BAS-166). See "Revision 3" below.
 - Deciders: CTO
 - Supersedes: the "kernel maturity is the largest term" premise of [ADR-0003](0003-engine-direction.md),
   section 2 and its M3.1 expected value. The patch-based approach and every other ADR-0003 decision stand.
@@ -51,9 +54,11 @@ miss at 128K. Every planned GPU-side lever is now either measured small (kernel,
      (`bench/results/2026-09-28-ctx256-full/`).
    - A restored slot is now **reused**: `cache_n = 31742`, TTFT 557 ms vs a 179.7 s re-prefill
      ([BAS-86](/BAS/issues/BAS-86)).
-4. **Record the targets as missed, not met.** At 16K the 512-token turn is 3.98 s (target <=3 s); at 128K it is
-   12.31 s (target <=5 s); 4K decode is ~14-18 tok/s (target >=25). The umbrella [BAS-62](/BAS/issues/BAS-62)
-   stays open until the turn and decode targets are met or the CEO changes them.
+4. **Record the targets as missed against the then-current baseline.** At this decision's date the 16K
+   512-token turn was 3.98 s (target <=3 s), the 128K turn 12.31 s (target <=5 s), and 4K decode ~14-18 tok/s
+   (target >=25). The turn targets were met by M4.2/M4.3; the decode target was re-baselined by the CEO in
+   Revision 3. The umbrella [BAS-62](/BAS/issues/BAS-62) closes as met-with-re-baselined-target once M4.5
+   ([BAS-163](/BAS/issues/BAS-163)) ships the placement default.
 
 ## Alternatives considered
 
@@ -103,14 +108,14 @@ M4.2 ([BAS-155](/BAS/issues/BAS-155)) located the upload and fixed its root caus
 - **Measured with both levers on** (`--load-mode none`): **16K 3569.4 -> 2721.8 ms (-23.7%)** and
   **128K 5480.6 -> 4661.0 ms (-14.95%)**. Both are inside the CEO target (`<=3 s` / `<=5 s`). Cold prefill
   falls -29.9% / -21.5%. Needle passes.
-- **Decode is unchanged** (17.6 -> 18.1 tok/s, within noise): it is GPU MoE-matmul-bound, not upload-bound, so
-  the `>=25 tok/s` target is still open (M4.4).
+- **Decode is unchanged** (17.6 -> 18.1 tok/s, within noise): it is GPU MoE-matmul-bound, not upload-bound,
+  so the `>=25 tok/s` target was left open at M4.2 (it is re-baselined in Revision 3).
 - Both levers are **environment-gated and default off**; the patch is
   `tools/patches/m4.2-vulkan-host-expert-upload.patch`. Shipping them as the default is M4.3.
 
 **Updated target status:** `<=3 s` at 16K and `<=5 s` at 128K are **met on the shipped default** since
 M4.3 (`bongo.sh` selects the patched engine and sets the levers itself); 256K is met; **decode `>=25 tok/s`
-is the only target still open** and is a separate, GPU-matmul-bound axis (M4.4).
+remained the only target open** and was a separate, GPU-matmul-bound axis (M4.4; re-baselined in Revision 3).
 
 ### M4.3 result (2026-09-29) — the fix ships as the default
 
@@ -143,12 +148,39 @@ RAM; the 256K default loads in 75 s at a 30.65 GiB VRAM peak.
   host-resident expert layers run **on the CPU**, and the upload probes read `copies=0`.
 - **Placement is the only lever found:** `--n-cpu-moe 12` gives **19.59 tok/s (+15.5%)**, with no turn or needle
   regression. `10` and `8` fail to load at 131072, so **12 is the placement ceiling**. The GPU-busy floor is
-  ~39 ms/step (**25.5-25.8 tok/s with zero host time**) against a 40 ms target, so **`>=25 tok/s` is not
+  **38.7 ms/step** (~25.8 tok/s with zero host time) against a 40 ms target, so **`>=25 tok/s` is not
   reachable from a host-side lever** and needs a ~25-30% GPU-side cut in flash attention + dense matmuls.
+  Revision 3 retires `>=25` as a current commitment.
 
-**Updated target status:** the turn targets and 256K are met and shipped. **Decode `>=25 tok/s` is not met;
-the measured ceiling is 19.59 tok/s.** The decode target therefore goes to the CEO for a re-baseline or a
-GPU-side decode milestone; that is a product call, not a technical one.
+**Updated target status:** the turn targets and 256K are met and shipped. **`>=25 tok/s` is retired as a
+current commitment**; the CEO re-baselined the secondary decode target to **`>=19.5 tok/s` (nominal ~20)**,
+median of 3 runs, on the shipped default at `--ctx 131072` ([BAS-164](/BAS/issues/BAS-164)). The measured
+host-side ceiling is **19.59 tok/s** and the **GPU-busy floor is 38.7 ms/step**. The re-baselined target is
+met once [BAS-163](/BAS/issues/BAS-163) (M4.5 `--placement auto` default with the OOM fallback) ships. See
+"Revision 3" below.
+
+## Revision 3 (2026-09-29) — the decode target is re-baselined
+
+The CEO re-baselined the secondary decode target in [BAS-164](/BAS/issues/BAS-164), adopting option (A) from
+the CTO's [M4.4 decode profile](../research/m4.4-decode-profile.md):
+
+- **Secondary decode target: 4K decode `>=19.5 tok/s` (nominal ~20 tok/s)**, median of 3 runs, on the shipped
+  `bongo.sh` default at `--ctx 131072`, with the 16K/128K turn gates and the needle gate holding.
+- **The measured ceiling is 19.59 tok/s** ([BAS-159](/BAS/issues/BAS-159), M4.4; `--n-cpu-moe 12`, +15.5%).
+  `--n-cpu-moe 10` and `8` fail to load at `131072`, so placement is at its ceiling. The **GPU-busy floor is
+  38.7 ms/step** (~25.8 tok/s with zero host time), so a 40 ms / `>=25 tok/s` gate would need a ~25-30%
+  GPU-side cut, not a host or config lever.
+- **`>=25 tok/s` is retired as a current commitment.** It becomes the goal of the tracked, low-priority,
+  unfunded GPU milestone [BAS-166](/BAS/issues/BAS-166) (backlog). It is not funded now.
+- **The target is met on the default only once M4.5 ships.** Until [BAS-163](/BAS/issues/BAS-163)
+  (`--placement auto` as the default with an OOM fallback) lands, the `tier` default is ~18 tok/s. The
+  re-baseline is therefore an **at-ceiling** target: a median with the turn/needle gates, not a best run.
+- **Primary TTFT and 256K are unchanged and met**: 16K 2.72 s / 128K 4.67 s on the shipped default (M4.3),
+  256K at a 30.65 GiB peak.
+- The umbrella [BAS-62](/BAS/issues/BAS-62) closes as **met-with-re-baselined-target** once M4.5 lands and the
+  default reproduces `>=19.5 tok/s` median.
+
+No engine or behaviour change and no spend follow from this revision; it is a target and documentation change.
 
 ## Consequences
 
@@ -160,9 +192,10 @@ GPU-side decode milestone; that is a product call, not a technical one.
   measured path to the targets is now narrow: `--load-mode none` gives ~10%, and only the upload term is large
   enough to close the rest (M4.2).
 - **Target honesty.** After M4.2 the turn targets are **met** (16K 2.72 s, 128K 4.66 s) and 256K is met, but
-  only with the M4.2 levers on; they ship by default in M4.3. **Decode `>=25 tok/s` is not met** (~18 tok/s) and
-  is a separate axis. The original misses are recorded in [ADR-0003](0003-engine-direction.md) and
-  [docs/bongo-sh.md](../bongo-sh.md).
+  only with the M4.2 levers on; they ship by default in M4.3. The decode target is **re-baselined to
+  `>=19.5 tok/s` (nominal ~20)** by the CEO ([BAS-164](/BAS/issues/BAS-164)); the original `>=25` commitment is
+  retired to the unfunded GPU milestone [BAS-166](/BAS/issues/BAS-166). The original misses are recorded in
+  [ADR-0003](0003-engine-direction.md) and [docs/bongo-sh.md](../bongo-sh.md).
 
 ## Rollback path
 
