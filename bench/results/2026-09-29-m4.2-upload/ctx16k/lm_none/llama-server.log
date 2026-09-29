@@ -1,0 +1,155 @@
+0.00.341.093 I srv  llama_server: initializing ...
+0.00.341.103 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.341.341 W srv  llama_server: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.342.721 I srv    load_model: loading model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+0.00.667.354 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, abort
+1.11.896.168 I cmn          init: llama threadpool init, n_threads = 8
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.01
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+1.12.143.873 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 131072, kv_unified = 'false'
+1.12.148.599 W srv          init: chat template supports preserving reasoning, it is enabled by default (may use more tokens, disable via --no-reasoning-preserve)
+1.12.148.702 I srv  llama_server: model loaded
+1.12.148.705 I srv  llama_server: listening on http://127.0.0.1:8080
+1.12.148.706 W srv  llama_server: notice: server default port will be changed to :9931 in a future release (ref: https://github.com/ggml-org/llama.cpp/pull/26508)
+1.15.185.781 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+1.15.185.830 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5919 bytes=6550067712 branch_ms=1140.66 id_ms=74.43 wait_ms=337.46
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5706 bytes=4321886720 branch_ms=915.38 id_ms=60.75 wait_ms=335.79
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5802 bytes=4460995072 branch_ms=924.83 id_ms=49.26 wait_ms=347.35
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5925 bytes=4715086848 branch_ms=958.39 id_ms=49.44 wait_ms=361.70
+1.23.648.970 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =   2048, progress = 0.50, t =   8.46 s / 241.99 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5952 bytes=4811230208 branch_ms=965.25 id_ms=49.40 wait_ms=362.08
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5991 bytes=5026086912 branch_ms=992.84 id_ms=49.57 wait_ms=377.97
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5961 bytes=5064674816 branch_ms=956.60 id_ms=36.85 wait_ms=387.60
+1.30.111.856 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =   3578, progress = 0.87, t =  14.93 s / 239.72 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5973 bytes=5145218560 branch_ms=991.38 id_ms=49.40 wait_ms=402.95
+1.32.372.433 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =   4090, progress = 1.00, t =  17.19 s / 237.98 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.15
+1.33.405.408 I slot print_timing: id  0 | task 0 | prompt eval time =   18219.54 ms /  4094 tokens (    4.45 ms per token,   224.70 tokens per second)
+1.33.405.411 I slot print_timing: id  0 | task 0 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+1.33.405.412 I slot print_timing: id  0 | task 0 |       total time =   18219.54 ms /  4095 tokens
+1.33.405.414 I slot print_timing: id  0 | task 0 |    graphs reused =          1
+1.33.405.483 I slot      release: id  0 | task 0 | stop processing: n_tokens = 4094, truncated = 0
+1.33.486.726 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.996 (> 0.100 thold), f_keep = 0.062
+1.33.565.327 I slot launch_slot_: id  0 | task 5 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6081 bytes=5636256256 branch_ms=960.78 id_ms=24.87 wait_ms=251.37
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.13
+1.35.483.800 I slot print_timing: id  0 | task 5 | prompt eval time =    1918.45 ms /   255 tokens (    7.52 ms per token,   132.92 tokens per second)
+1.35.483.803 I slot print_timing: id  0 | task 5 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+1.35.483.803 I slot print_timing: id  0 | task 5 |       total time =    1918.45 ms /   256 tokens
+1.35.483.804 I slot print_timing: id  0 | task 5 |    graphs reused =          1
+1.35.483.817 I slot      release: id  0 | task 5 | stop processing: n_tokens = 255, truncated = 0
+1.35.542.514 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = 3683542362660
+1.35.622.623 I slot launch_slot_: id  0 | task 8 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5919 bytes=6550067712 branch_ms=1148.70 id_ms=69.21 wait_ms=391.17
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5706 bytes=4321886720 branch_ms=907.02 id_ms=60.01 wait_ms=333.67
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5802 bytes=4460995072 branch_ms=922.11 id_ms=49.35 wait_ms=347.72
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5925 bytes=4715086848 branch_ms=952.15 id_ms=49.32 wait_ms=360.42
+1.43.227.538 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =   2048, progress = 0.12, t =   7.60 s / 269.30 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5952 bytes=4811230208 branch_ms=964.84 id_ms=49.30 wait_ms=374.27
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5991 bytes=5026086912 branch_ms=982.75 id_ms=49.38 wait_ms=388.42
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5964 bytes=5068669952 branch_ms=985.85 id_ms=49.49 wait_ms=401.66
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5973 bytes=5146524160 branch_ms=993.23 id_ms=49.51 wait_ms=414.27
+1.51.956.885 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =   4096, progress = 0.25, t =  16.33 s / 250.76 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6024 bytes=5200004608 branch_ms=1001.24 id_ms=49.36 wait_ms=413.54
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5994 bytes=5296782848 branch_ms=1003.55 id_ms=49.26 wait_ms=425.87
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5967 bytes=5252813824 branch_ms=997.84 id_ms=49.21 wait_ms=437.40
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5970 bytes=5309288960 branch_ms=999.56 id_ms=49.26 wait_ms=449.92
+2.01.319.620 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =   6144, progress = 0.38, t =  25.70 s / 239.09 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6000 bytes=5377093120 branch_ms=1009.91 id_ms=49.27 wait_ms=459.70
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6009 bytes=5354953728 branch_ms=1012.04 id_ms=49.64 wait_ms=468.62
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6009 bytes=5453795328 branch_ms=1019.96 id_ms=49.38 wait_ms=478.82
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6057 bytes=5538120704 branch_ms=1029.93 id_ms=49.45 wait_ms=484.99
+2.11.280.906 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =   8192, progress = 0.50, t =  35.66 s / 229.74 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6045 bytes=5443624960 branch_ms=1018.75 id_ms=49.48 wait_ms=492.20
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6015 bytes=5479936000 branch_ms=1020.01 id_ms=49.51 wait_ms=504.36
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6054 bytes=5507194368 branch_ms=1027.94 id_ms=49.32 wait_ms=511.18
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6090 bytes=5513740800 branch_ms=1028.14 id_ms=49.06 wait_ms=518.87
+2.21.718.014 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =  10240, progress = 0.62, t =  46.10 s / 222.15 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6057 bytes=5542677504 branch_ms=1062.33 id_ms=49.62 wait_ms=524.86
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6030 bytes=5538209280 branch_ms=1027.22 id_ms=49.37 wait_ms=530.58
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6036 bytes=5553825280 branch_ms=1015.74 id_ms=48.52 wait_ms=538.51
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6030 bytes=5529426944 branch_ms=1028.30 id_ms=49.66 wait_ms=545.13
+2.32.604.608 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =  12288, progress = 0.75, t =  56.98 s / 215.65 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6084 bytes=5606998528 branch_ms=1039.59 id_ms=49.49 wait_ms=553.51
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6033 bytes=5596319744 branch_ms=1035.26 id_ms=49.50 wait_ms=554.38
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5997 bytes=5655846912 branch_ms=1037.31 id_ms=48.77 wait_ms=562.73
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6027 bytes=5592759808 branch_ms=1032.31 id_ms=49.46 wait_ms=568.61
+2.43.853.654 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =  14336, progress = 0.88, t =  68.23 s / 210.11 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6027 bytes=5618615808 branch_ms=1036.65 id_ms=49.49 wait_ms=579.65
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6039 bytes=5640484352 branch_ms=1042.15 id_ms=49.46 wait_ms=581.75
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6006 bytes=5672313856 branch_ms=1031.99 id_ms=38.76 wait_ms=580.15
+2.52.507.272 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =  15868, progress = 0.97, t =  76.88 s / 206.39 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=48 copies=6021 bytes=5701756928 branch_ms=1037.03 id_ms=49.15 wait_ms=591.14
+2.55.441.302 I slot print_timing: id  0 | task 8 | prompt processing, n_tokens =  16380, progress = 1.00, t =  79.82 s / 205.22 tokens per second
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.16
+2.56.963.351 I slot print_timing: id  0 | task 8 | prompt eval time =   81340.70 ms / 16384 tokens (    4.96 ms per token,   201.42 tokens per second)
+2.56.963.354 I slot print_timing: id  0 | task 8 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+2.56.963.355 I slot print_timing: id  0 | task 8 |       total time =   81340.70 ms / 16385 tokens
+2.56.963.355 I slot print_timing: id  0 | task 8 |    graphs reused =          1
+2.56.963.491 I slot      release: id  0 | task 8 | stop processing: n_tokens = 16384, truncated = 0
+2.56.977.837 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 1.000
+2.56.977.881 I slot launch_slot_: id  0 | task 19 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.16
+2.57.228.683 I slot print_timing: id  0 | task 19 | prompt eval time =     250.78 ms /     4 tokens (   62.69 ms per token,    15.95 tokens per second)
+2.57.228.685 I slot print_timing: id  0 | task 19 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+2.57.228.685 I slot print_timing: id  0 | task 19 |       total time =     250.78 ms /     5 tokens
+2.57.228.686 I slot print_timing: id  0 | task 19 |    graphs reused =          2
+2.57.228.813 I slot      release: id  0 | task 19 | stop processing: n_tokens = 16384, truncated = 0
+2.57.261.980 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.970 (> 0.100 thold), f_keep = 1.000
+2.57.262.025 I slot launch_slot_: id  0 | task 21 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=48 copies=5721 bytes=7351704064 branch_ms=1136.02 id_ms=37.52 wait_ms=631.46
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.14
+3.00.729.828 I slot print_timing: id  0 | task 21 | prompt eval time =    3467.78 ms /   510 tokens (    6.80 ms per token,   147.07 tokens per second)
+3.00.729.831 I slot print_timing: id  0 | task 21 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+3.00.729.831 I slot print_timing: id  0 | task 21 |       total time =    3467.78 ms /   511 tokens
+3.00.729.832 I slot print_timing: id  0 | task 21 |    graphs reused =          2
+3.00.730.000 I slot      release: id  0 | task 21 | stop processing: n_tokens = 16894, truncated = 0
+3.00.748.618 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 0.970
+3.00.748.669 I slot launch_slot_: id  0 | task 24 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.13
+3.01.013.292 I slot print_timing: id  0 | task 24 | prompt eval time =     264.60 ms /     4 tokens (   66.15 ms per token,    15.12 tokens per second)
+3.01.013.295 I slot print_timing: id  0 | task 24 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+3.01.013.295 I slot print_timing: id  0 | task 24 |       total time =     264.60 ms /     5 tokens
+3.01.013.296 I slot print_timing: id  0 | task 24 |    graphs reused =          2
+3.01.013.423 I slot      release: id  0 | task 24 | stop processing: n_tokens = 16384, truncated = 0
+3.01.028.175 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 1.000
+3.01.028.218 I slot launch_slot_: id  0 | task 26 | processing task, is_child = 0
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.14
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.05
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+GGML_SCHED_UPLOAD_STATS layers=0 copies=0 bytes=0 branch_ms=0.00 id_ms=0.00 wait_ms=0.06
+3.03.626.797 I slot print_timing: id  0 | task 26 | prompt eval time =     249.69 ms /     4 tokens (   62.42 ms per token,    16.02 tokens per second)
+3.03.626.799 I slot print_timing: id  0 | task 26 |        eval time =    2348.87 ms /    32 tokens (   75.77 ms per token,    13.20 tokens per second)
+3.03.626.800 I slot print_timing: id  0 | task 26 |       total time =    2598.56 ms /    36 tokens
+3.03.626.800 I slot print_timing: id  0 | task 26 |    graphs reused =         33
+3.03.626.925 I slot      release: id  0 | task 26 | stop processing: n_tokens = 16415, truncated = 0
+3.03.636.529 I srv    operator(): operator(): cleaning up before exit...
