@@ -68,25 +68,38 @@ Close the gap between static llama.cpp placement and Strata's adaptive expert ca
 The M2 gate asked "can llama.cpp reach the target?". The R1–R7 research is the missing gap analysis and it
 answers: the gap is kernel maturity and scheduling, reachable by patching llama.cpp's SYCL backend — **not** a
 from-scratch engine. The gate is therefore open for a **patch-based** engine plan, not for a SYCL rewrite.
-See [ADR-0003](adr/0003-engine-direction.md). Milestones, in measured expected-value order:
+See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements are in below.
 
-- [ ] M3.0 Backend A/B: warm SYCL vs Vulkan at 4K/128K → pick the default (R6 decision rule).
-- [ ] M3.0a Prefix-cache serving for agentic turns: enable/validate `cache_prompt`, slot save/restore
-  (`--slot-save-path`, `--cache-idle-slots`), add a harness `cache_prompt` mode, and warm the server at
-  start. Measured target: 512-token turn TTFT ≤ 5 s at 31K and a full hit < 1 s. See
-  [agentic-prefix-cache](research/agentic-prefix-cache.md).
-- [ ] M3.1 Quantized-weight (integer MMQ/MMVQ) MoE + dense path for IQ2_XS on SYCL; no FP16 expansion.
-- [ ] M3.2 Suffix/n-gram speculation with the exact verify/commit window and an online acceptance policy.
-- [ ] M3.3 Placement: cheapest-layer-first byte-budget `-ot`, then a dynamic VRAM LRU over RAM-pinned experts
-  (R4 profile as initialisation only, held-out A/B required).
-- [x] M3.4 PLE/n-gram second-shard reader: direct reads, parallel prefetch, bounded row cache. Reader is
-  opt-in behind `--ple-reader off`; the M3.4b engine A/B at 128K measured neutral prefill and decode
-  ([BAS-79](/BAS/issues/BAS-79)), so the line closes — [ADR-0004](adr/0004-ple-reader-disposition.md).
-- [ ] M3.5 Long context: **256K** (the model's 262144 native limit) with quantized KV. Measured fit: q8 KV at
-  `n=18` = 30.35 GiB (safe), q4 KV at `n=16` = 30.10 GiB (safe), q8 KV at `n=16` = 31.82 GiB (unsafe, within
-  0.03 GiB of device loss). Default to q8 KV + `--n-cpu-moe 18`; validate with a real 256K prefill + needle.
-- Deferred: Level Zero command-list capture (R1c); a from-scratch engine only if M3.1–M3.3 measurably miss the
-  target and a new ADR names the unfixable gap.
+- [x] M3.0 Backend A/B: warm SYCL vs Vulkan at 4K/128K. **Vulkan stays the default** — SYCL did not clear the
+  1.3x 128K gate ([BAS-72](/BAS/issues/BAS-72), [ADR-0002](adr/0002-baseline-engine.md) amended).
+- [x] M3.0a Prefix-cache serving for agentic turns. 512-token turn **4.51 s** at 31K, full hit **0.29 s**
+  ([BAS-73](/BAS/issues/BAS-73)). Slot save/restore at 256K measured ([BAS-83](/BAS/issues/BAS-83)), and the
+  restore-reuse gap is fixed by the checkpoint sidecar ([BAS-86](/BAS/issues/BAS-86)).
+- [x] M3.1 Quantized-weight (integer MMVQ) path. Correct and flag-gated, but **~1.05x** on the cached turn —
+  below the 1.3x gate ([BAS-74](/BAS/issues/BAS-74)). The expert matmul is 3.4% of the turn (M3.6).
+- [x] M3.2 Suffix/n-gram speculation, measured. **Negative on Vulkan**: 0.92-1.22x, no row reaches 1.3x, and
+  greedy output is not bit-stable at 128K ([BAS-131](/BAS/issues/BAS-131)). No `bongo.sh` change.
+- [x] M3.3 Placement Step 1: byte-budget `-ot` **+2.91%** 128K prefill / +0.74% decode, +4.25 pp coverage
+  ([BAS-76](/BAS/issues/BAS-76)). Step 2, the dynamic VRAM LRU over RAM-pinned experts, is [BAS-139](/BAS/issues/BAS-139).
+- [x] M3.4 PLE/n-gram second-shard reader: opt-in behind `--ple-reader off`; the engine A/B measured neutral
+  ([BAS-79](/BAS/issues/BAS-79)) — [ADR-0004](adr/0004-ple-reader-disposition.md).
+- [x] M3.5 Long context: **256K** shipped default q8 KV + `--n-cpu-moe 18`. Real 256K prefill, 128K needle
+  PASS, peak 30.92 GiB ([BAS-78](/BAS/issues/BAS-78)); cached delta turn 10.87 s / 30.86 GiB
+  ([BAS-132](/BAS/issues/BAS-132)).
+- [x] M3.6 Warm-prefix profile: the cached turn is **80.1% host/CPU**, the MoE expert matmul 3.4%
+  ([BAS-130](/BAS/issues/BAS-130)).
+
+**Target status: MISSED.** 512-token turn 3.98 s at 16K (target <=3 s) and 12.31 s at 128K (target <=5 s);
+4K decode ~14-18 tok/s (target >=25). Umbrella [BAS-62](/BAS/issues/BAS-62) stays open.
+
+## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
+
+M3 measured the planned GPU lever as 3.4% of the turn, so the next milestone targets the dominant term.
+
+- [ ] M4.1 Reduce the fixed per-batch host/CPU cost of the cached delta turn: fewer CPU/GPU segment
+  transitions, overlap of the CPU-resident expert FFN with GPU work, larger effective resident expert sets.
+- [ ] M3.3b [BAS-139](/BAS/issues/BAS-139) Dynamic VRAM LRU over RAM-pinned experts (the placement half).
+- Deferred: Level Zero command-list capture (R1c).
 
 MTP is **not** on this list: the base model's head is not in the published GGUF and llama.cpp `qwen4exp` cannot
 convert or run it ([research §2.1](research/intel-arc-b70.md)).

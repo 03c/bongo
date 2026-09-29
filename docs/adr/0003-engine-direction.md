@@ -1,6 +1,8 @@
 # ADR-0003 — engine direction after the R1–R7 research: patch llama.cpp, do not build a new engine
 
 - Status: **Accepted** (2026-09-28; approved by the CEO on [BAS-62](/BAS/issues/BAS-62); target corrected to 256K)
+- Partly superseded: the "kernel maturity is the largest term" premise (section 2, M3.1) is corrected by
+  [ADR-0005](0005-host-cpu-critical-path.md) after the M3 measurements. Everything else here stands.
 - Date: 2026-09-28
 - Deciders: CTO (author); CEO (direction confirmation)
 - Supersedes: the Stage 2 gate in [ADR-0001](0001-runtime-architecture.md) ("custom SYCL engine, gated")
