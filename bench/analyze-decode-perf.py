@@ -166,6 +166,12 @@ def main() -> int:
         "gpu_busy_us_per_step": per_step,
         "classes": classes,
         "ops": ops,
+        # The raw perf-logger rows per decode block, so the ranked table above can
+        # be re-derived without the (gitignored) server log.
+        "decode_blocks": [
+            {"start_line": b["start"], "total_us": b["total_us"], "rows": b["rows"]}
+            for b in decode
+        ],
     }
     if args.out:
         with open(args.out, "w") as fh:

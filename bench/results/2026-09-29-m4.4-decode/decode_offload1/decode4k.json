@@ -1,0 +1,85 @@
+{
+  "label": "bench/results/2026-09-29-m4.4-decode/decode_offload1",
+  "ctx_tokens": 4096,
+  "max_tokens": 128,
+  "runs": [
+    {
+      "status": 200,
+      "wall_ms": 18939.48,
+      "prompt_tokens": 4094,
+      "prompt_ms": 11322.63,
+      "prompt_tps": 361.57677147447197,
+      "output_tokens": 128,
+      "output_ms": 7611.574,
+      "output_tps": 16.68511663947562,
+      "cache_n": 0,
+      "cached_tokens": 0,
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 4094,
+        "total_tokens": 4222,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.  The mountain road curved past th",
+      "ttft_ms": 11327.88,
+      "ttfb_ms": 11327.84,
+      "stream_total_ms": 18939.48,
+      "stream_error": null,
+      "stream_text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two w"
+    },
+    {
+      "status": 200,
+      "wall_ms": 18930.45,
+      "prompt_tokens": 4094,
+      "prompt_ms": 11314.614,
+      "prompt_tps": 361.8329357059817,
+      "output_tokens": 128,
+      "output_ms": 7610.968,
+      "output_tps": 16.686445140749505,
+      "cache_n": 0,
+      "cached_tokens": 0,
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 4094,
+        "total_tokens": 4222,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.  The mountain road curved past th",
+      "ttft_ms": 11319.48,
+      "ttfb_ms": 11319.44,
+      "stream_total_ms": 18930.45,
+      "stream_error": null,
+      "stream_text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two w"
+    },
+    {
+      "status": 200,
+      "wall_ms": 18963.81,
+      "prompt_tokens": 4094,
+      "prompt_ms": 11316.828,
+      "prompt_tps": 361.7621474851434,
+      "output_tokens": 128,
+      "output_ms": 7641.48,
+      "output_tps": 16.619817103493045,
+      "cache_n": 0,
+      "cached_tokens": 0,
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 4094,
+        "total_tokens": 4222,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.  The mountain road curved past th",
+      "ttft_ms": 11322.28,
+      "ttfb_ms": 11322.24,
+      "stream_total_ms": 18963.81,
+      "stream_error": null,
+      "stream_text": " The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two w"
+    }
+  ]
+}

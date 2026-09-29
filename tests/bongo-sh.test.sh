@@ -345,5 +345,46 @@ else
   t_bad "M3.0 --backend vulkan still selects Vulkan (got '$SELECTED_BACKEND')"
 fi
 
+# --- M4.4: --placement expert residency policy ------------------------------
+# 'tier' (default) keeps the fixed per-tier CPU/GPU split and is the 256K-safe
+# value.  'auto' spends the VRAM a small context leaves free on expert residency.
+# An explicit --n-cpu-moe wins over both.
+m44_reset() {
+  reset_cache_state
+  N_CPU_MOE=""; PLACEMENT=tier
+}
+
+m44_reset
+validate_args
+if [[ "$N_CPU_MOE" == "16" ]]; then t_ok "M4.4 --placement tier keeps the per-tier split"; else t_bad "M4.4 --placement tier keeps the per-tier split (got '$N_CPU_MOE')"; fi
+
+m44_reset; PLACEMENT=auto
+validate_args
+if [[ "$N_CPU_MOE" == "12" ]]; then t_ok "M4.4 --placement auto uses the measured 128K split"; else t_bad "M4.4 --placement auto uses the measured 128K split (got '$N_CPU_MOE')"; fi
+
+# Above 131072 the context-aware value must fall back to the tier value, so the
+# 256K path cannot regress into an out-of-VRAM placement.
+m44_reset; PLACEMENT=auto; CTX=262144
+validate_args
+if [[ "$N_CPU_MOE" == "16" ]]; then t_ok "M4.4 --placement auto keeps the tier split above 131072"; else t_bad "M4.4 --placement auto keeps the tier split above 131072 (got '$N_CPU_MOE')"; fi
+
+# An explicit --n-cpu-moe overrides the policy in both modes.
+m44_reset; PLACEMENT=auto; N_CPU_MOE=20
+validate_args
+if [[ "$N_CPU_MOE" == "20" ]]; then t_ok "M4.4 --n-cpu-moe overrides --placement auto"; else t_bad "M4.4 --n-cpu-moe overrides --placement auto (got '$N_CPU_MOE')"; fi
+
+# An unmeasured tier stays on the safe per-tier split under auto.
+m44_reset; PLACEMENT=auto; TIER=iq3_xxs
+validate_args
+if [[ "$N_CPU_MOE" == "22" ]]; then t_ok "M4.4 --placement auto falls back for an unmeasured tier"; else t_bad "M4.4 --placement auto falls back for an unmeasured tier (got '$N_CPU_MOE')"; fi
+
+# A bad policy is refused instead of silently picking a split.
+m44_reset; PLACEMENT=nonsense
+if ( validate_args ) >/dev/null 2>&1; then
+  t_bad "M4.4 --placement rejects an unknown mode"
+else
+  t_ok "M4.4 --placement rejects an unknown mode"
+fi
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 (( FAIL == 0 ))

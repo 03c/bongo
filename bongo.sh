@@ -74,6 +74,10 @@ LLAMA_REV="$LLAMA_CPP_REV_DEFAULT"
 LLAMA_BIN_DIR=""
 N_GPU_LAYERS=99
 N_CPU_MOE=""
+# M4.4 (BAS-159) expert placement policy. 'tier' = the fixed per-tier split (the
+# 256K-safe value); 'auto' = spend the VRAM that the configured context leaves
+# free on expert residency. An explicit --n-cpu-moe overrides either.
+PLACEMENT="tier"
 THREADS=""
 FLASH_ATTN="on"
 CACHE_TYPE_K="q8_0"
@@ -135,10 +139,19 @@ declare -A TIER_EXPERT_GB=(
 )
 # Default number of MoE layers whose expert weights stay on the CPU. Derived
 # from a ~24 GB VRAM expert budget over 48 layers; overridable with --n-cpu-moe.
+# This is the large-context (256K) safe value and the --placement tier value.
 declare -A TIER_N_CPU_MOE=(
   [iq2_xs]=16
   [iq3_xxs]=22
   [q2_0]=15
+)
+# --placement auto: the split for a context of 131072 or less.  Measured on the
+# reference box with the M4.2 levers on (BAS-159): --n-cpu-moe 12 is the last
+# value that loads at --ctx 131072 (10 and 8 fail with ErrorOutOfDeviceMemory)
+# and it takes 4K decode from 17.0 to 19.6 tok/s.  Only iq2_xs is measured; other
+# tiers fall back to TIER_N_CPU_MOE.
+declare -A TIER_N_CPU_MOE_SMALL_CTX=(
+  [iq2_xs]=12
 )
 
 # ---------------------------------------------------------------------------
@@ -214,6 +227,12 @@ Serving:
                          plus GGML_VK_HOST_BUFT_PER_DEVICE=1 and GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1
   --no-m42-upload        Keep the selected engine but turn the upload levers off (Stage 0 defaults)
   --n-cpu-moe N          MoE layers with experts on CPU (explicit placement)
+  --placement MODE       Expert placement policy. tier (default) = the fixed per-tier
+                         split. auto = spend the VRAM the configured context leaves free on
+                         expert residency: iq2_xs keeps 12 instead of 16 layers of experts on
+                         the CPU at --ctx 131072 and below, and falls back to 16 above, which
+                         measures 17.0 -> 19.6 tok/s on 4K decode (BAS-159). --n-cpu-moe
+                         overrides it.
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
   --load-mode MODE       Model loading mode: none (default when the M4.2 upload levers are on),
@@ -287,6 +306,7 @@ parse_args() {
       --m42-upload) M42_UPLOAD=1; shift;;
       --no-m42-upload) M42_UPLOAD=0; shift;;
       --n-cpu-moe) N_CPU_MOE="${2:?--n-cpu-moe needs a value}"; shift 2;;
+      --placement) PLACEMENT="${2:?--placement needs a value}"; shift 2;;
       --n-gpu-layers) N_GPU_LAYERS="${2:?--n-gpu-layers needs a value}"; shift 2;;
       --threads) THREADS="${2:?--threads needs a value}"; shift 2;;
       --load-mode) LOAD_MODE="${2:?--load-mode needs a value}"; shift 2;;
@@ -361,7 +381,14 @@ validate_args() {
   if [[ -n "$N_CPU_MOE" ]]; then
     [[ "$N_CPU_MOE" =~ ^[0-9]+$ ]] || die "--n-cpu-moe must be an integer."
   else
-    N_CPU_MOE="${TIER_N_CPU_MOE[$TIER]}"
+    [[ "$PLACEMENT" == "tier" || "$PLACEMENT" == "auto" ]] \
+      || die "--placement must be 'tier' or 'auto' (got '$PLACEMENT')."
+    if [[ "$PLACEMENT" == "auto" ]] && (( CTX <= 131072 )) \
+       && [[ -n "${TIER_N_CPU_MOE_SMALL_CTX[$TIER]:-}" ]]; then
+      N_CPU_MOE="${TIER_N_CPU_MOE_SMALL_CTX[$TIER]}"
+    else
+      N_CPU_MOE="${TIER_N_CPU_MOE[$TIER]}"
+    fi
   fi
   if [[ -n "$GGUF_DIR" && ! -d "$GGUF_DIR" ]]; then
     die "--gguf-dir '$GGUF_DIR' does not exist or is not a directory."
@@ -1196,6 +1223,7 @@ EOF
     echo "BONGO_TIER=$(printf '%q' "$TIER")"
     echo "BONGO_CTX=$(printf '%q' "$CTX")"
     echo "BONGO_N_CPU_MOE=$(printf '%q' "$N_CPU_MOE")"
+    echo "BONGO_PLACEMENT=$(printf '%q' "$PLACEMENT")"
     echo "BONGO_CACHE_PROMPT=$(printf '%q' "$CACHE_PROMPT")"
     echo "BONGO_SLOT_SAVE_PATH=$(printf '%q' "$SLOT_SAVE_PATH")"
     printf 'BONGO_SERVER_FLAGS=('
@@ -1224,7 +1252,7 @@ print_plan() {
   echo "  Server env     : ${SERVER_ENV[*]:-<none>}"
   echo "  Model          : $MODEL_REPO [$TIER]"
   echo "  Context        : $CTX"
-  echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE"
+  echo "  MoE placement  : --n-gpu-layers $N_GPU_LAYERS --n-cpu-moe $N_CPU_MOE ($PLACEMENT)"
   echo "  Prefix cache   : cache_prompt=$CACHE_PROMPT slot_save_path=${SLOT_SAVE_PATH:-disabled} save_slot_checkpoints=$SAVE_SLOT_CHECKPOINTS warmup=$WARMUP"
   echo "  Endpoint       : http://$HOST:$PORT/v1"
   echo "  Exact flags    : ${SERVER_FLAGS[*]:-<not built>}"

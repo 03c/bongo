@@ -1,0 +1,24 @@
+[m4.4 07:57:35Z] decode_nc10: starting llama-server (ctx=131072 perf=0)
+[m4.4 07:58:45Z] decode_nc10: server failed to become healthy
+1.09.709.452 E ggml_gallocr_reserve_n_impl: failed to allocate Vulkan1 buffer of size 1106059268
+1.09.709.455 E graph_reserve: failed to allocate compute buffers
+1.09.711.111 E llama_init_from_model: failed to initialize the context: failed to allocate compute pp buffers
+1.09.711.114 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.09.711.117 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.09.711.121 E srv    load_model: failed to create_context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.09.711.123 I srv    operator(): operator(): cleaning up before exit...
+1.09.711.421 E srv  llama_server: exiting due to model loading error
+[m4.4 07:58:45Z] decode_nc8_128k: starting llama-server (ctx=131072 perf=0)
+[m4.4 08:00:01Z] decode_nc8_128k: server failed to become healthy
+ggml_vulkan: vk::Device::allocateMemory: ErrorOutOfDeviceMemory
+1.10.864.347 E alloc_tensor_range: failed to allocate Vulkan1 buffer of size 641728512
+1.10.865.668 E llama_init_from_model: failed to initialize the context: failed to allocate buffer for kv cache
+1.10.865.671 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.10.865.686 E cmn  common_init_: failed to create context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.10.865.690 E srv    load_model: failed to create_context with model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+1.10.865.692 I srv    operator(): operator(): cleaning up before exit...
+1.10.866.074 E srv  llama_server: exiting due to model loading error
+[m4.4 08:00:01Z] done; results in bench/results/2026-09-29-m4.4-decode
+[m4.4-turn 08:00:01Z] nc12: starting llama-server env='GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1 ' flags='--n-cpu-moe 12'
+[m4.4-turn 08:01:16Z] nc12: healthy after 75s; profiling prefixes=16384,127999
+[m4.4-turn 08:15:30Z] nc12: done (rc=0); results in bench/results/2026-09-29-m4.4-decode/turns/nc12

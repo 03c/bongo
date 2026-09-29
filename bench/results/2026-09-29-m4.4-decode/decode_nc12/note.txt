@@ -1,0 +1,1 @@
+placement: 4 more expert layers on the GPU (less per-token host upload)
