@@ -1,0 +1,11 @@
+{
+  "schema": "bongo.prefix-cache-m3.0c-runner.v1",
+  "started_at": "2026-09-29T03:49:58Z",
+  "gpu_lock_wait_s": 1297,
+  "ctx": 131072,
+  "prefixes": "128000",
+  "patched_bin": "/home/cchild/.bongo/engine/llama.cpp-pin/build-vulkan/bin",
+  "patched_sha256": "1920d777044bca5744de429e451cbee19b912a5ab3006958b73b3da54e720482",
+  "stock_bin": "/home/cchild/.bongo/llama/b11223/vulkan",
+  "stock_sha256": "73d076b9ebac5b3112b4b67f7459ef8f8ad62ef95a1c69cc97eb72d90a213a76"
+}
