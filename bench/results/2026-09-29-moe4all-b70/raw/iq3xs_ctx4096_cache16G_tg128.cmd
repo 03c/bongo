@@ -1,0 +1,1 @@
+env INFR_NO_HOST_DMA=1 INFR_DEV=Vulkan1 /home/cchild/.local/share/MoE4All/target/release/infr bench /home/cchild/.bongo/models/ukisai-Swift-1.5-Qwen3.8-Flash-Next-GGUF/IQ3_XS/Swift-1.5-Qwen3.8-Flash-Next-IQ3_XS-00001-of-00003.gguf -p 0 -n 128 -r 3 --ctx 4096 --dev Vulkan1 -u 512 --set paging.cache=16GiB --json

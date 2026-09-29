@@ -1,0 +1,1 @@
+{"case":"iq2xs_ctx32768_cache16G_pp32000","kind":"bench","model":"iq2xs","ctx":32768,"cache":"16GiB","depth":0,"prefill":32000,"decode":0,"reps":3,"exit":0,"wall_secs":1302,"json":[{"avg_ts": 101.66, "reps_ts": [101.49, 101.82, 101.67], "ubatch": 512, "ubatch_pinned": true, "kv_q8": true, "kv_layout": "q8_0", "submit_cap": 16}]}

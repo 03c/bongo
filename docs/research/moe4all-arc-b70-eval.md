@@ -1,5 +1,15 @@
 # MoE4All / INFR on the Arc Pro B70 — first-pass evaluation
 
+> **Superseded by the rigorous matrix.** The full quant × context × MTP matrix
+> with 3 reps, depth decode and the paired MTP A/B is in
+> [`moe4all-b70-matrix.md`](moe4all-b70-matrix.md) ([BAS-181](/BAS/issues/BAS-181)).
+> The depth-0 decode here is a cold-routing number; at real depth INFR is at
+> parity (`q2_0` 4K: 13.68 vs bongo 13.24) and ahead at 32K
+> (12.54/15.77 vs 11.67/10.36). Prefill is ~5–6× slower only for short
+> prompts; a real 32K prompt is ~1.6–1.7× slower (102/128 vs 175/208 tok/s).
+> MTP does gain 1.3–2×. The engine verdict (do not switch) is unchanged, but
+> the decode gap the first pass reported was wrong.
+
 Status: first pass for [BAS-179](/BAS/issues/BAS-179). Date 2026-09-29. Author: CTO.
 Verification level: **reproducible single-run measurements**, not a rigorous matrix.
 The full quant × context × MTP matrix is delegated (see "Follow-up").
