@@ -8,35 +8,42 @@ Author: Coder (Paperclip). Date: 2026-09-29.
 
 Builds on the M3.6 profile ([BAS-130](/BAS/issues/BAS-130)), which showed the
 512-token warm-prefix delta turn is host/CPU-bound (80.1% non-GPU at 16K) but
-could not name the components of that term. This document names them and reports
-the lever trials.
+could not name the components of that term. This document names them, lands one
+flag-gated lever, and measures before/after.
 
 Raw files: [`bench/results/2026-09-29-host-cpu/`](../../bench/results/2026-09-29-host-cpu/).
 Reproduce with `bench/run-m4.1-host-cpu.sh` (one command, one GPU-lock hold,
-resumable). The decomposition itself is `bench/profile-host-split.py` +
-`bench/analyze-host-split.py`.
+resumable). The decomposition is `bench/profile-host-split.py` +
+`bench/analyze-host-split.py`; the lever runner is
+`bench/run-warm-prefix-profile.sh`; the correctness guard is
+`bench/run-needle-check.sh`.
 
-## Result in one page
+## TL;DR
 
-- **The largest host term is the per-batch upload of the host-resident MoE
-  expert weights to the Vulkan backend**, run on the llama.cpp main thread. The
-  CPU backend worker threads are **idle (0 ms)** during the delta turn.
-- **The M3.6 reading of `--n-cpu-moe` as "CPU-resident expert FFN" is wrong.**
-  The weights are host-resident, but the matmul runs on the **GPU**: the
-  scheduler's `MUL_MAT_ID` "copy only used experts" offload path uploads the
-  used experts into the split's Vulkan buffer. `--no-op-offload`, which would
-  force the matmul onto the CPU, costs **+62%**.
-- The second host term is that the host weights are `mmap`-backed, so a
-  page-cache eviction becomes **~0.5 GiB of SSD reads inside the turn**
-  (~1.6–2.2 s of I/O wait on this DRAM-less NVMe). `--load-mode none` removes it.
-- **Lever landed: `--load-mode none`** (opt-in; `bongo.sh --no-mmap`, which was
-  **broken** against this engine and is now fixed). Same-session it cuts the
-  turn by **−37.0% at 16K** and **−28.5% at 128K**. Against the frozen M3.6
-  baselines it is **−10.4% / −7.1%, which misses the 15% target**.
-- The residual fixed per-batch cost is the expert upload itself
-  (~2–3 s of main-thread CPU per turn). No config flag removes it; it needs the
-  host-resident expert count reduced (VRAM placement, [BAS-139](/BAS/issues/BAS-139))
-  or a persistent VRAM expert cache.
+1. **The host/CPU term is not CPU compute.** With `--n-cpu-moe 16` the CPU
+   backend worker threads execute **0 ms** of every measured request (cold, hit,
+   delta, decode). The host-resident MoE experts are not computed on the CPU;
+   they are read by the GPU.
+2. **The single largest host term is the main-thread host path** — graph
+   build, Vulkan op dispatch and the handling of the host-resident expert
+   weights — **2 180 ms of the 5 667 ms 16K delta turn (38.4%)** and **3 150 ms
+   of the 7 662 ms 128K turn (41.1%)**.
+3. **The second is an in-turn page-cache re-read of the mmap'd expert
+   weights.** With the default `--load-mode auto` (mmap) the host-resident
+   experts are a file mapping; under the 30 GiB box's normal memory pressure
+   the delta turn re-reads **0.52 GiB from the NVMe in one turn** (1 535 major
+   faults) and pays **~1.9 s** of I/O wait for it. That is the fixed per-batch
+   cost M3.6 measured as ~1.7 s.
+4. **Lever: `--load-mode none`.** With mmap off, the `-ot`/`--n-cpu-moe` CPU
+   override selects the device's **host buffer type** (Vulkan host-visible
+   memory) instead of the plain CPU buffer, so the GPU reads the weights in
+   place. The same-session delta turn drops **−36.1% at 16K** and **−28.5% at
+   128K**, and the in-turn re-reads go to ~0. The needle still passes.
+5. **Against the frozen M3.6 baselines the 15% target is missed**: 16K
+   3 569.4 ms vs 3 982.5 ms (**−10.4%**) and 128K 5 480.6 ms vs 5 899.5 ms
+   (**−7.1%**). The mmap baseline is box-state dependent: in this session the
+   *baseline* config measured 5 584.7 / 7 661.7 ms, i.e. 1.6–1.8 s worse than
+   the M3.6 session with the same flags. See "Target check" below.
 
 ## Method
 
@@ -44,166 +51,207 @@ The M3.6 tools split the turn into GPU-busy (Vulkan device timestamps) and
 "everything else". This probe splits the "everything else" from `/proc`, which
 needs no profiler and no kernel change:
 
-- **Per-thread CPU time.** `/proc/<pid>/task/<tid>/stat` before and after the
+- **Per-thread CPU time.** `/proc/<pid>/task/<tid>/stat` before and after a
   request gives the CPU time each thread spent on it. The CPU backend worker
-  threads are named from the cold prefill of the same point (the busiest
+  threads are identified from the cold prefill of the same point (the busiest
   non-main threads); the main thread is the host thread that builds the graph,
-  dispatches Vulkan, and does the scheduler copies.
+  dispatches Vulkan and does the scheduler copies.
 - **Storage I/O.** `/proc/<pid>/io` `read_bytes` and the page-fault counters for
-  the same window. The host-resident expert weights are `mmap`-backed, so a
-  page-cache eviction shows up as a multi-GiB read inside one turn.
+  the same window. The host-resident expert weights are mmap'd from the GGUF, so
+  a page-cache eviction shows up as a multi-hundred-MiB read inside one turn.
 - **Server/client time.** `prompt_ms` and the streaming client wall for the same
   request, so the split is tied to the turn it belongs to.
 - **Not-on-CPU residual.** `turn wall − Σ thread CPU` is GPU execution plus
-  fence wait plus I/O wait; cross-check with `GGML_VK_PERF_LOGGER` GPU busy.
+  fence wait plus I/O wait. It can be negative for short cases where the
+  thread-pool spin across 8 threads exceeds the wall.
 
-The component attribution is also cross-checked against the M3.6 ablations, which
-are the independent leg: an ablation that moves a component off the fast GPU onto
-the slow CPU (or changes the batch count) measures that component's contribution
-to the critical path.
+The attribution is cross-checked two ways: the M3.6 ablations (the independent
+leg) and the lever itself, which removes exactly one mechanism and moves exactly
+the component that mechanism owns.
 
-## The prior (M3.6) numbers this must explain
+## The prior (M3.6) numbers this has to explain
 
-| measurement (16K, 512-token delta) | value |
+| measurement (512-token delta) | value |
 | --- | ---: |
-| wall `prompt_ms` | 3982.5 ms |
-| Vulkan GPU busy | 793 ms (20%) |
-| non-GPU ("host/CPU + sync") | 3190 ms (80%) |
-| `--ubatch-size 128` (4 batches) | 9123.7 ms (**+129%**) |
-| `--n-cpu-moe 24` (+8 CPU layers) | 4711.8 ms (+18.3%) |
-| `hit` (4 new tokens, same prefix) | 231.3 ms |
-| 128K, 512-token delta `prompt_ms` | 5899.5 ms |
+| 16K `prompt_ms` | 3 982.5 ms |
+| 16K Vulkan GPU busy | 793 ms (20%) |
+| 16K non-GPU ("host/CPU + sync") | 3 190 ms (80%) |
+| `--ubatch-size 128` (4 batches, 16K) | 9 123.7 ms (**+129%**) |
+| `--n-cpu-moe 24` (+8 host layers, 16K) | 4 711.8 ms (+18.3%) |
+| 16K `hit` (4 new tokens) | 231.3 ms |
+| 128K `prompt_ms` | 5 899.5 ms |
 
-The `ub128` result is the key one: four batches for the same 512 tokens costs
-**+5.1 s**, so the turn is dominated by a cost paid *per batch* (~1.7 s), not per
-token. A 128-token and a 512-token delta cost almost the same (3947.6 ms vs
-3982.5 ms), so the per-batch cost saturates quickly and is not proportional to
-the new-token count.
+`ub128` is the key result: four batches for the same 512 tokens costs **+5.1 s**,
+so the turn is dominated by a cost paid *per batch* (~1.7 s). A 128-token and a
+512-token delta cost almost the same (3 947.6 vs 3 982.5 ms), so the per-batch
+cost saturates quickly and is not proportional to the new-token count.
 
-## Decomposition — named components
+## Result 1 — the named decomposition
 
-16K, prefix 16 384, delta 510, shipped baseline (`--n-cpu-moe 16`, mmap):
+Measured this session with `bench/profile-host-split.py`; raw files
+`ctx16k/<config>/profile-host-split.json` and `ctx128k/<config>/…`.
 
-| component | ms | % of turn | basis |
-| --- | ---: | ---: | --- |
-| **main host thread CPU** (scheduler expert upload + Vulkan dispatch + driver) | **2 180** | **38.4%** | `/proc` main-thread CPU |
-| **CPU backend worker threads** | **0** | **0.0%** | `/proc` threadpool CPU |
-| other host threads (HTTP, trace) | 640 | 11.3% | `/proc` |
-| **not-on-CPU** (GPU execution + fence wait + **storage I/O wait**) | **2 861** | **50.4%** | wall − Σ CPU |
-| — of which **SSD page-cache re-reads** | ~1 600–2 100 | ~28–37% | `read_bytes = 0.52 GiB`, 1 517 major faults |
-| wall | 5 680 | 100% | client |
+### 16K, prefix 16 384, delta 510 (`grow_p16384_d512`)
 
-128K, prefix 127 999, delta 516, shipped baseline:
+| component | baseline (mmap) ms | % of turn | `--load-mode none` ms | % |
+| --- | ---: | ---: | ---: | ---: |
+| **main host thread** (graph build, Vulkan dispatch, host-weight handling, server) | **2 180** | **38.4** | 1 970 | 55.2 |
+| **CPU backend worker threads** | **0** | **0.0** | **0** | **0.0** |
+| other threads (HTTP / thread-pool spin) | 640 | 11.3 | 710 | 19.9 |
+| **not-on-CPU** (GPU exec + fence wait + I/O wait) | **2 861** | **50.4** | 902 | 25.3 |
+| — of which: in-turn storage reads | 0.516 GiB | — | 0.002 GiB | — |
+| — of which: major faults | 1 535 | — | 426 | — |
+| turn wall (client) | 5 680.6 | 100 | 3 582.3 | 100 |
+| server `prompt_ms` | 5 666.9 | — | 3 569.4 | — |
+| process RSS after the turn | 10.15 GiB | — | 0.89 GiB | — |
+| cold 16K prefill `prompt_ms` | 84 557 | — | 82 519 | — |
+| `hit` `prompt_ms` (4 tokens) | 235.7 | — | 228.8 | — |
 
-| component | ms | % of turn |
-| --- | ---: | ---: |
-| main host thread CPU | 3 150 | 40.6% |
-| CPU backend worker threads | 0 | 0.0% |
-| other host threads | 840 | 10.8% |
-| not-on-CPU (incl. 0.51 GiB storage read) | 3 766 | 48.6% |
-| wall | 7 756 | 100% |
+### 128K, prefix 127 999, delta 516 (`grow_p127999_d512`)
 
-**There is no CPU-resident expert *compute* term.** The 8 CPU-backend threadpool
-threads are idle; the only CPU work on the critical path is the host thread that
-moves the used experts to the GPU. That is what the `ub128` fixed per-batch cost
-is, and what moves under `ncmoe24`.
+| component | baseline (mmap) ms | % of turn | `--load-mode none` ms | % |
+| --- | ---: | ---: | ---: | ---: |
+| **main host thread** | **3 150** | **40.6** | 2 940 | 52.7 |
+| **CPU backend worker threads** | **0** | **0.0** | **0** | **0.0** |
+| other threads | 840 | 10.8 | 710 | 12.7 |
+| **not-on-CPU** | **3 766** | **48.6** | 1 926 | 34.5 |
+| — of which: in-turn storage reads | 0.510 GiB | — | 0.002 GiB | — |
+| — of which: major faults | 1 718 | — | 426 | — |
+| turn wall (client) | 7 755.6 | 100 | 5 576.2 | 100 |
+| server `prompt_ms` | 7 661.7 | — | 5 480.6 | — |
+| process RSS after the turn | 10.45 GiB | — | 0.93 GiB | — |
+| cold 128K prefill `prompt_ms` | 963 967 | — | 957 773 | — |
+| `hit` `prompt_ms` (4 tokens) | 402.2 | — | 393.9 | — |
 
-## Lever screen (16K, same session, same workload)
+Reading the table:
 
-| config | delta-512 `prompt_ms` | Δ vs same-session baseline | reading |
-| --- | ---: | ---: | --- |
-| `baseline` | 5 584.7 | — | mmap, page cache cold |
-| **`lm_none` (`--load-mode none`)** | **3 569.4** | **−36.1%** | host weights in anonymous RAM |
-| `no_op_offload` (`--no-op-offload`) | 9 047.9 | +62.0% | CPU expert matmul is far slower |
-| `threads16` (`--threads 16`) | 5 648.9 | +1.1% | no CPU compute to accelerate |
+- **The CPU backend does nothing.** Worker CPU is 0 ms in every case at both
+  contexts, including the 84-second cold prefill (main = 48 640 ms, workers =
+  0 ms). `--n-cpu-moe N` does not compute the experts on the CPU; it keeps their
+  weights in host memory and the MoE matmul runs on the GPU. This refines the
+  M3.6 wording "CPU-resident expert FFN": the *weights* are host-resident, the
+  *compute* is not on the CPU.
+- **The largest named host term is the main-thread path** (38–41% of the turn).
+- **The second is the in-turn re-read of the mmap'd host experts.** The lever
+  removes 0.51 GiB of reads, ~1 100 major faults, and **1 958 ms (16K) /
+  1 840 ms (128K)** of not-on-CPU time. Effective read throughput of the faulted
+  pages is ~270 MB/s, which is the DRAM-less KIOXIA EXCERIA G3's random-read
+  behaviour, not the ~2 GB/s sequential figure.
+- **GPU execution is the rest of not-on-CPU** (~793 ms at 16K per the M3.6 perf
+  logger; ~2.7 s at 128K derived from the +1 917 ms prefix increment).
+- Serving/tokenisation is small: the `hit` case (4 new tokens) is 229–236 ms at
+  16K and 394–402 ms at 128K, i.e. ≤7% of the turn.
 
-The `no_op_offload` result is the proof of the mechanism: forcing the expert
-matmul onto the (idle) CPU threads is *much* worse than uploading the used
-experts and computing on the GPU, so the upload is the term to attack, and the
-GPU path is the right one.
+Why the lever changes the memory placement: with `use_mmap=true` the loader
+forces a CPU-overridden tensor off the device host buffer onto the plain CPU
+buffer (llama.cpp `src/llama-model-loader.cpp`: "avoid using a host buffer when
+using mmap"), and prints the warning
+`tensor overrides to CPU are used with mmap enabled - consider using --load-mode none`.
+With `--load-mode none` that branch is skipped and `make_cpu_buft_list`'s first
+entry — the device host buffer type, `VK_EXT_external_memory_host`-style
+host-visible memory — is selected, so the GPU reads the weights in place instead
+of the scheduler copying the used experts into VRAM per split. The RSS drop
+(10.1 → 0.9 GiB) is the same fact seen from the process side: the weights are no
+longer file-backed anonymous pages.
 
-## The lever: `--load-mode none`
+## Result 2 — the lever screen (16K, same session, sequential restarts)
 
-`--load-mode none` reads the host-resident expert tensors into anonymous RAM
-instead of an `mmap` of the GGUF. Anonymous pages are not evicted as eagerly as
-clean page-cache pages, so the weights stay resident across the session.
+Shipped baseline flags plus exactly one change per config; prefix 16 384,
+delta 512; `bench/run-warm-prefix-profile.sh`.
 
-| prefix | baseline `prompt_ms` (same session) | `--load-mode none` | Δ | vs frozen M3.6 baseline | storage read after |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 16 384 | 5 666.9 | **3 569.4** | **−37.0%** | 3 982.5 → **−10.4%** | 0.52 → **0.00 GiB** |
-| 127 999 | 7 661.7 | **5 480.6** | **−28.5%** | 5 899.5 → **−7.1%** | 0.51 → **0.00 GiB** |
+| config | change | cold 16K ms | hit ms | delta 512 ms | Δ vs session baseline | Δ vs frozen M3.6 (3 982.5) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `baseline` | — | 84 204.6 | 229.3 | 5 584.7 | — | +40.2% |
+| `lm_none` | `--load-mode none` | 83 401.0 | 234.5 | **3 569.4** | **−36.1%** | **−10.4%** |
+| `no_op_offload` | `--no-op-offload` (expert matmul on CPU) | 226 044.9 | 244.0 | 9 047.9 | +62.0% | +127.2% |
+| `threads16` | `--threads 16 --threads-batch 16` | 84 263.6 | 252.3 | 5 648.9 | +1.1% | +41.9% |
 
-After the lever the turn is `main host 1 970 / 2 940 ms`, `workers 0`,
-`not-on-CPU 902 / 1 926 ms`, storage read **0** at both prefixes.
+- **`--no-op-offload` is the proving negative.** It forces the host-resident
+  expert matmul onto the CPU backend; the cold prefill goes 84 s → 226 s and the
+  delta turn 5 585 → 9 048 ms. GPU-side compute with host-resident weights is
+  strictly better than CPU compute for this workload, which is why the CPU
+  backend stays idle.
+- **`--threads 16` is neutral** for the turn (the worker pool is idle) and costs
+  decode throughput (11.3 → 5.4 tok/s), so it is rejected.
+- **`--load-mode none` is the lever.** It also speeds the cold prefill slightly
+  (84.2 → 83.4 s) and does not change `hit`.
 
-The frozen M3.6 baselines (3 982.5 / 5 899.5 ms) were measured with a warm page
-cache: they did not pay the ~1.6–2.2 s I/O wait that every fresh session now
-pays. So the lever's **steady-state** advantage over a warm baseline is the
-~10% / ~7% shown against the frozen numbers; its larger same-session win is the
-removal of the cold-cache penalty, which is what makes the number reproducible
-across sessions.
+## Result 3 — correctness
 
-`bongo.sh` already had a `--no-mmap` flag for exactly this, but it passed
-`--no-mmap`, which the pinned `b11223` server rejects (`error: invalid argument:
---no-mmap`) — the flag could not start a server. It is fixed to
-`--load-mode none`, and a real `--load-mode MODE` passthrough was added. The
-default is unchanged (no `--load-mode` is emitted), so the Stage 0
-`--ctx 131072 --n-cpu-moe 16` baseline stays selectable.
+`bench/run-needle-check.sh` plants the standard bongo sentinel in an 8 239-token
+document and asks for it greedily (raw files `needle/<config>/needle.json`):
 
-## Acceptance criteria
+| config | status | answer |
+| --- | --- | --- |
+| `baseline` | **pass** | `…VAULT-COORD-7391-QXZ` |
+| `lm_none` | **pass** | `…VAULT-COORD-7391-QXZ` |
 
-| criterion | result |
-| --- | --- |
-| host/CPU cost decomposition with named components, ms and %, raw files | **MET** (above; `bench/results/2026-09-29-host-cpu/`) |
-| >= 15% cut of the 16K delta turn vs 3 982.5 ms | **MISSED**: 3 569.4 ms = −10.4% |
-| >= 15% cut of the 128K delta turn vs 5 899.5 ms | **MISSED**: 5 480.6 ms = −7.1% |
-| no long-context regression > 2% | **MET** (no regression; both prefixes improve) |
-| correctness unchanged (needle pass) | **MET**: `baseline` and `lm_none` both recall the sentinel at 8 239 prompt tokens (`bench/results/2026-09-29-host-cpu/needle/`) |
-| no change to shipped defaults; Stage 0 baseline selectable | **MET** (`--load-mode` is opt-in; default emits nothing) |
-| flag-gated and revertible | **MET** (`--load-mode none` / `--no-mmap`; `bongo.sh` default unchanged) |
+The lever is a configuration change only (no weight, kernel or arithmetic
+change), so the same answer is expected; the check confirms it.
 
-### Why the 15% target is missed
+## Target check
 
-After `--load-mode none` the residual fixed per-batch cost is the **expert
-upload itself**: `main host` is 1 970 ms (16K) / 2 940 ms (128K) of the turn.
-That term is set by how many host-resident expert weights must cross to the GPU
-per MoE layer per batch. Removing it needs the host-resident expert count
-reduced — VRAM placement, [BAS-139](/BAS/issues/BAS-139)'s dynamic LRU expert
-cache, or a persistent VRAM expert cache — none of which is a server flag. The
-M3.6 `--n-cpu-moe 8` ablation (8 fewer host layers) **failed to load at 128K**
-(VRAM), so the placement lever is at its VRAM edge. That is the measured
-cross-issue conclusion: the M4.1 host/CPU lever available today buys ~10%, and
-the remaining gap is the placement half.
+Acceptance target: **≥15% reduction of the 16K and 128K delta-turn `prompt_ms`
+versus the M3.6 baseline (3 982.5 / 5 899.5 ms).**
 
-## Reproduce
+| prefix | frozen M3.6 baseline | `--load-mode none` | reduction | target |
+| ---: | ---: | ---: | ---: | --- |
+| 16 384 | 3 982.5 ms | 3 569.4 ms | **−10.4%** | ≥15% → **missed by ~184 ms** |
+| 127 999 | 5 899.5 ms | 5 480.6 ms | **−7.1%** | ≥15% → **missed by ~467 ms** |
 
-```sh
-# one command, one GPU-lock hold, resumable
-bench/run-m4.1-host-cpu.sh
+Same-session control (the baseline config re-measured in this session, same
+flags, same harness, immediately before the lever):
 
-# the tables
-bench/analyze-host-split.py --root bench/results/2026-09-29-host-cpu/ctx16k  --prefix 16384  --delta 512
-bench/analyze-host-split.py --root bench/results/2026-09-29-host-cpu/ctx128k --prefix 128000 --delta 512
+| prefix | session baseline | `--load-mode none` | reduction |
+| ---: | ---: | ---: | ---: |
+| 16 384 | 5 584.7 ms (host-split: 5 666.9) | 3 569.4 ms | **−36.1%** (−37.0%) |
+| 127 999 | 7 661.7 ms | 5 480.6 ms | **−28.5%** |
 
-# the needle guard
-bench/run-needle-check.sh   # BONGO_NEEDLE_CONFIGS="baseline no_op_offload threads16 lm_none"
+**The lever is real and large, but the absolute 15% target is not met.**
+The two readings disagree because the *baseline* is box-state dependent: with
+the same flags the delta turn measured 5 584.7 ms this session and 3 982.5 ms in
+the M3.6 session. The mechanism is the page-cache state of the 63 GiB GGUF
+against 30 GiB of RAM: after a day of runs (BAS-130/132/139/145 output, slot
+files, page cache), a larger fraction of the host-resident expert range is
+evicted, so more of the turn's fixed per-batch cost is NVMe random reads.
+`--load-mode none` is immune to that state, so its number is stable; the
+baseline's is not.
 
-# the bongo.sh unit tests
-bash tests/bongo-sh.test.sh
-```
+Read this as: **the lever removes a 1.6–2.0 s box-state penalty that the shipped
+default can incur, and its absolute number beats even the best frozen baseline
+by 7–10%.** It does not by itself reach the ≤3 s / ≤5 s product targets.
+
+## What remains — the next lever
+
+After the lever the single largest host term is still the **main-thread host
+path**: 1 970 ms at 16K and 2 940 ms at 128K (55% / 53% of the turn). It is
+Vulkan graph dispatch plus the host-side handling of the host-resident expert
+weights, paid once per batch. The M3.6 `ub128` result says a second batch costs
+~1.7 s; this measurement says ~0.9 s of that is storage re-reads now removed,
+leaving ~0.8 s per batch of main-thread host work plus GPU sync. Reducing that
+needs engine-side work (a host-side phase profiler in the Vulkan backend, then
+fewer/cheaper per-node host operations), not another config flag. That is the
+recommended next M4 step.
+
+## Shipped defaults / rollback
+
+- No shipped default changes. `bench/run-m4.1-host-cpu.sh` is measurement-only;
+  the engine pin is untouched; the Stage 0 Vulkan `--ctx 131072 --n-cpu-moe 16`
+  baseline is still the default and still selectable.
+- The lever is selectable and revertible through the engine's own `--load-mode`
+  (already exposed as `bongo.sh --load-mode MODE`, with `--no-mmap` as an alias,
+  in commit `294b5e6`). Removing the flag restores the previous behaviour.
+- The pinned `b11223` `llama-server` rejects `--no-mmap` ("invalid argument");
+  `--load-mode none` is the working spelling on this engine.
 
 ## Caveats
 
-- Single measurement per config (no repeats). The per-component split is far
-  larger than the run-to-run noise; the absolute delta-turn numbers move with the
-  host page-cache state, which is why the same-session A/B and the frozen
-  baseline are both reported.
-- `/proc` CPU time is a 10 ms-granularity accounting number (`CLK_TCK=100`); the
-  short `hit` case (≈250 ms) has a negative `not-on-CPU` residual because the
-  lazily-created threadpool threads appear inside its window. The delta turn
-  (≈5.7 s) is not affected.
-- The box is shared with other agents' measurement runs; the GPU runs are
-  serialised by the shared flock ([BAS-80](/BAS/issues/BAS-80)), but CPU and
-  NVMe load from non-GPU work is not excluded.
-- `--load-mode none` holds the host-resident experts in anonymous RAM
-  (~11.8 GiB at `--n-cpu-moe 16`), so it trades RAM for latency. It is opt-in.
+- Single measurement per config (no repeats). The 16K session baselines differ
+  by 1.5% between the two measurement paths (`profile-host-split` vs
+  `profile-warm-prefix`); the lever effect is 30–37%, far above that.
+- `not-on-CPU` is a residual: it holds GPU execution, fence waits and I/O wait,
+  and for the short `hit` cases it goes negative because eight thread-pool
+  threads spin while the wall is ~250 ms.
+- The 128K storage term (1.84 s) is isolated by the lever difference, not by a
+  separate I/O profiler; the raw `read_bytes`/`majflt` counters are committed.
+- The 128K GPU-busy split is the M3.6-derived number, not re-profiled here.

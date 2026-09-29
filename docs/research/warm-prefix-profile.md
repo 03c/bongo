@@ -12,6 +12,14 @@ Reproduce with [`bench/run-warm-prefix-profile.sh`](../../bench/run-warm-prefix-
 measurements per config (no repeats); the ~20/80 GPU/host split is far larger
 than the run-to-run noise.
 
+> **Update (M4.1, [BAS-144](/BAS/issues/BAS-144))** — the "CPU-resident expert
+> FFN" language below is refined by a per-thread `/proc` decomposition: with
+> `--n-cpu-moe 16` the **CPU backend workers execute 0 ms** of the turn, so the
+> host-resident experts are *not* computed on the CPU. The fixed per-batch cost
+> M3.6 measured as ~1.7 s is, in a memory-pressured box, an in-turn page-cache
+> re-read of the mmap'd host experts (~0.5 GiB from NVMe per turn). See
+> [host-cpu-decomposition.md](host-cpu-decomposition.md).
+
 ## TL;DR
 
 The 512-token warm-prefix delta turn is **host/CPU-bound, not GPU-kernel-bound**.

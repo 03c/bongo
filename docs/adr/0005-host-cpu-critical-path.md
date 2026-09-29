@@ -7,7 +7,8 @@
 - Supersedes: the "kernel maturity is the largest term" premise of [ADR-0003](0003-engine-direction.md),
   section 2 and its M3.1 expected value. The patch-based approach and every other ADR-0003 decision stand.
 - Related: [ADR-0003](0003-engine-direction.md) engine direction, [ADR-0004](0004-ple-reader-disposition.md)
-  PLE reader, [warm-prefix profile](../research/warm-prefix-profile.md), [dynamic expert LRU](../research/dynamic-expert-lru.md)
+  PLE reader, [warm-prefix profile](../research/warm-prefix-profile.md), [dynamic expert LRU](../research/dynamic-expert-lru.md),
+  [M4.1 host/CPU decomposition](../research/host-cpu-decomposition.md)
 
 ## Context
 
@@ -40,7 +41,10 @@ miss at 128K. Every planned GPU-side lever is now either measured small (kernel,
    cost per batch, the +129% cost of smaller batches, and the +18.3% cost of CPU-resident expert compute name
    the target: fewer CPU/GPU segment transitions, overlap of the CPU-resident expert FFN with GPU work, and
    larger effective resident expert sets. [BAS-139](/BAS/issues/BAS-139) (dynamic VRAM LRU) is the placement
-   half of this and stays in flight.
+   half of this and stays in flight. **Measured (M4.1):** the CPU backend does no work in this
+   configuration (0 ms of worker CPU); the fixed cost is the main-thread host path plus an in-turn page-cache
+   re-read of the mmap'd host-resident expert weights, and `--load-mode none` removes the re-read
+   ([BAS-144](/BAS/issues/BAS-144)).
 3. **Keep the shipped agentic product path as it is.** Prefix reuse, the 256K default, and the checkpoint
    sidecar are real wins and are unaffected:
    - 256K cold prefill: 84.8 prompt tok/s, 128K needle PASS, peak VRAM 30.92 GiB
