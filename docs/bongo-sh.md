@@ -161,15 +161,18 @@ hybrid/recurrent memory, and the server does not persist its checkpoint list in 
 The next request therefore re-prefills the whole prompt and the log shows *"forcing full prompt
 re-processing due to lack of cache data (likely due to SWA or hybrid/recurrent memory)"*.
 
-`--save-slot-checkpoints` (with `--slot-save-path`) is the attempted fix, and it is
-**implemented but not yet measured**: it makes the server write a sidecar file `{filename}.ckpt`
-alongside each saved slot, containing the slot's context checkpoint list (anchored position
-ranges plus the recurrent/full-attention state bytes). On restore that sidecar is replayed into
-the slot, so the engine's `cache_prompt` path can find a usable checkpoint anchor. Whether the
-prefix is then actually reused is the open question — **BAS-86 owns the measurement and the AC is
-not met until a restored slot shows `cache_n > 0`.** The sidecar is gated behind
-`--save-slot-checkpoints`; when it is off (the shipped baseline) nothing changes and the engine
-falls back to a full re-prefill on a restored slot exactly as before.
+`--save-slot-checkpoints` (with `--slot-save-path`) is the fix, and it is **measured**: it makes
+the server write a sidecar file `{filename}.ckpt` alongside each saved slot, containing the
+slot's context checkpoint list (anchored position ranges plus the recurrent/full-attention state
+bytes). On restore that sidecar is replayed into the slot, so the engine's `cache_prompt` path
+finds a usable anchor and the prefix is actually reused. Measured at 31K on the reference box
+([`bench/results/2026-09-29-prefix-cache-m3.0b/`](../bench/results/2026-09-29-prefix-cache-m3.0b/README.md)):
+after `save` + `erase` + `restore` the next request reports `cache_n = 31742` and TTFT 557 ms,
+where the same-window stock control re-prefilled all 31,743 tokens
+([`bench/results/2026-09-29-prefix-cache-m3.0b-stock/`](../bench/results/2026-09-29-prefix-cache-m3.0b-stock/README.md)),
+and the post-restore needle passes. The sidecar is gated behind `--save-slot-checkpoints`; when it
+is off (the shipped baseline) nothing changes and the engine falls back to a full re-prefill on a
+restored slot exactly as before.
 
 Two preconditions before this flag can be trusted on a normal box:
 
@@ -181,11 +184,11 @@ Two preconditions before this flag can be trusted on a normal box:
   `tools/build-llama-vulkan.sh <llama.cpp-dir> llama-server` (the patch is applied when missing;
   `BONGO_APPLY_PATCH=0` builds the stock baseline) and pass the resulting
   `build-vulkan/bin` directory to `bongo.sh --llama-bin DIR`.
-- The sidecar's size and the restore-reuse verdict are unmeasured; the 31K/256K numbers below are
-  the **baseline (sidecar off)**.
+- The engine build is the one used for the number; the flag has no in-session effect, and the
+  stock and patched engines time the same 512-token turn in the same window.
 
 Cost: each checkpoint sidecar is roughly the size of the checkpoint payload for the saved range
-(≈390 MiB for the 31K prefix on this model; one sidecar per save/restore cycle).
+(≈236 MB for the 31K prefix on this model; one sidecar per save/restore cycle).
 
 #### Measured at full size (256K, q8 KV)
 
