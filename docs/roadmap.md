@@ -94,11 +94,20 @@ See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements a
 
 ## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
 
-M3 measured the planned GPU lever as 3.4% of the turn, so the next milestone targets the dominant term.
+M3 measured the planned GPU lever as 3.4% of the turn, so M4 targets the dominant term. The mechanism is the
+per-batch host->VRAM **upload of host-resident MoE expert weights** on the main thread (2180 ms / 38.4% at 16K;
+CPU workers 0%).
 
-- [ ] M4.1 Reduce the fixed per-batch host/CPU cost of the cached delta turn: fewer CPU/GPU segment
-  transitions, overlap of the CPU-resident expert FFN with GPU work, larger effective resident expert sets.
-- [ ] M3.3b [BAS-139](/BAS/issues/BAS-139) Dynamic VRAM LRU over RAM-pinned experts (the placement half).
+- [x] M4.1 ([BAS-144](/BAS/issues/BAS-144)) Decompose the host term and measure a lever. `--load-mode none`
+  (anonymous RAM, no `mmap` re-read) gives **-10.4% at 16K / -7.1% at 128K** vs the M3.6 baseline; the 15% gate
+  is missed. Opt-in and revertible.
+- [x] M3.3b ([BAS-139](/BAS/issues/BAS-139)) Dynamic VRAM LRU over RAM-pinned experts: **measured negative**
+  (-49% to -85%) and stopped — [ADR-0006](adr/0006-moe-expert-lru-disposition.md). Step-1 `-ot` remains the
+  placement result.
+- [x] M3.0c ([BAS-145](/BAS/issues/BAS-145)) Checkpoint-sidecar restore reuse confirmed at ~128K (`cache_n`
+  = 127998).
+- [ ] M4.2 Overlap or eliminate the per-batch host->VRAM expert upload (the residual 1970 ms at 16K / 2940 ms
+  at 128K): double-buffer the upload against GPU compute, or keep uploaded experts resident across batches.
 - Deferred: Level Zero command-list capture (R1c).
 
 MTP is **not** on this list: the base model's head is not in the published GGUF and llama.cpp `qwen4exp` cannot

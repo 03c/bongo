@@ -66,13 +66,38 @@ miss at 128K. Every planned GPU-side lever is now either measured small (kernel,
 - **(d) Build a from-scratch engine.** Still rejected, for the ADR-0003 reasons (no op-coverage gap, measured
   SYCL deficit, device-loss hazards). The bottleneck is host scheduling, which a rewrite does not by itself fix.
 
+## Measured refinements after M4.1 (2026-09-29)
+
+M4.1 ([BAS-144](/BAS/issues/BAS-144)) decomposed the host term and measured one lever, which corrects the
+mechanism guess in decision 2:
+
+- **The term is the per-batch host->VRAM upload of host-resident MoE expert weights, on the main thread.**
+  At 16K the main host thread is **2180 ms (38.4%)** of the turn, the CPU backend worker threads are **0 ms**,
+  and ~0.5 GiB of in-turn page-cache re-reads ride along because the host weights are `mmap`-backed. The
+  earlier reading of the `--n-cpu-moe` ablation as "CPU-resident expert FFN compute" was wrong: the weights are
+  host-resident, but the scheduler's `MUL_MAT_ID` "copy only used experts" path uploads them and the GPU
+  computes. `--no-op-offload` (force the CPU path) is **+62%**, which proves the GPU upload+compute path is the
+  cheaper one and the upload is the term to attack.
+- **The available lever buys ~10%, not 15%.** `--load-mode none` (anonymous RAM instead of `mmap`) removes the
+  in-turn re-read: **16K 3569.4 ms (-10.4% vs the frozen M3.6 baseline), 128K 5480.6 ms (-7.1%)**, storage read
+  0.52 -> 0.00 GiB. It misses the 15% gate but is a real, opt-in, revertible win.
+- **The placement half failed.** The proposed dynamic VRAM LRU ([BAS-139](/BAS/issues/BAS-139)) measured
+  **-49% to -85%** against the Stage 0 baseline; it is stopped and its patch is inert by default
+  ([ADR-0006](0006-moe-expert-lru-disposition.md)). Placement is at its VRAM edge: `--n-cpu-moe 8` does not
+  load at 128K.
+- **Residual.** After `--load-mode none`, the remaining fixed cost is the upload itself (main host 1970 ms at
+  16K, 2940 ms at 128K). Nothing available as a server flag removes it. The next step is to overlap the upload
+  with GPU compute or to keep uploaded experts resident across batches (M4.2).
+
 ## Consequences
 
 - **Positive.** The next milestone targets a term that is 80% of the turn instead of 3.4%. The plan no longer
   spends on a lever the measurement says cannot pay. Every shipped win stays.
 - **Negative / risk.** The host/CPU path is llama.cpp scheduler and server work, not a contained kernel; the
-  diff may be larger and less upstream-friendly than a kernel patch. Mitigation: keep M4.1 behind a flag, keep
-  the Stage 0 Vulkan baseline pinned, and measure before/after with the committed `warm-prefix-profile` tools.
+  diff may be larger and less upstream-friendly than a kernel patch. Mitigation: keep the lever behind a flag,
+  keep the Stage 0 Vulkan baseline pinned, and measure before/after with the committed profiling tools. The
+  measured path to the targets is now narrow: `--load-mode none` gives ~10%, and only the upload term is large
+  enough to close the rest (M4.2).
 - **Target honesty.** The `<=3 s` / `<=5 s` / `>=25 tok/s` targets are not met. They are recorded as misses in
   [ADR-0003](0003-engine-direction.md) and [docs/bongo-sh.md](../bongo-sh.md), and on [BAS-132](/BAS/issues/BAS-132).
 
