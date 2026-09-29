@@ -89,8 +89,9 @@ See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements a
 - [x] M3.6 Warm-prefix profile: the cached turn is **80.1% host/CPU**, the MoE expert matmul 3.4%
   ([BAS-130](/BAS/issues/BAS-130)).
 
-**Target status: MISSED.** 512-token turn 3.98 s at 16K (target <=3 s) and 12.31 s at 128K (target <=5 s);
-4K decode ~14-18 tok/s (target >=25). Umbrella [BAS-62](/BAS/issues/BAS-62) stays open.
+**Target status.** The turn targets are **met** with the M4.2 levers on: 512-token turn 2.72 s at 16K (target
+<=3 s) and 4.66 s at 128K (target <=5 s); 256K is met. **4K decode ~18 tok/s (target >=25) is not met** and is
+the last open target. Umbrella [BAS-62](/BAS/issues/BAS-62) stays open on the remaining M4 items.
 
 ## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
 
@@ -99,15 +100,21 @@ per-batch host->VRAM **upload of host-resident MoE expert weights** on the main 
 CPU workers 0%).
 
 - [x] M4.1 ([BAS-144](/BAS/issues/BAS-144)) Decompose the host term and measure a lever. `--load-mode none`
-  (anonymous RAM, no `mmap` re-read) gives **-10.4% at 16K / -7.1% at 128K** vs the M3.6 baseline; the 15% gate
-  is missed. Opt-in and revertible.
+  (anonymous RAM, no `mmap` re-read) gives **-10.4% at 16K / -7.1% at 128K** vs the M3.6 baseline. Opt-in and
+  revertible.
 - [x] M3.3b ([BAS-139](/BAS/issues/BAS-139)) Dynamic VRAM LRU over RAM-pinned experts: **measured negative**
   (-49% to -85%) and stopped — [ADR-0006](adr/0006-moe-expert-lru-disposition.md). Step-1 `-ot` remains the
   placement result.
 - [x] M3.0c ([BAS-145](/BAS/issues/BAS-145)) Checkpoint-sidecar restore reuse confirmed at ~128K (`cache_n`
   = 127998).
-- [ ] M4.2 Overlap or eliminate the per-batch host->VRAM expert upload (the residual 1970 ms at 16K / 2940 ms
-  at 128K): double-buffer the upload against GPU compute, or keep uploaded experts resident across batches.
+- [x] M4.2 ([BAS-155](/BAS/issues/BAS-155)) Located the upload and fixed the root cause: the Vulkan host buffer
+  type was pinned to `devices[0]` (the AMD iGPU), so every copy staged through CPU and synchronised. Device-local
+  host buffer + transfer queue: **16K -23.7% (2721.8 ms), 128K -14.95% (4661.0 ms)**, needle pass. Env-gated,
+  default off.
+- [ ] M4.3 Ship the M4.2 upload fix as the `bongo.sh` default (reproducible build + opt-out) and confirm the turn
+  targets on the shipped configuration.
+- [ ] M4.4 Decode `>=25 tok/s`: profile the GPU decode path (now MoE-matmul-bound) and land a lever, or measure
+  the ceiling for a re-baseline.
 - Deferred: Level Zero command-list capture (R1c).
 
 MTP is **not** on this list: the base model's head is not in the published GGUF and llama.cpp `qwen4exp` cannot

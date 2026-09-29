@@ -89,6 +89,28 @@ mechanism guess in decision 2:
   16K, 2940 ms at 128K). Nothing available as a server flag removes it. The next step is to overlap the upload
   with GPU compute or to keep uploaded experts resident across batches (M4.2).
 
+### M4.2 result (2026-09-29) — the turn targets are met
+
+M4.2 ([BAS-155](/BAS/issues/BAS-155)) located the upload and fixed its root cause:
+
+- **Call:** `ggml_backend_sched_compute_splits` -> `ggml_backend_tensor_set_async(...)`, the "copy only used
+  experts" branch (`ggml/src/ggml-backend.cpp`); **7.35 GB copied over 5721 calls** for the 16K turn.
+- **Root cause:** `ggml_backend_vk_host_buffer_type()` hard-coded `vk_instance.devices[0]`. On this box
+  Vulkan0 is the AMD iGPU and Vulkan1 is the Arc, so host-resident experts were pinned on the wrong device and
+  every copy fell back to a CPU staging memcpy plus a per-copy `ggml_vk_synchronize`.
+  `GGML_VK_HOST_BUFT_PER_DEVICE=1` puts the pinned weights on the compute device: the main-thread branch drops
+  **1136 -> 45 ms (24x)**. `GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1` moves the copies to the transfer queue.
+- **Measured with both levers on** (`--load-mode none`): **16K 3569.4 -> 2721.8 ms (-23.7%)** and
+  **128K 5480.6 -> 4661.0 ms (-14.95%)**. Both are inside the CEO target (`<=3 s` / `<=5 s`). Cold prefill
+  falls -29.9% / -21.5%. Needle passes.
+- **Decode is unchanged** (17.6 -> 18.1 tok/s, within noise): it is GPU MoE-matmul-bound, not upload-bound, so
+  the `>=25 tok/s` target is still open (M4.4).
+- Both levers are **environment-gated and default off**; the patch is
+  `tools/patches/m4.2-vulkan-host-expert-upload.patch`. Shipping them as the default is M4.3.
+
+**Updated target status:** `<=3 s` at 16K and `<=5 s` at 128K are **met** on the measured configuration; 256K is
+met; **decode `>=25 tok/s` is the only target still open** and is a separate, GPU-matmul-bound axis.
+
 ## Consequences
 
 - **Positive.** The next milestone targets a term that is 80% of the turn instead of 3.4%. The plan no longer
@@ -98,8 +120,10 @@ mechanism guess in decision 2:
   keep the Stage 0 Vulkan baseline pinned, and measure before/after with the committed profiling tools. The
   measured path to the targets is now narrow: `--load-mode none` gives ~10%, and only the upload term is large
   enough to close the rest (M4.2).
-- **Target honesty.** The `<=3 s` / `<=5 s` / `>=25 tok/s` targets are not met. They are recorded as misses in
-  [ADR-0003](0003-engine-direction.md) and [docs/bongo-sh.md](../bongo-sh.md), and on [BAS-132](/BAS/issues/BAS-132).
+- **Target honesty.** After M4.2 the turn targets are **met** (16K 2.72 s, 128K 4.66 s) and 256K is met, but
+  only with the M4.2 levers on; they ship by default in M4.3. **Decode `>=25 tok/s` is not met** (~18 tok/s) and
+  is a separate axis. The original misses are recorded in [ADR-0003](0003-engine-direction.md) and
+  [docs/bongo-sh.md](../bongo-sh.md).
 
 ## Rollback path
 
