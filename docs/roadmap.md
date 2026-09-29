@@ -1,5 +1,8 @@
 # bongo roadmap
 
+For the single-page review of the goal, the approach, and the final speed numbers, see
+[`final-overview.md`](final-overview.md).
+
 Milestones follow [ADR-0001](adr/0001-runtime-architecture.md). Each milestone is one or more issues; the
 parent is [BAS-48](/BAS/issues/BAS-48) (Project setup).
 
