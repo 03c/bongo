@@ -1,0 +1,1 @@
+vk::Device::allocateMemory: ErrorOutOfDeviceMemory (forced by the M4.5 fallback test)

@@ -83,6 +83,8 @@ PLACEMENT_FALLBACK_REASON=""
 # tier split if the server fails to load there (M4.4/BAS-159 measured the gain).
 # 'tier' = the fixed per-tier split (the large-context-safe value). An explicit
 # --n-cpu-moe overrides either and is never overridden by the fallback.
+# 'auto' is context-aware: it picks the small- or large-context split and can fall
+# back to the safe split for the active context.
 PLACEMENT="auto"
 THREADS=""
 FLASH_ATTN="on"
@@ -145,7 +147,8 @@ declare -A TIER_EXPERT_GB=(
 )
 # Default number of MoE layers whose expert weights stay on the CPU. Derived
 # from a ~24 GB VRAM expert budget over 48 layers; overridable with --n-cpu-moe.
-# This is the large-context (256K) safe value and the --placement tier value.
+# This is the --placement tier value (the fixed per-tier split at the default
+# 131072 context) and the fallback target for a small-context auto run.
 declare -A TIER_N_CPU_MOE=(
   [iq2_xs]=16
   [iq3_xxs]=22
@@ -159,6 +162,36 @@ declare -A TIER_N_CPU_MOE=(
 declare -A TIER_N_CPU_MOE_SMALL_CTX=(
   [iq2_xs]=12
 )
+# --placement auto for a context above 131072.  The larger KV cache leaves less
+# VRAM for experts, so the split must move more experts to the CPU: for iq2_xs
+# the 256K fit measured n=18 as the safe value (30.35-30.65 GiB, ~1.5 GiB margin),
+# while the tier value n=16 (31.79 GiB) device-losts during load on the reference
+# box (BAS-163, observed 2026-09-29).  Only iq2_xs is measured; other tiers fall
+# back to TIER_N_CPU_MOE.
+declare -A TIER_N_CPU_MOE_LARGE_CTX=(
+  [iq2_xs]=18
+)
+
+# The expert split the --placement auto policy picks for the active context.
+# Falls back to the tier value for an unmeasured tier/context.
+auto_n_cpu_moe() {
+  if (( CTX <= 131072 )); then
+    printf '%s' "${TIER_N_CPU_MOE_SMALL_CTX[$TIER]:-${TIER_N_CPU_MOE[$TIER]}}"
+  else
+    printf '%s' "${TIER_N_CPU_MOE_LARGE_CTX[$TIER]:-${TIER_N_CPU_MOE[$TIER]}}"
+  fi
+}
+
+# The safe split to fall back to when the auto value fails to load: the tier
+# value for a <=131072 context, the large-context value above it.  Above 131072
+# auto already selects this value, so the fallback is a small-context mechanism.
+placement_fallback_target() {
+  if (( CTX > 131072 )) && [[ -n "${TIER_N_CPU_MOE_LARGE_CTX[$TIER]:-}" ]]; then
+    printf '%s' "${TIER_N_CPU_MOE_LARGE_CTX[$TIER]}"
+  else
+    printf '%s' "${TIER_N_CPU_MOE[$TIER]}"
+  fi
+}
 
 # ---------------------------------------------------------------------------
 # Logging (color only on a tty; never a traceback on failure)
@@ -236,12 +269,13 @@ Serving:
   --placement MODE       Expert placement policy. auto (default) = spend the VRAM the
                          configured context leaves free on expert residency: iq2_xs keeps
                          12 instead of 16 layers of experts on the CPU at --ctx 131072
-                         and below, and 16 above, which measures 17.0 -> 19.6 tok/s on 4K
-                         decode (BAS-159). If the auto placement fails to load, bongo.sh
-                         retries once at the tier split (16) and keeps serving (BAS-163).
-                         tier = the fixed per-tier split (the opt-out). An explicit
-                         --n-cpu-moe overrides either and is never overridden by the
-                         fallback.
+                         and below, which measures 17.0 -> 19.6 tok/s on 4K decode
+                         (BAS-159), and the measured large-context split above (18 at
+                         262144; the tier value 16 device-losts there, BAS-163). If the
+                         auto placement fails to load, bongo.sh retries once at the safe
+                         split for the context (16 at 131072) and keeps serving. tier =
+                         the fixed per-tier split (the opt-out). An explicit --n-cpu-moe
+                         overrides either and is never overridden by the fallback.
   --n-gpu-layers N       Max layers offloaded to GPU (default: $N_GPU_LAYERS)
   --threads N            CPU threads (default: auto)
   --load-mode MODE       Model loading mode: none (default when the M4.2 upload levers are on),
@@ -392,9 +426,8 @@ validate_args() {
   else
     [[ "$PLACEMENT" == "tier" || "$PLACEMENT" == "auto" ]] \
       || die "--placement must be 'tier' or 'auto' (got '$PLACEMENT')."
-    if [[ "$PLACEMENT" == "auto" ]] && (( CTX <= 131072 )) \
-       && [[ -n "${TIER_N_CPU_MOE_SMALL_CTX[$TIER]:-}" ]]; then
-      N_CPU_MOE="${TIER_N_CPU_MOE_SMALL_CTX[$TIER]}"
+    if [[ "$PLACEMENT" == "auto" ]]; then
+      N_CPU_MOE="$(auto_n_cpu_moe)"
     else
       N_CPU_MOE="${TIER_N_CPU_MOE[$TIER]}"
     fi
@@ -1329,9 +1362,10 @@ stop_existing() {
 placement_fallback_eligible() {
   (( N_CPU_MOE_SET == 0 )) || return 1
   (( PLACEMENT_FALLBACK == 0 )) || return 1
-  local tier_val="${TIER_N_CPU_MOE[$TIER]:-}"
-  [[ -n "$tier_val" ]] || return 1
-  [[ "$N_CPU_MOE" != "$tier_val" ]]
+  local target
+  target="$(placement_fallback_target)"
+  [[ -n "$target" ]] || return 1
+  [[ "$N_CPU_MOE" != "$target" ]]
 }
 
 # Classify the failed load for the record. The fallback itself triggers on any
@@ -1349,13 +1383,14 @@ load_failure_reason() {
 # Switch the active split to the tier value, keep the failed attempt's log, and
 # record the fallback so it lands in bongo-config.json / the plan output.
 apply_placement_fallback() {
-  local tier_val="${TIER_N_CPU_MOE[$TIER]}"
+  local target
+  target="$(placement_fallback_target)"
   PLACEMENT_FALLBACK_REASON="$(load_failure_reason)"
   if [[ -n "$LOG_FILE" && -f "$LOG_FILE" ]]; then
     cp "$LOG_FILE" "$RUN_DIR/llama-server-auto-$N_CPU_MOE.log" 2>/dev/null || true
   fi
-  warn "the auto placement (--n-cpu-moe $N_CPU_MOE) failed to load ($PLACEMENT_FALLBACK_REASON); falling back to the tier placement (--n-cpu-moe $tier_val)."
-  N_CPU_MOE="$tier_val"
+  warn "the auto placement (--n-cpu-moe $N_CPU_MOE) failed to load ($PLACEMENT_FALLBACK_REASON); falling back to the safe placement (--n-cpu-moe $target)."
+  N_CPU_MOE="$target"
   PLACEMENT_FALLBACK=1
 }
 

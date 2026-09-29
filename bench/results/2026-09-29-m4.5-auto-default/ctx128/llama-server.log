@@ -1,0 +1,18 @@
+0.00.021.981 I srv  llama_server: initializing ...
+0.00.021.991 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.022.229 W srv  llama_server: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.024.457 I srv    load_model: loading model '/home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf'
+0.00.336.203 W common_fit_params: failed to fit params to free device memory: n_gpu_layers already set by user to 99, abort
+1.08.869.820 I cmn          init: llama threadpool init, n_threads = 8
+1.09.081.605 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 131072, kv_unified = 'false'
+1.09.084.915 W srv          init: chat template supports preserving reasoning, it is enabled by default (may use more tokens, disable via --no-reasoning-preserve)
+1.09.084.949 I srv  llama_server: model loaded
+1.09.084.952 I srv  llama_server: listening on http://127.0.0.1:8080
+1.09.084.953 W srv  llama_server: notice: server default port will be changed to :9931 in a future release (ref: https://github.com/ggml-org/llama.cpp/pull/26508)
+1.09.139.853 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+1.09.139.892 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+1.09.210.052 I slot print_timing: id  0 | task 0 | prompt eval time =      70.12 ms /     2 tokens (   35.06 ms per token,    28.52 tokens per second)
+1.09.210.055 I slot print_timing: id  0 | task 0 |        eval time =       0.00 ms /     1 tokens (    0.00 ms per token,     0.00 tokens per second)
+1.09.210.056 I slot print_timing: id  0 | task 0 |       total time =      70.13 ms /     3 tokens
+1.09.210.058 I slot print_timing: id  0 | task 0 |    graphs reused =          2
+1.09.210.080 I slot      release: id  0 | task 0 | stop processing: n_tokens = 2, truncated = 0

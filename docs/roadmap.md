@@ -128,8 +128,11 @@ CPU workers 0%).
   lever found: `--n-cpu-moe 12` gives **19.59 tok/s (+15.5%)**; 10/8 OOM at 131072, so that is the ceiling.
   `--placement auto` is landed but opt-in. ([doc](research/m4.4-decode-profile.md),
   [raw](../bench/results/2026-09-29-m4.4-decode/))
-- [ ] M4.5 Make `--placement auto` the default **with an automatic OOM fallback** to the tier placement, so the
-  decode gain ships without sitting on the VRAM load edge.
+- [x] M4.5 ([BAS-163](/BAS/issues/BAS-163)) Made `--placement auto` the default **with an automatic load fallback**, so the
+  decode gain ships without sitting on the VRAM load edge. Shipped default: `--n-cpu-moe 12` at 131072 (**19.56 tok/s** 4K
+  decode, +15.3%), the measured large-context split **18** above 131072 (the ticket's 16 device-losts there), one retry at
+  the safe split on a load failure, 16K/128K turn within 0.2/1.6% of M4.3 and needle pass. Config-only; 70 unit cases pass.
+  ([doc](research/m4.5-auto-placement-default.md), [raw](../bench/results/2026-09-29-m4.5-auto-default/))
 - [x] M4.6 ([BAS-167](/BAS/issues/BAS-167)) Record the re-baseline in
   [ADR-0005](adr/0005-host-cpu-critical-path.md) and this roadmap, and close [BAS-62](/BAS/issues/BAS-62) as
   met-with-re-baselined-target once M4.5 lands. Docs carried the re-baseline; the closure waits on M4.5.

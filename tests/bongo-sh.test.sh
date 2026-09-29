@@ -363,11 +363,12 @@ m44_reset; PLACEMENT=auto
 validate_args
 if [[ "$N_CPU_MOE" == "12" ]]; then t_ok "M4.4 --placement auto uses the measured 128K split"; else t_bad "M4.4 --placement auto uses the measured 128K split (got '$N_CPU_MOE')"; fi
 
-# Above 131072 the context-aware value must fall back to the tier value, so the
-# 256K path cannot regress into an out-of-VRAM placement.
+# Above 131072 the KV cache is larger, so the context-aware value must keep more
+# experts on the CPU.  M4.5 uses the measured large-context split (18 for
+# iq2_xs), because the tier value 16 device-losts at 262144 on the reference box.
 m44_reset; PLACEMENT=auto; CTX=262144
 validate_args
-if [[ "$N_CPU_MOE" == "16" ]]; then t_ok "M4.4 --placement auto keeps the tier split above 131072"; else t_bad "M4.4 --placement auto keeps the tier split above 131072 (got '$N_CPU_MOE')"; fi
+if [[ "$N_CPU_MOE" == "18" ]]; then t_ok "M4.5 --placement auto uses the large-context split above 131072"; else t_bad "M4.5 --placement auto uses the large-context split above 131072 (got '$N_CPU_MOE')"; fi
 
 # An explicit --n-cpu-moe overrides the policy in both modes.
 m44_reset; PLACEMENT=auto; N_CPU_MOE=20
@@ -484,12 +485,13 @@ else
   t_bad "M4.5 explicit --n-cpu-moe is preserved (attempts $server_attempts, n_cpu_moe '$N_CPU_MOE')"
 fi
 
-# Above 131072 auto already uses the tier split, so there is nothing to fall back to.
+# Above 131072 auto already uses the measured large-context safe split, so
+# there is nothing (safer) to fall back to.
 m45_reset; CTX=262144; validate_args
-if [[ "$N_CPU_MOE" == "16" ]] && ! placement_fallback_eligible; then
-  t_ok "M4.5 256K auto has no fallback target"
+if [[ "$N_CPU_MOE" == "18" ]] && ! placement_fallback_eligible; then
+  t_ok "M4.5 256K auto is already at the safe split (no fallback target)"
 else
-  t_bad "M4.5 256K auto has no fallback target (got '$N_CPU_MOE')"
+  t_bad "M4.5 256K auto is already at the safe split (got '$N_CPU_MOE')"
 fi
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
