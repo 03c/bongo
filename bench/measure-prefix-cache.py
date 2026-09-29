@@ -174,16 +174,17 @@ def measure_slot(tk, slot_id, prefix_text, prefix_tokens, save_dir, timeout):
 
 
 def check_needle(tk, prefix_text, prefix_tokens, max_tokens=32, timeout=900):
-    """Correctness: run the 256K needle over the restored slot and confirm the needle text survives.
+    """Correctness: run the needle over the restored slot and confirm the needle text survives.
 
-    The needle document places a unique sentinel (bench_lib.NEEDLE) deep inside a large
-    context; we ask for the access code and require the sentinel in the answer. This proves
-    the restored KV (and the restored checkpoints that re-anchor recurrent state) still drive
-    correct generation, not just cache reuse.
+    ``harness.build_needle_document`` plants a unique sentinel (bench_lib.NEEDLE) at ~50%
+    depth and already appends the recall question, so it is the fixed prompt as-is. (Do not
+    append a second question or leak the answer into the prompt: that makes the model skip
+    the code and continue the document, a false failure.) This proves the restored KV (and
+    the restored checkpoints that re-anchor recurrent state) still drive correct generation,
+    not just cache reuse.
     """
     from bench_lib import NEEDLE  # local import keeps the CLI import surface unchanged
-    needle_doc = build_needle_document(prefix_text)
-    needle_text = needle_doc + "\n\nWhat is the secret access code for the vault? " + NEEDLE + "\n"
+    needle_text = build_needle_document(prefix_text)
     rec = streaming_measure(BASE, MODEL, needle_text, max_tokens, timeout, cache_prompt=True)
     answer = (rec.get("text") or "")
     ok = NEEDLE.lower() in answer.lower()
