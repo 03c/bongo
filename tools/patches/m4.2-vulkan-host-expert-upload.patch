@@ -1,0 +1,279 @@
+diff --git a/ggml/src/ggml-backend.cpp b/ggml/src/ggml-backend.cpp
+index 20bf96501..367ece97d 100644
+--- a/ggml/src/ggml-backend.cpp
++++ b/ggml/src/ggml-backend.cpp
+@@ -20,6 +20,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <algorithm>
++#include <chrono>
+ #include <unordered_map>
+ #include <vector>
+ 
+@@ -1653,6 +1654,18 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+ 
+     int prev_backend_id = -1;
+ 
++    // M4.2 (BAS-155) instrumentation: attribute the host->VRAM upload of
++    // host-resident MoE expert weights.  Enabled only when GGML_SCHED_UPLOAD_STATS
++    // is set, so the hot path is unchanged by default.
++    const bool sched_upload_stats = getenv("GGML_SCHED_UPLOAD_STATS") != nullptr;
++    int64_t sched_upload_layers = 0;
++    int64_t sched_upload_copies = 0;
++    size_t  sched_upload_bytes  = 0;
++    double  sched_upload_branch_ms = 0.0;
++    double  sched_upload_id_ms     = 0.0;
++    double  sched_upload_wait_ms   = 0.0;
++    auto sched_now = []() { return std::chrono::steady_clock::now(); };
++
+     for (int split_id = 0; split_id < sched->n_splits; split_id++) {
+         struct ggml_backend_sched_split * split = &splits[split_id];
+         int split_backend_id = split->backend_id;
+@@ -1684,14 +1697,19 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+                 ggml_backend_tensor_copy(input, input_cpy);
+             } else {
+                 // wait for the split backend to finish using the input before overwriting it
++                auto t_wait0 = sched_upload_stats ? sched_now() : std::chrono::steady_clock::time_point();
+                 if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
+                     ggml_backend_event_wait(split_backend, sched->events[split_backend_id][sched->cur_copy]);
+                 } else {
+                     ggml_backend_synchronize(split_backend);
+                 }
++                if (sched_upload_stats) {
++                    sched_upload_wait_ms += std::chrono::duration<double, std::milli>(sched_now() - t_wait0).count();
++                }
+ 
+                 // when offloading MoE weights, we can reduce the amount of data copied by copying only the experts that are used
+                 ggml_tensor * node = split->graph.nodes[0];
++                auto t_expert0 = sched_upload_stats ? sched_now() : std::chrono::steady_clock::time_point();
+                 if (split->graph.n_nodes > 0 &&
+                     ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&
+                     ggml_backend_buffer_is_host(input->buffer) && (
+@@ -1723,6 +1741,7 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+                     }
+ 
+                     if (ids_tensor != prev_ids_tensor) {
++                        auto t_id0 = sched_upload_stats ? sched_now() : std::chrono::steady_clock::time_point();
+                         ids.resize(ggml_nbytes(ids_tensor) / sizeof(int32_t));
+                         ggml_backend_tensor_get_async(ids_backend, ids_tensor, ids.data(), 0, ggml_nbytes(ids_tensor));
+                         ggml_backend_synchronize(ids_backend);
+@@ -1739,6 +1758,9 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+                         }
+ 
+                         prev_ids_tensor = ids_tensor;
++                        if (sched_upload_stats) {
++                            sched_upload_id_ms += std::chrono::duration<double, std::milli>(sched_now() - t_id0).count();
++                        }
+                     }
+ 
+                     // group consecutive experts and copy them together
+@@ -1748,6 +1770,9 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+                         const size_t padding = std::min<size_t>(expert_size, 512);
+                         const size_t padding_end = last_id < n_expert - 1 ? padding : 0;
+ 
++                        sched_upload_copies += 1;
++                        sched_upload_bytes  += expert_size_copy + padding_end;
++
+                         ggml_backend_tensor_set_async(split_backend,
+                             input_cpy,
+                             (const uint8_t *)input->data + expert_offset, expert_offset,
+@@ -1779,6 +1804,11 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+                         last_id = id;
+                     }
+                     copy_experts(first_id, last_id);
++
++                    if (sched_upload_stats) {
++                        sched_upload_layers += 1;
++                        sched_upload_branch_ms += std::chrono::duration<double, std::milli>(sched_now() - t_expert0).count();
++                    }
+                 } else {
+                     // try async copy, but if not possible, we can still use a sync copy without synchronizing the dst backend, since we handle the synchronization here with multiple copies and events
+                     // TODO: add public function to facilitate this, since applications do not have direct access to the backend interface
+@@ -1842,6 +1872,13 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+         prev_backend_id = split_backend_id;
+     }
+ 
++    if (sched_upload_stats) {
++        fprintf(stderr,
++            "GGML_SCHED_UPLOAD_STATS layers=%lld copies=%lld bytes=%zu branch_ms=%.2f id_ms=%.2f wait_ms=%.2f\n",
++            (long long) sched_upload_layers, (long long) sched_upload_copies, sched_upload_bytes,
++            sched_upload_branch_ms, sched_upload_id_ms, sched_upload_wait_ms);
++    }
++
+     return GGML_STATUS_SUCCESS;
+ }
+ 
+diff --git a/ggml/src/ggml-vulkan/ggml-vulkan-buffers.cpp b/ggml/src/ggml-vulkan/ggml-vulkan-buffers.cpp
+index 4d4c84951..aca39106e 100644
+--- a/ggml/src/ggml-vulkan/ggml-vulkan-buffers.cpp
++++ b/ggml/src/ggml-vulkan/ggml-vulkan-buffers.cpp
+@@ -1,5 +1,9 @@
+ #include "ggml-vulkan-common.h"
+ 
++#include <atomic>
++#include <cstdio>
++#include <cstdlib>
++
+ ggml_backend_buffer_type_i ggml_backend_vk_buffer_type_interface = {
+     /* .get_name         = */ ggml_backend_vk_buffer_type_name,
+     /* .alloc_buffer     = */ ggml_backend_vk_buffer_type_alloc_buffer,
+@@ -429,6 +433,17 @@ bool ggml_vk_buffer_write_2d_async(vk_context subctx, vk_buffer& dst, size_t off
+     ggml_vk_host_get(dst->device, src, buf, buf_offset);
+ 
+     if (buf != nullptr) {
++        // M4.2 (BAS-155) trace: the VK_EXT_external_memory_host pinned source path.
++        // This is the host-resident MoE expert upload once the weights live in the
++        // device host buffer type (`--load-mode none` + `--n-cpu-moe`).
++        static std::atomic<size_t> g_host_copy_count{0};
++        static std::atomic<size_t> g_host_copy_bytes{0};
++        const size_t copy_bytes = width * height;
++        const size_t copy_n = g_host_copy_count.fetch_add(1) + 1;
++        const size_t copy_total = g_host_copy_bytes.fetch_add(copy_bytes) + copy_bytes;
++        if (getenv("GGML_VK_TRACE_HOST_COPY") != nullptr && (copy_n <= 4 || copy_n % 100 == 0)) {
++            fprintf(stderr, "GGML_VK_HOST_COPY #%zu bytes=%zu total=%zu\n", copy_n, copy_bytes, copy_total);
++        }
+         // Memory is pinned, use as staging buffer
+         std::vector<vk::BufferCopy> slices(1);
+         if (width == spitch && width == dpitch) {
+diff --git a/ggml/src/ggml-vulkan/ggml-vulkan.cpp b/ggml/src/ggml-vulkan/ggml-vulkan.cpp
+index 414e14f85..c80399b84 100644
+--- a/ggml/src/ggml-vulkan/ggml-vulkan.cpp
++++ b/ggml/src/ggml-vulkan/ggml-vulkan.cpp
+@@ -13024,18 +13024,30 @@ static const char * ggml_backend_vk_host_buffer_type_name(ggml_backend_buffer_ty
+     UNUSED(buft);
+ }
+ 
++static size_t ggml_backend_vk_host_buffer_type_device(ggml_backend_buffer_type_t buft) {
++    // per-device host buffer types carry the logical device index in buft->device->context
++    if (buft->device == nullptr) {
++        return 0;
++    }
++    auto * dev_ctx = (ggml_backend_vk_device_context *) buft->device->context;
++    return dev_ctx->device;
++}
++
+ static void ggml_backend_vk_host_buffer_free_buffer(ggml_backend_buffer_t buffer) {
+     VK_LOG_MEMORY("ggml_backend_vk_host_buffer_free_buffer()");
+-    ggml_vk_host_free(vk_instance.devices[0], buffer->context);
++    const size_t dev_idx = ggml_backend_vk_host_buffer_type_device(buffer->buft);
++    ggml_vk_host_free(vk_instance.devices[dev_idx], buffer->context);
+ }
+ 
+ static ggml_backend_buffer_t ggml_backend_vk_host_buffer_type_alloc_buffer(ggml_backend_buffer_type_t buft, size_t size) {
+     VK_LOG_MEMORY("ggml_backend_vk_host_buffer_type_alloc_buffer(" << size << ")");
+ 
++    const size_t dev_idx = ggml_backend_vk_host_buffer_type_device(buft);
++
+     size += 32;  // Behave like the CPU buffer type
+     void * ptr = nullptr;
+     try {
+-        ptr = ggml_vk_host_malloc(vk_instance.devices[0], size);
++        ptr = ggml_vk_host_malloc(vk_instance.devices[dev_idx], size);
+     } catch (vk::SystemError& e) {
+         GGML_LOG_WARN("ggml_vulkan: Failed to allocate pinned memory (%s)\n", e.what());
+         // fallback to cpu buffer
+@@ -13052,36 +13064,54 @@ static ggml_backend_buffer_t ggml_backend_vk_host_buffer_type_alloc_buffer(ggml_
+ }
+ 
+ static size_t ggml_backend_vk_host_buffer_type_get_alignment(ggml_backend_buffer_type_t buft) {
+-    return vk_instance.devices[0]->properties.limits.minMemoryMapAlignment;
++    const size_t dev_idx = ggml_backend_vk_host_buffer_type_device(buft);
++    return vk_instance.devices[dev_idx]->properties.limits.minMemoryMapAlignment;
+ 
+     UNUSED(buft);
+ }
+ 
+ static size_t ggml_backend_vk_host_buffer_type_get_max_size(ggml_backend_buffer_type_t buft) {
+-    return vk_instance.devices[0]->suballocation_block_size;
++    const size_t dev_idx = ggml_backend_vk_host_buffer_type_device(buft);
++    return vk_instance.devices[dev_idx]->suballocation_block_size;
+ 
+     UNUSED(buft);
+ }
+ 
+-ggml_backend_buffer_type_t ggml_backend_vk_host_buffer_type() {
+-    static struct ggml_backend_buffer_type ggml_backend_vk_buffer_type_host = {
+-        /* .iface    = */ {
++// One host buffer type per Vulkan device (BAS-155).  A host-visible weight buffer
++// must live on the same device that will copy from it: memory allocated on device
++// 0 can only be read directly by device 0.  With a single global device-0 buffer
++// type, a compute device N != 0 (e.g. the discrete Arc when the integrated GPU is
++// Vulkan0) had no pinned lookup hit, so every used-expert upload fell back to a
++// CPU staging copy plus a per-copy synchronize -- the per-batch MoE expert upload
++// cost.  The exported no-arg accessor keeps returning device 0 for compatibility.
++static struct ggml_backend_buffer_type ggml_backend_vk_buffer_type_host[GGML_VK_MAX_DEVICES] = {};
++static bool ggml_backend_vk_buffer_type_host_init[GGML_VK_MAX_DEVICES] = {};
++
++static ggml_backend_buffer_type_t ggml_backend_vk_host_buffer_type_dev(size_t device_idx) {
++    if (device_idx >= GGML_VK_MAX_DEVICES) {
++        device_idx = 0;
++    }
++    if (!ggml_backend_vk_buffer_type_host_init[device_idx]) {
++        ggml_backend_vk_buffer_type_host_init[device_idx] = true;
++        auto & buft = ggml_backend_vk_buffer_type_host[device_idx];
++        buft.iface = {
+             /* .get_name         = */ ggml_backend_vk_host_buffer_type_name,
+             /* .alloc_buffer     = */ ggml_backend_vk_host_buffer_type_alloc_buffer,
+             /* .get_alignment    = */ ggml_backend_vk_host_buffer_type_get_alignment,
+             /* .get_max_size     = */ ggml_backend_vk_host_buffer_type_get_max_size,
+             /* .get_alloc_size   = */ ggml_backend_cpu_buffer_type()->iface.get_alloc_size,
+             /* .is_host          = */ ggml_backend_cpu_buffer_type()->iface.is_host,
+-        },
+-        /* .device   = */ ggml_backend_reg_dev_get(ggml_backend_vk_reg(), 0),
+-        /* .context  = */ nullptr,
+-    };
+-
+-    // Make sure device 0 is initialized
+-    ggml_vk_instance_init();
+-    ggml_vk_get_device(0);
++        };
++        buft.device  = ggml_backend_reg_dev_get(ggml_backend_vk_reg(), device_idx);
++        buft.context = nullptr;
++        ggml_vk_instance_init();
++        ggml_vk_get_device(device_idx);
++    }
++    return &ggml_backend_vk_buffer_type_host[device_idx];
++}
+ 
+-    return &ggml_backend_vk_buffer_type_host;
++ggml_backend_buffer_type_t ggml_backend_vk_host_buffer_type() {
++    return ggml_backend_vk_host_buffer_type_dev(0);
+ }
+ 
+ static const char * ggml_backend_vk_name(ggml_backend_t backend) {
+@@ -13110,7 +13140,8 @@ static void ggml_backend_vk_set_tensor_2d_async(ggml_backend_t backend, ggml_ten
+                                                 size_t size, size_t n_copies, size_t stride_tensor, size_t stride_data) {
+     VK_LOG_DEBUG("ggml_backend_vk_set_tensor_2d_async(" << size << ", " << n_copies << ")");
+     ggml_backend_vk_context * ctx = (ggml_backend_vk_context *)backend->context;
+-    GGML_ASSERT((tensor->buffer->buft == ggml_backend_vk_get_default_buffer_type(backend) || tensor->buffer->buft == ggml_backend_vk_host_buffer_type()) && "unsupported buffer type");
++    GGML_ASSERT((tensor->buffer->buft == ggml_backend_vk_get_default_buffer_type(backend) ||
++        tensor->buffer->buft->iface.get_name == ggml_backend_vk_host_buffer_type_name) && "unsupported buffer type");
+ 
+     if (size == 0) {
+         return;
+@@ -13173,7 +13204,8 @@ static void ggml_backend_vk_get_tensor_2d_async(ggml_backend_t backend, const gg
+                                                 size_t size, size_t n_copies, size_t stride_tensor, size_t stride_data) {
+     VK_LOG_DEBUG("ggml_backend_vk_get_tensor_2d_async(" << size << ", " << n_copies << ")");
+     ggml_backend_vk_context * ctx = (ggml_backend_vk_context *)backend->context;
+-    GGML_ASSERT((tensor->buffer->buft == ggml_backend_vk_get_default_buffer_type(backend) || tensor->buffer->buft == ggml_backend_vk_host_buffer_type()) && "unsupported buffer type");
++    GGML_ASSERT((tensor->buffer->buft == ggml_backend_vk_get_default_buffer_type(backend) ||
++        tensor->buffer->buft->iface.get_name == ggml_backend_vk_host_buffer_type_name) && "unsupported buffer type");
+ 
+     if (size == 0) {
+         return;
+@@ -15197,6 +15229,15 @@ static ggml_backend_buffer_type_t ggml_backend_vk_device_get_buffer_type(ggml_ba
+ }
+ 
+ static ggml_backend_buffer_type_t ggml_backend_vk_device_get_host_buffer_type(ggml_backend_dev_t dev) {
++    ggml_backend_vk_device_context * ctx = (ggml_backend_vk_device_context *)dev->context;
++
++    // BAS-155 lever: put host-resident weights in the host-visible memory of the
++    // device that will read them.  Unset (default) keeps the legacy device-0 host
++    // buffer type, so the Stage 0 baseline stays selectable.
++    if (getenv("GGML_VK_HOST_BUFT_PER_DEVICE") != nullptr) {
++        return ggml_backend_vk_host_buffer_type_dev(ctx->device);
++    }
++
+     UNUSED(dev);
+     return ggml_backend_vk_host_buffer_type();
+ }

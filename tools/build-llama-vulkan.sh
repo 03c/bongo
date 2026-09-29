@@ -33,8 +33,10 @@ NAME="$(basename "$SRC_DIR")"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(dirname "$HERE")"
 PATCH="$REPO/tools/patches/slot-checkpoints-sidecar.patch"
+M42_PATCH="$REPO/tools/patches/m4.2-vulkan-host-expert-upload.patch"
 IMAGE="${BONGO_VULKAN_BUILD_IMAGE:-bongo-llama-build:vulkan}"
 APPLY_PATCH="${BONGO_APPLY_PATCH:-1}"
+APPLY_M42_PATCH="${BONGO_APPLY_M42_PATCH:-0}"
 
 if [[ "$APPLY_PATCH" == "1" || "$APPLY_PATCH" == "true" ]]; then
   if [[ ! -f "$PATCH" ]]; then
@@ -47,6 +49,21 @@ if [[ "$APPLY_PATCH" == "1" || "$APPLY_PATCH" == "true" ]]; then
     echo "build-llama-vulkan: applied $(basename "$PATCH") to $SRC_DIR"
   else
     echo "build-llama-vulkan: failed to apply $PATCH; is $SRC_DIR a clean pinned tree?" >&2
+    exit 1
+  fi
+fi
+
+if [[ "$APPLY_M42_PATCH" == "1" || "$APPLY_M42_PATCH" == "true" ]]; then
+  if [[ ! -f "$M42_PATCH" ]]; then
+    echo "build-llama-vulkan: patch not found at $M42_PATCH" >&2
+    exit 1
+  fi
+  if git -C "$SRC_DIR" apply --check --reverse "$M42_PATCH" >/dev/null 2>&1; then
+    echo "build-llama-vulkan: BAS-155 M4.2 patch already applied to $SRC_DIR"
+  elif git -C "$SRC_DIR" apply "$M42_PATCH"; then
+    echo "build-llama-vulkan: applied $(basename "$M42_PATCH") to $SRC_DIR"
+  else
+    echo "build-llama-vulkan: failed to apply $M42_PATCH; is $SRC_DIR clean apart from the BAS-86 patch?" >&2
     exit 1
   fi
 fi

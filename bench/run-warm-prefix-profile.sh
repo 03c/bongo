@@ -51,7 +51,7 @@ base_url="http://$host:$port/v1"
 # Config table.  name | ctx-size | prefixes | extra server flags
 # ---------------------------------------------------------------------------
 # The single changed variable per config is the point; do not stack changes.
-declare -A CFG_CTX CFG_PREFIXES CFG_FLAGS CFG_NOTE CFG_PERF
+declare -A CFG_CTX CFG_PREFIXES CFG_FLAGS CFG_NOTE CFG_PERF CFG_ENV
 
 CFG_CTX[baseline]="131072"; CFG_PREFIXES[baseline]="16384,128000"
 CFG_FLAGS[baseline]=""
@@ -137,6 +137,27 @@ CFG_NOTE[no_op_offload_128k]="host-weight MoE matmuls stay on the CPU backend, a
 CFG_CTX[threads16_128k]="131072"; CFG_PREFIXES[threads16_128k]="128000"
 CFG_FLAGS[threads16_128k]="--threads 16 --threads-batch 16"
 CFG_NOTE[threads16_128k]="CPU backend thread pool 16, at ~128K"
+
+# ---------------------------------------------------------------------------
+# M4.2 (BAS-155) host->VRAM expert-upload levers.  `--load-mode none` puts the
+# host-resident expert weights in a device host buffer; the env vars fix which
+# device that buffer lives on and whether the copy uses the transfer queue.
+# `lm_none` is the M4.1 lever re-run for the same-session control.
+# ---------------------------------------------------------------------------
+CFG_CTX[lm_none_devhost]="131072"; CFG_PREFIXES[lm_none_devhost]="16384"
+CFG_FLAGS[lm_none_devhost]="--load-mode none"
+CFG_ENV[lm_none_devhost]="GGML_VK_HOST_BUFT_PER_DEVICE=1"
+CFG_NOTE[lm_none_devhost]="host expert buffer on the compute device (Vulkan1) instead of device 0 (Vulkan0)"
+
+CFG_CTX[lm_none_devhost_tq]="131072"; CFG_PREFIXES[lm_none_devhost_tq]="16384"
+CFG_FLAGS[lm_none_devhost_tq]="--load-mode none"
+CFG_ENV[lm_none_devhost_tq]="GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
+CFG_NOTE[lm_none_devhost_tq]="device-local host expert buffer + dedicated transfer queue"
+
+CFG_CTX[lm_none_devhost_tq_128k]="131072"; CFG_PREFIXES[lm_none_devhost_tq_128k]="128000"
+CFG_FLAGS[lm_none_devhost_tq_128k]="--load-mode none"
+CFG_ENV[lm_none_devhost_tq_128k]="GGML_VK_HOST_BUFT_PER_DEVICE=1 GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1"
+CFG_NOTE[lm_none_devhost_tq_128k]="device-local host expert buffer + dedicated transfer queue, at ~128K"
 
 ALL_CONFIGS="baseline baseline_perf ncmoe24 ncmoe8 fa_off ub128 ub1024 attn_cpu ssm_cpu hc_cpu"
 
@@ -230,11 +251,14 @@ json.dump({"perf_logger": sys.argv[2] == "1", "argv": sys.argv[3:]}, open(sys.ar
 PY
 
   log "$name: starting llama-server (ctx=$ctx perf=$perf) flags: $flags"
+  local env_flags="${CFG_ENV[$name]:-}"
   if [[ "$perf" == "1" ]]; then
-    GGML_VK_PERF_LOGGER=1 GGML_VK_PERF_LOGGER_FREQUENCY=1 \
+    # shellcheck disable=SC2086
+    env $env_flags GGML_VK_PERF_LOGGER=1 GGML_VK_PERF_LOGGER_FREQUENCY=1 \
       setsid "$llama_bin" "${argv[@]}" > "$server_log" 2>&1 &
   else
-    setsid "$llama_bin" "${argv[@]}" > "$server_log" 2>&1 &
+    # shellcheck disable=SC2086
+    env $env_flags setsid "$llama_bin" "${argv[@]}" > "$server_log" 2>&1 &
   fi
   local pid=$!
   echo "$pid" > "$pidfile"
