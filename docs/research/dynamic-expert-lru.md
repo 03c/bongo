@@ -16,7 +16,10 @@ offline frequency profile (held-out coverage 0.88–0.99) against R3's citation 
   exact per-layer expert bytes
   ([`expert-bytes-iq2_xs.json`](../../bench/results/2026-09-27-expert-placement/expert-bytes-iq2_xs.json)).
 - **Raw output:** [`bench/results/2026-09-28-byte-budget-placement/`](../../bench/results/2026-09-28-byte-budget-placement/)
-  (`placement-iq2_xs-22.40.json`, `lru-ab.json`, `lru-ab.txt`).
+  (`placement-iq2_xs-22.40.json`, `lru-ab.json`, `lru-ab.txt`), and the Step-2 engine A/B
+  [`bench/results/2026-09-29-moe-cache-lru/`](../../bench/results/2026-09-29-moe-cache-lru/)
+  (`moe-cache-ab.{md,json}`, raw matrices, `moe-cache-stats.json`).
+- **Status:** Step 1 shipped; **Step 2 measured negative and stopped** ([ADR-0006](../adr/0006-moe-expert-lru-disposition.md)).
 
 ## TL;DR
 
@@ -34,8 +37,13 @@ offline frequency profile (held-out coverage 0.88–0.99) against R3's citation 
    let the LRU track drift.
 4. Decode transfer agrees: on real per-token decode routing the profile-initialised LRU serves **0.985–0.986**
    versus **0.945–0.962** frozen and **0.862–0.903** cold.
-5. The dynamic LRU is **engine work** (a llama.cpp `qwen4exp` MoE patch), because llama.cpp cannot hold
-   per-expert residency. The design is below; the throughput A/B needs the patch and a free box.
+5. **Step 2 was built and measured — it is a net negative, and was stopped.** The engine
+   ([`tools/patches/moe-expert-cache.patch`](../../tools/patches/moe-expert-cache.patch)) serves per-expert
+   residency correctly (0.952 hit rate, needle pass) but loses to whole-layer residency: **4K decode −85.4%,
+   128K decode −62.2%, 128K prefill −49.4%** against the pinned `--n-cpu-moe 16` baseline. It keeps a CPU
+   `mul_mat_id` per MoE layer and is decode-only, so it cannot serve the prefill-bound turn target. See
+   **Step 2 — the engine measured** and [ADR-0006](../adr/0006-moe-expert-lru-disposition.md); Step-1 `-ot` is
+   the shipped placement result.
 
 ## Step 1 — cheapest-layer-first byte-budget `-ot`
 
@@ -160,13 +168,55 @@ tensor layout cannot express. The design:
 
 This is the same shape Strata ships (R1), expressed for llama.cpp's `qwen4exp` MoE rather than CUDA.
 
+## Step 2 — the engine measured: a net negative
+
+The design above was implemented as
+[`tools/patches/moe-expert-cache.patch`](../../tools/patches/moe-expert-cache.patch) (a port of
+[llama.cpp PR #27861](https://github.com/ggml-org/llama.cpp/pull/27861) onto `b11223`, plus bongo profile
+initialisation and counters) and measured on the same box ([BAS-139](/BAS/issues/BAS-139)). Config A:
+`--n-cpu-moe 48 --moe-expert-cache-profile profile-iq2_xs-22.40.txt` (16,735 cells, 22.40 GiB, profile-seeded
+and then tracked online). Config B: the pinned Stage 0 `--n-cpu-moe 16`. One session, shared flock, `iq2_xs`,
+q8 KV, Vulkan.
+
+| metric | A (engine LRU) | B (Stage 0 n=16) | Δ |
+| --- | ---: | ---: | ---: |
+| 4K prompt tok/s | 2.519 | 14.824 | −83.0% |
+| **4K decode tok/s** | **2.503** | **17.112** | **−85.4%** |
+| 4K TTFT ms | 1266.8 | 257.4 | +392% |
+| 128K prompt tok/s | 66.771 | 131.816 | −49.4% |
+| **128K decode tok/s** | **3.041** | **8.044** | **−62.2%** |
+| turn TTFT, 4K cached +512 ms | 43418.5 | 2979.1 | +1358% |
+| needle | pass | pass | — |
+| VRAM after load GiB | 30.92 | 30.86 | +0.06 |
+
+The cache **engaged and is numerically correct**: 47 cached layers, 632 steps, 262,723 hits / 13,167 misses
+(**0.952 hit rate**), 30.92 GiB VRAM after load versus 6.33 GiB for a plain `--n-cpu-moe 48` (so ~24.6 GiB of
+cache tensors were resident), and the needle passes. It still does not buy throughput: against the recorded
+all-experts-on-CPU control (`--n-cpu-moe 48`, no cache: 4K decode 2.948, 128K decode 2.262 tok/s) the cache is
+flat at 4K and ~+34% at 128K, versus +480% / +256% for whole-layer residency.
+
+Two mechanisms, both structural:
+
+1. **The two-chain split keeps a CPU `mul_mat_id` per MoE layer.** Cached experts are skipped on the CPU
+   (`dst->src[3]`), but the op and its CPU/GPU boundary remain, so at `--n-cpu-moe 48` all 48 layers pay the
+   handoff every token. Realised decode tracks the all-CPU regime, not the 0.66→0.99 activation coverage the
+   offline sim predicted.
+2. **The cache is decode-only** (`n_tokens == 1`). The agentic turn target is a prefill batch, so a perfect
+   cache does nothing for it, while moving every expert to the host costs −49.4% prefill.
+
+The offline coverage proxy is a residency bound, not a throughput bound: it prices the resident set but not the
+per-layer handoff or the decode-only gate. [ADR-0006](../adr/0006-moe-expert-lru-disposition.md) records the
+decision to stop Step 2; Step-1 `-ot` stays the placement result and the patch stays on the branch, opt-in and
+inert by default. Raw files and the full diagnosis:
+[`bench/results/2026-09-29-moe-cache-lru/`](../../bench/results/2026-09-29-moe-cache-lru/README.md).
+
 ## Status of the GPU runs
 
 The Step-1 Stage-1 A/B is **measured** (same-session byte-budget `-ot` vs pinned `--n-cpu-moe 16`, see the
 table above): +2.91% 128K prefill, +0.74% 128K decode, −2.83% 128K TTFT, no regression, both needles pass. The
 byte-budget run also measured the agentic prefix-cache path (cold 4K 172.5, 16K 202.9, 24K 190.4 prompt tok/s;
-+512-token grow turns at 3.58 s / 4.56 s TTFT; slot restore verified). The engine throughput A/B for Step 2
-still needs the patched engine. Reproduce:
++512-token grow turns at 3.58 s / 4.56 s TTFT; slot restore verified). The Step-2 engine A/B is **measured
+negative** (see **Step 2 — the engine measured** above). Reproduce:
 
 ```sh
 # Step 1: byte-budget -ot at 4K + 128K, VRAM + throughput + needle, plus the prefix-cache path
@@ -186,8 +236,9 @@ python3 bench/sim-expert-lru.py \
 ## Limitations
 
 - **Coverage vs tokens/s.** The offline A/B measures expert-activation coverage; the Step-1 throughput
-  translation is now measured (see above) at +0.74–2.91% for whole-layer residency. The Step-2 engine
-  throughput is still pending the patched engine.
+  translation is measured at +0.74–2.91% for whole-layer residency, and the Step-2 engine A/B is measured
+  **negative** (−85.4% 4K decode, −62.2% 128K decode, −49.4% 128K prefill). Coverage is a residency bound, not
+  a throughput bound: it does not price the per-layer CPU/GPU handoff or the decode-only gate.
 - **Simulated LRU.** The LRU is replayed over captured routing, not over a patched engine. It ignores copy
   latency, cache-line effects and batch behaviour; it bounds the residency policy, not the engine's realised
   speed.
