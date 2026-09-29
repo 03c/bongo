@@ -293,11 +293,12 @@ startup keeps that cost off the user's first turn. `--no-warmup` skips it for a 
 See [`docs/research/agentic-prefix-cache.md`](research/agentic-prefix-cache.md) for the measured
 turn latency and the slot save/restore timings, and
 [`bench/results/2026-09-28-prefix-cache-longctx/`](../bench/results/2026-09-28-prefix-cache-longctx/README.md)
-for the 128K/256K delta turn. The measured delta-turn TTFT is **12.31 s at 128K** (42.2 delta
-tok/s, peak VRAM 29.26 GiB) and **10.87 s at 256K** (48.2 delta tok/s, peak VRAM 30.86 GiB)
-against a `<=5 s` target: prefix reuse is complete (full hit 0.53/0.66 s), so the cost is the
-512-token delta prefill, and the gap is prompt-processing throughput — the M3.1 (integer MMQ)
-and M3.2 (speculation) levers.
+for the 128K/256K delta turn. The Stage 0 measurement (before the M4.1/M4.2 levers) was a
+delta-turn TTFT of **12.31 s at 128K** and **10.87 s at 256K** against a `<=5 s` target. The
+shipped default (M4.3) now measures **2 716 ms at 16K** and **4 669 ms at 128K** on the
+512-token cached delta turn, so the `<=5 s` target is **met**; the earlier gap was the
+host-side upload of the host-resident MoE experts, not prompt-processing throughput. See
+[The M4.2 host-expert upload](#the-m42-host-expert-upload-the-shipped-default).
 
 ## Tiers and MoE placement
 
@@ -344,8 +345,11 @@ The default was then exercised end-to-end:
   at 48.2 delta tok/s, peak VRAM **30.86 GiB**
   ([`bench/results/2026-09-28-prefix-cache-longctx/`](../bench/results/2026-09-28-prefix-cache-longctx/)).
 
-The product `<=5 s` delta-turn target is **not met** at 128K (12.31 s) or 256K (10.87 s); see
-[§ Prefix-cache serving](#prefix-cache-serving-the-agentic-path) and the ADR-0003 amendment.
+The 256K default with the M4.3 upload levers was re-checked for fit/load: 75 s to healthy, a
+request returned 200, peak VRAM **30.65 GiB** (`--n-cpu-moe 18` + `--load-mode none` + both
+levers; [`bench/results/2026-09-29-m4.3-shipped-default/ctx256/`](../bench/results/2026-09-29-m4.3-shipped-default/ctx256/ctx256-fit.json)).
+A full 256K cached delta turn was last timed at the Stage 0 10.87 s (above); the same upload
+fix is expected to move it by the 16K/128K proportion, but it was not re-timed in M4.3.
 
 ## Generated config
 
