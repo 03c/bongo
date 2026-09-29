@@ -1,36 +1,35 @@
 # M3.6 — the warm-prefix (cached-turn) profile and the dominant cost
 
 Work for [BAS-130](/BAS/issues/BAS-130) (M3.6), part of [BAS-62](/BAS/issues/BAS-62).
-Engine: llama.cpp `4da6337767f973e2b4d0797e5b323d77d8565e4a` (`b11223`), Vulkan.
-Author: Coder (Paperclip). Date: 2026-09-28.
+Engine: llama.cpp `4da6337767f973e2b4d0797e5b323d77d8565e4a` (`b11223`), Vulkan
+device `Vulkan1`, tier `iq2_xs`, q8 KV, Stage 0 placement `--n-cpu-moe 16`,
+`--flash-attn on`, `--ctx-size 131072`, `--parallel 1`.
+Author: Coder (Paperclip). Date: 2026-09-29.
 
-> **Status: measurement pending.** The reproduction scripts are committed and
-> validated against the mock server, but the GPU run is queued behind the
-> single-GPU flock held by the BAS-132 long-context measurement (BAS-80). The
-> "Measured evidence" section below is from **already-committed** results; the
-> warm-turn table for this task and the ablation ranking are produced by
-> `bench/run-warm-prefix-profile.sh` and will replace the `[pending]` rows.
+Raw files: [`bench/results/2026-09-28-warm-prefix-profile/`](../../bench/results/2026-09-28-warm-prefix-profile/).
+Reproduce with [`bench/run-warm-prefix-profile.sh`](../../bench/run-warm-prefix-profile.sh)
+(one command; holds the single-GPU flock, BAS-80). The numbers here are single
+measurements per config (no repeats); the ~20/80 GPU/host split is far larger
+than the run-to-run noise.
 
-## Why this task exists
+## TL;DR
 
-M3.1's measured result ([BAS-74](/BAS/issues/BAS-74)) is that the integer
-IQ2_S/IQ2_XXS/IQ1_M MMVQ path buys only ~1.05x on the cached-turn metric, and
-that FP16 expansion is not the dominant cached-turn cost. [ADR-0003](0003-engine-direction.md)
-makes that kernel path the central lever, so the remaining milestones were
-aimed at a cost nobody had measured. This task measures where a 512-token
-warm-prefix delta turn actually goes and names the dominant cost.
-
-The product metric is per-turn TTFT under prefix reuse: a 512-token
-continuation over an already-cached prefix. Targets are **<=3 s at 16K** and
-**<=5 s at 128K**, with **>=25 tok/s** at 4K decode. After M3.1 the box was at
-~3.7 s at 16K and ~14 tok/s at 4K.
+The 512-token warm-prefix delta turn is **host/CPU-bound, not GPU-kernel-bound**.
+At 16K the Vulkan kernels are busy **793 ms of a 3983 ms turn (20%)**; the other
+**80% is CPU work and host/GPU synchronisation**. The single largest GPU op is
+the flash attention over the cached KV (356 ms, 9% of the turn); the MoE expert
+matmul — the target of every planned kernel milestone — is only 135 ms (3.4%).
+The `--ubatch-size 128` ablation makes the turn **2.3x slower**, which proves a
+large fixed per-batch host/CPU cost. **None of the planned GPU-kernel levers
+(kernel / speculation / PLE) moves the turn target; placement is the only
+planned lever that does, and it is VRAM-capped at roughly the +18% already
+measured.**
 
 ## Method
 
-One server config at a time, shipped flags (`--n-cpu-moe 16`, q8 KV,
-`flash-attn on`, Vulkan, `--ctx-size 131072`), with **exactly one flag changed**
-per ablation. For each config the profiler primes a prefix, then measures the
-delta turn against the cached KV:
+One server restart per ablation, **exactly one flag changed** vs the pinned
+Stage 0 baseline. For each config the profiler primes a prefix, then measures
+the delta turn against the cached KV:
 
 | case | prompt | cache_prompt | what it is |
 | --- | --- | --- | --- |
@@ -39,112 +38,154 @@ delta turn against the cached KV:
 | `grow_D` | P+D | true | **the measured delta turn**, D new tokens |
 | `decode` | P | true, `max_tokens=32` | decode rate at context P after a hit |
 
-`grow_D - hit` over `D` is the marginal ms/new-token while attending over the
-cached prefix; several D values give a slope, not a single point.
+The component attribution has two independent legs:
 
-The component attribution is a **critical-path probe**: take one component off
-the fast GPU onto the slow CPU and measure how much the delta turn changes. A
-large positive change names a component that matters; a change near zero names
-one hidden behind other work. The configs are:
+1. **Ablation (wall clock).** Take one component off the fast GPU onto the slow
+   CPU and measure how much the delta turn changes. A large positive change
+   names a component that contributes to the critical path; a change near zero
+   names one hidden behind other work. `--ubatch-size` probes the per-batch
+   fixed cost.
+2. **Per-op GPU time.** A `GGML_VK_PERF_LOGGER=1` config records device-side
+   timestamps for every Vulkan op; `bench/parse-vk-perf.py` groups them into
+   MoE experts (`MUL_MAT_ID`), flash attention (`FLASH_ATTN_EXT`), dense
+   (`MUL_MAT`), GatedDeltaNet/SSM, and norms. `GPU busy` (`Total time`) against
+   the wall time splits the turn into GPU and non-GPU.
 
-| config | change | component probed |
+The per-op dump is supporting evidence, not the sole method: the Vulkan logger
+rows do not carry tensor names, so the ablations are what attribute a class to a
+lever.
+
+## Result 1 — the ranked 16K delta-turn cost table
+
+Shipped `--n-cpu-moe 16` baseline, prefix 16384, delta 510 tokens,
+wall `prompt_ms` = **3982.5 ms** (the shipped target is <=3000 ms, so 33% over).
+GPU busy is measured with the perf logger (whose own overhead is +1.8% on the
+wall); the non-GPU row is wall minus GPU busy.
+
+| rank | component | ms | % of turn | evidence |
+| --: | --- | --: | --: | --- |
+| 1 | **host/CPU work + GPU sync (non-GPU)** | **3190** | **80.1%** | wall minus Vulkan GPU busy |
+| 2 | GPU flash attention over the cached KV | 356 | 8.9% | `FLASH_ATTN_EXT` |
+| 3 | GPU dense / non-MoE matmuls | 206 | 5.2% | `MUL_MAT` (attn/DeltaNet projections, hyper-connections) |
+| 4 | GPU MoE expert matmuls | 135 | 3.4% | `MUL_MAT_ID` (32 GPU layers only) |
+| 5 | GPU GatedDeltaNet (recurrent) ops | 31 | 0.8% | `GATED_DELTA_NET`, `SSM_CONV` |
+| 6 | GPU norms / activations | 27 | 0.7% | `RMS_NORM`, `SILU`, … |
+| 7 | GPU memory layout / elementwise / other | 38 | 1.0% | `CPY`, `CONT`, `PERMUTE`, … |
+
+Supporting measurements:
+
+- `hit` (4 tokens at 16K) = 231 ms wall, 145 ms GPU busy -> ~114 ms is fixed
+  per-request serving/host overhead (**2.9%** of the turn). So serving and
+  tokenisation are *not* the dominant cost.
+- Cold 16K prefill = 84 633 ms wall, 27 410 ms GPU busy (32% GPU) — the same
+  kernels at a large batch are more GPU-efficient; the delta turn is not.
+- The per-op breakdown of the 16K cold prefill and the decode request is in
+  `baseline_perf/vk-perf-task*.json`.
+
+## Result 2 — the ablation ranking (the proof)
+
+16K, delta 512, wall `prompt_ms`, vs the shipped baseline (3982.5 ms):
+
+| rank | config | change | delta-turn ms | Δ | proves |
+| --: | --- | --- | --: | --: | --- |
+| 1 | `ub128` | `--ubatch-size 128` (4 batches for 512 tokens) | 9123.7 | **+129.1%** | large fixed per-batch host/CPU cost |
+| 2 | `attn_cpu` | attention + DeltaNet QKV/output projections on CPU | 5594.2 | +40.5% | those projections matter, but they run on GPU in the baseline |
+| 3 | `hc_cpu` | hyper-connection tensors (`hc_*`) on CPU | 5248.1 | +31.8% | the BF16 hyper-connection matmuls matter |
+| 4 | `ncmoe24` | 8 more MoE layers' experts on CPU | 4711.8 | +18.3% | CPU-resident expert compute is on the critical path |
+| 5 | `ub1024` | `--ubatch-size 1024` | 4170.5 | +4.7% | 512 is already near the batch sweet spot |
+| 6 | `ssm_cpu` | GatedDeltaNet weights on CPU | 4060.4 | +2.0% | recurrent layers are not a bottleneck |
+| 7 | `baseline_perf` | + perf logger | 4054.8 | +1.8% | profiler overhead (control) |
+
+`ncmoe8` (more experts on the GPU) and `fa_off` (`--flash-attn off`) both
+**failed to load at ctx 131072** (VRAM), which is itself a result: the GPU cannot
+hold more experts than the Stage 0 placement already does, so the placement
+lever is at its VRAM edge.
+
+**The proving ablation is `ub128`.** If the turn were GPU-kernel-bound, splitting
+512 tokens into four batches would change little (the same work). It instead
+costs **+5.1 s (+129%)**, so the turn is dominated by work paid *per batch* —
+CPU-side expert dispatch, host/CPU segment transitions, and synchronisation.
+Fitting `p + 4c = 9123.7`, `p + c = 3982.5` gives a fixed per-batch cost
+**c ≈ 1.71 s** and a per-token cost of ~4.4 ms/token: nearly half the turn is a
+fixed per-batch cost.
+
+## Result 3 — the ~128K delta turn
+
+Shipped baseline, prefix 127 999, delta 516 tokens, wall **5899.5 ms** (target
+<=5000 ms, 18% over). Same engine/flags.
+
+| component | ms | % of turn | basis |
+| --- | --: | --: | --- |
+| delta compute (prefix-independent) | 3982 | 67.5% | measured at 16K; 80% of it host/CPU |
+| prefix-attention increment | 1917 | 32.5% | measured: 128K wall − 16K wall |
+| **total** | **5900** | 100% | measured |
+
+The only thing that changed between the two points is the cached-KV length
+(16 384 -> 127 999), so the +1917 ms is the extra cost of attending over a 7.8x
+longer cache. It is likely almost all GPU flash attention (the 16K attention op
+is 356 ms), which would put the GPU share at ~46% and non-GPU at ~54% at 128K —
+but the non-GPU delta-compute term (the ~3.2 s CPU/host term) is still the
+single largest term. That 128K GPU split is **derived, not separately
+profiled**; a `baseline_perf_128k` config is committed to measure it directly
+(one 128K prime, ~16 min).
+
+For reference, the full prefix sweep (wall `prompt_ms`, single run each) is:
+
+| prefix | hit | grow 128 | grow 512 | grow 1024 | decode tok/s |
+| --: | --: | --: | --: | --: | --: |
+| 16384 | 231.3 | 3947.6 | 3982.5 | 6861.5 | 11.3 |
+| 127999 | 404.6 | 4381.5 | 5899.5 | 10390.9 | 7.7 |
+
+`grow 128 ≈ grow 512` at both contexts is the same fixed-per-batch cost visible
+from the other direction: four times fewer new tokens costs almost nothing.
+
+## Decision note — which planned lever moves the target
+
+| lever | measured effect on the turn | verdict |
 | --- | --- | --- |
-| `baseline` | shipped (`--n-cpu-moe 16`) | reference |
-| `ncmoe24` / `ncmoe8` | +/- 8 MoE layers' experts on CPU | MoE expert compute + placement |
-| `fa_off` | `--flash-attn off` | the 12 full-attention layers |
-| `attn_cpu` | `-ot attn_{qkv,output,gate,q,k,v}=CPU` | full-attention weights/compute |
-| `ssm_cpu` | `-ot ssm_{out,conv1d,alpha,beta}=CPU` | the 36 GatedDeltaNet (recurrent) layers |
-| `hc_cpu` | `-ot hc_.*=CPU` | hyper-connection tensors (48 layers) |
-| `ub128` / `ub1024` | `--ubatch-size` | prefill batch/chunking |
-| `baseline_perf` | same flags + `GGML_VK_PERF_LOGGER=1` | per-op GPU-busy time (Vulkan timestamps) |
+| **Kernel** (integer MMQ/MMVQ for i-quant experts) | targets GPU MoE experts, 135 ms = 3.4% of the turn; M3.1 measured ~1.05x | **does not move the target** |
+| **Placement** (`--n-cpu-moe`, `-ot` byte budget) | `ncmoe24` costs +18.3%; `ncmoe8` cannot load at 128K | moves it **by at most ~18%**, and is VRAM-capped |
+| **Speculation** (suffix/n-gram) | decode-side only; the turn metric is a 512-token *prefill* TTFT | **does not move TTFT** |
+| **PLE reader** | engine A/B neutral (ADR-0004) | **does not move the target** |
+| host/CPU critical path (not in the planned set) | ~80% of the turn; `ub128` shows ~1.7 s of fixed per-batch cost | **the only term large enough to close the gap** |
 
-The per-op dump is used as **supporting evidence, not the sole method**: the
-task asked for ablations because the op names in the Vulkan logger do not carry
-tensor names, so a MUL_MAT cannot be attributed to attention vs SSM vs shared
-expert by the op alone. `bench/parse-vk-perf.py` classifies the rows
-(`MUL_MAT_ID` = MoE experts, `FLASH_ATTN_EXT` = full attention,
-`GATED_DELTA_NET`/`SSM_*` = recurrent, `MUL_MAT` = dense) and totals them, so
-the GPU-busy share and the CPU/sync residual are visible.
+**Recommendation.** Do not fund more GPU-kernel work against the cached-turn
+target: the whole MoE expert matmul is 3.4% of the turn, so even a perfect MMQ
+cannot pay for itself. The turn is a host/CPU scheduling problem. The next
+milestone should attack the fixed per-batch cost: keep as many experts on the
+GPU as VRAM allows (placement), reduce the number of CPU/GPU segment transitions
+per batch, and measure why a 512-token batch pays ~1.7 s of fixed cost that a
+35 000-token cold prefill (32 such batches) largely amortises. A `--n-cpu-moe 0`
+build or a larger-VRAM card is the decisive experiment; neither is in the
+current plan. Target check: 16K needs a 33% cut and 128K an 18% cut, so even the
+full placement lever (+18%) closes only the 128K gap, not the 16K one.
 
-## Reproduction
+## Reproduce
 
 ```sh
-# all configs, in order, holding the single GPU (BAS-80)
+# shipped baseline + all 16K ablations + the per-op config, holding the GPU lock
 bench/run-warm-prefix-profile.sh
 
-# one config, or a subset
-bench/run-warm-prefix-profile.sh baseline
-BONGO_PROFILE_CONFIGS=baseline,ncmoe24,fa_off bench/run-warm-prefix-profile.sh
+# analysed tables
+bench/analyze-warm-prefix.py --root bench/results/2026-09-28-warm-prefix-profile --prefix 16384
 
-# analysis
-bench/analyze-warm-prefix.py --root bench/results/2026-09-28-warm-prefix-profile
+# per-op GPU split for one request (task ids are in the server log's `launch_slot_` lines)
+bench/parse-vk-perf.py bench/results/2026-09-28-warm-prefix-profile/baseline_perf/llama-server.log \
+    --task 24 --summary
 
-# per-op GPU breakdown from the profiler config's server log
-bench/parse-vk-perf.py bench/results/2026-09-28-warm-prefix-profile/baseline_perf/llama-server.log --summary
+# the 128K per-op split (not run here; ~16 min of GPU)
+BONGO_PROFILE_CONFIGS=baseline_perf_128k bench/run-warm-prefix-profile.sh
 ```
 
-Raw files land in `bench/results/2026-09-28-warm-prefix-profile/<config>/`
-(`profile.json`, `server-flags.json`, `llama-server.log`, `harness.log`).
+Raw outputs per config: `profile.json`, `server-flags.json`, `llama-server.log`,
+plus `vk-perf-task*.json` for the parsed per-op breakdown.
 
-## Measured evidence already committed (before this task's run)
+## Caveats
 
-Shipped config, n=16, q8 KV, Vulkan, `bench/results/2026-09-28-prefix-cache*/`:
-
-| prefix | delta 512 prefill | ms / new token | full hit (fixed) | cold prefill ms/token |
-| ---: | ---: | ---: | ---: | ---: |
-| 4K | 5116 ms | 9.95 | 187 ms | 6.05 (cold-page) |
-| 16K | 3867 ms | 7.51 | 238 ms | 5.10 |
-| 24K | 3988 ms | 7.74 | 238 ms | 5.28 |
-| 31K | 4292 ms | 8.33 | 276 ms | 5.67 |
-| 128K | **[pending run]** | — | — | 7.50 |
-
-Placement ablation from `bench/results/2026-09-27-expert-placement/` (cold
-prefill, so the number is the whole-prompt per-token cost, not the delta):
-
-| `--n-cpu-moe` | 4K cold prompt tok/s | 128K cold prompt tok/s | 128K cold ms/token |
-| ---: | ---: | ---: | ---: |
-| 12 | 260.4 (128K fails to fit) | — | — |
-| 16 (baseline) | 231.5 | 133.4 | 7.50 |
-| 24 | 186.5 | 114.5 | 8.74 |
-
-Moving 8 layers' experts from the GPU to the CPU costs **+1.24 ms/token** at
-128K cold. That is a direct measurement that the expert matmul path is a
-first-order term and that GPU-resident experts are faster than CPU-resident
-ones; the placement lever (+18–27% prefill) is the same effect from the other
-direction.
-
-Backend A/B and 4K decode from `bench/results/2026-09-28-backend-ab/`:
-Vulkan 4K decode ~17.5 tok/s, 128K decode ~8.0 tok/s; SYCL 4K decode ~6.4
-tok/s. The 4K **>=25 tok/s** target is not met.
-
-## Preliminary reading (to be confirmed by the run)
-
-1. **The cached-KV attention term is not dominant at <=31K.** The delta-turn
-   cost is 7.5–8.3 ms per *new* token and grows only ~11% when the prefix
-   doubles from 16K to 31K. If attention over the cached KV dominated, the cost
-   would track the prefix. So the turn is dominated by the compute of the 512
-   new tokens, not by reading the cache.
-2. **The dominant compute term is the MoE expert prefill matmul.** The expert
-   tensors are ~31 GiB of the model's ~35 GiB; the placement ablation shows
-   +1.24 ms/token per 8 layers moved to the CPU. M3.1b
-   ([`iq2xs-sycl-integer-mmvq.md`](iq2xs-sycl-integer-mmvq.md)) showed the
-   prefill path expands the 2-bit i-quant experts to FP16 and runs a oneDNN
-   dequant GEMM (~2.5 TFLOPS), and that a chunked MMVQ loop is *slower*.
-3. **The decision implication** is therefore that the lever that moves the
-   cached-turn target is a **true tiled integer MMQ** (no FP16 expansion) — not
-   the single-column MMVQ that M3.1 already measured at ~1.05x, not the PLE
-   reader (measured neutral, [ADR-0004](0004-ple-reader-disposition.md)), and
-   not speculation (its own A/B, [BAS-75](/BAS/issues/BAS-75)). Placement is
-   worth the +18–27% already measured but is VRAM-capped.
-
-These are hypotheses from existing evidence. The run below is what turns them
-into a ranked, measured cost table and a proved dominant term.
-
-## Pending from this task's run
-
-- `[pending]` ranked cost table (ms and %) for one 512-token delta turn at 16K
-  and at 128K, with engine revision, tier, flags and raw files.
-- `[pending]` the ablation that proves the dominant term.
-- `[pending]` the per-op GPU-busy breakdown from `baseline_perf`.
-- `[pending]` the decision note with the measured effect size of each planned
-  lever (kernel / speculation / placement / PLE).
+- Single measurement per config (no repeats); load failures for `ncmoe8` and
+  `fa_off` are recorded in their `profile.json`.
+- The Vulkan `Total time` is device-side GPU-busy time; it excludes host work and
+  GPU idle time by construction, which is the point of the split.
+- The 128K GPU/non-GPU split is derived from the measured 16K split plus the
+  measured 128K prefix increment; the committed `baseline_perf_128k` config
+  measures it directly.

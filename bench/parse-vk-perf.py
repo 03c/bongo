@@ -57,18 +57,18 @@ def classify(name: str) -> str:
 
 def parse(log_text):
     blocks = []
-    pending = None  # current block
+    cur_rows = []
+    cur_total = None
     recent_task = None
-    row_buffer = []
     lines = log_text.splitlines()
 
-    def flush(prompt_tokens):
-        nonlocal row_buffer, pending
-        if pending is None:
+    def finalize(prompt_tokens):
+        nonlocal cur_rows, cur_total
+        if not cur_rows and cur_total is None:
             return
         ops = []
         class_totals = {}
-        for raw in row_buffer:
+        for raw in cur_rows:
             m = ROW_RE.match(raw)
             if not m:
                 continue
@@ -91,47 +91,55 @@ def parse(log_text):
                 "block": len(blocks) + 1,
                 "task": recent_task,
                 "prompt_tokens": prompt_tokens,
-                "total_us": pending.get("total_us"),
+                "total_us": cur_total,
+                "dirty": bool(cur_total is None or sum(class_totals.values()) > cur_total * 1.5 + 50),
                 "class_us": {k: round(v, 1) for k, v in sorted(class_totals.items(), key=lambda kv: -kv[1])},
                 "ops": sorted(ops, key=lambda o: -o["total_us"]),
             }
         )
-        row_buffer = []
-        pending = None
+        cur_rows = []
+        cur_total = None
 
-    i = 0
-    prompt_tokens = None
     for line in lines:
         line = line.strip()
         lm = LAUNCH_RE.search(line)
         if lm:
-            recent_task = lm.group("task")
-        pm = PROMPT_RE.search(line)
-        if pm:
-            # The block(s) for this request were emitted just before this line.
-            prompt_tokens = int(pm.group("tokens"))
-            flush(prompt_tokens)
-            prompt_tokens = None
-            continue
+            recent_task = int(lm.group("task"))
         if line == BLOCK_HEADER:
-            pending = {"total_us": None}
+            # a new block starts; close the previous one without prompt info
+            finalize(None)
             continue
-        if pending is not None:
+        if cur_total is None:
             tm = TOTAL_RE.match(line)
             if tm:
-                pending["total_us"] = float(tm.group("total"))
+                cur_total = float(tm.group("total"))
                 continue
-            if line == "----------------" or line == "":
-                continue
-            row_buffer.append(line)
-    flush(None)
+        if ROW_RE.match(line):
+            cur_rows.append(line)
+            continue
+        pm = PROMPT_RE.search(line)
+        if pm:
+            finalize(int(pm.group("tokens")))
+            continue
+    finalize(None)
     return blocks
 
 
-def aggregate(blocks, prompt_tokens=None):
+def aggregate(blocks, prompt_tokens=None, task=None):
     agg = {}
+    gpu_busy = 0.0
+    n_blocks = 0
     for b in blocks:
+        if task is not None and b.get("task") != task:
+            continue
         if prompt_tokens is not None and b.get("prompt_tokens") != prompt_tokens:
+            continue
+        n_blocks += 1
+        if b.get("total_us"):
+            gpu_busy += b["total_us"]
+        # Rows can be interleaved across two concurrent prints; only trust the
+        # class split from blocks whose rows reconcile with their Total time.
+        if b.get("dirty"):
             continue
         for op in b["ops"]:
             key = op["class"]
@@ -147,7 +155,7 @@ def aggregate(blocks, prompt_tokens=None):
             o["total_us"] = round(o["total_us"], 1)
         out.append(entry)
     out.sort(key=lambda e: -e["total_us"])
-    return out
+    return out, round(gpu_busy, 1), n_blocks
 
 
 def main():
@@ -156,24 +164,43 @@ def main():
     ap.add_argument("--out", default=None)
     ap.add_argument("--prompt-tokens", type=int, default=None,
                     help="only aggregate blocks whose following request reported N prompt tokens")
+    ap.add_argument("--task", type=int, default=None, help="only blocks from this server task id")
     ap.add_argument("--summary", action="store_true", help="print a human summary")
     args = ap.parse_args()
 
     with open(args.log, errors="replace") as fh:
         blocks = parse(fh.read())
-    agg = aggregate(blocks, args.prompt_tokens)
-    result = {"log": args.log, "blocks": blocks, "aggregate": agg}
+    agg, gpu_busy_us, n_blocks = aggregate(blocks, args.prompt_tokens, args.task)
+    # Keep the per-op evidence compact: when a task/prompt filter is given, only
+    # that request's blocks belong in the artifact.
+    out_blocks = blocks
+    if args.task is not None:
+        out_blocks = [b for b in blocks if b.get("task") == args.task]
+    elif args.prompt_tokens is not None:
+        out_blocks = [b for b in blocks if b.get("prompt_tokens") == args.prompt_tokens]
+    result = {
+        "log": args.log,
+        "task": args.task,
+        "prompt_tokens": args.prompt_tokens,
+        "gpu_busy_us": gpu_busy_us,
+        "n_blocks": n_blocks,
+        "blocks": out_blocks,
+        "aggregate": agg,
+    }
     if args.out:
         with open(args.out, "w") as fh:
             json.dump(result, fh, indent=2)
         print(f"wrote {args.out} ({len(blocks)} blocks)")
     if args.summary or not args.out:
         for b in blocks:
+            if args.task is not None and b.get("task") != args.task:
+                continue
             print(
                 f"block {b['block']:>3} task={b['task']} prompt_tokens={b['prompt_tokens']} "
-                f"total={b['total_us']} us classes={b['class_us']}"
+                f"dirty={b['dirty']} total={b['total_us']} us classes={b['class_us']}"
             )
         print("--- aggregate ---")
+        print(f"blocks={n_blocks} gpu_busy={gpu_busy_us/1000.0:.1f} ms")
         grand = sum(e["total_us"] for e in agg)
         for e in agg:
             pct = 100.0 * e["total_us"] / grand if grand else 0.0

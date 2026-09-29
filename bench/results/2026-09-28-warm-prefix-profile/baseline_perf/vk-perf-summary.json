@@ -1,0 +1,112 @@
+{
+  "engine": "llama.cpp b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a) Vulkan",
+  "source_log": "llama-server.log",
+  "note": "GPU-busy device time per request; delta-turn request is task 24 (grow512).",
+  "tasks": {
+    "5": {
+      "name": "warmup255",
+      "gpu_busy_us": 852954.4,
+      "n_blocks": 66,
+      "class_us": {
+        "dense_matmul": 424231.3,
+        "moe_experts": 307659.2,
+        "recurrent_deltanet": 42886.9,
+        "norm_activation": 34713.6,
+        "elementwise": 14947.3,
+        "other": 11780.3,
+        "full_attention": 9745.8,
+        "memory_layout": 6989.8
+      }
+    },
+    "8": {
+      "name": "cold16k",
+      "gpu_busy_us": 27409865.1,
+      "n_blocks": 1585,
+      "class_us": {
+        "dense_matmul": 10252879.3,
+        "full_attention": 6851736.7,
+        "moe_experts": 5849877.4,
+        "recurrent_deltanet": 1855148.3,
+        "norm_activation": 1149794.5,
+        "elementwise": 596253.1,
+        "other": 522201.9,
+        "memory_layout": 331966.3
+      }
+    },
+    "19": {
+      "name": "hit16k",
+      "gpu_busy_us": 145520.6,
+      "n_blocks": 17,
+      "class_us": {
+        "full_attention": 88829.6,
+        "dense_matmul": 27140.4,
+        "moe_experts": 13649.7,
+        "norm_activation": 6595.1,
+        "memory_layout": 4500.3,
+        "elementwise": 1883.6,
+        "other": 1876.1,
+        "recurrent_deltanet": 1045.9
+      }
+    },
+    "21": {
+      "name": "grow128",
+      "gpu_busy_us": 1215857.9,
+      "n_blocks": 66,
+      "class_us": {
+        "full_attention": 433772.1,
+        "dense_matmul": 430210.2,
+        "moe_experts": 275028.7,
+        "norm_activation": 25226.1,
+        "recurrent_deltanet": 20878.8,
+        "memory_layout": 13658.0,
+        "elementwise": 9823.3,
+        "other": 7259.9
+      }
+    },
+    "24": {
+      "name": "grow512",
+      "gpu_busy_us": 792674.4,
+      "n_blocks": 66,
+      "class_us": {
+        "full_attention": 356059.1,
+        "dense_matmul": 205659.3,
+        "moe_experts": 134662.9,
+        "recurrent_deltanet": 31301.4,
+        "norm_activation": 26802.5,
+        "memory_layout": 15027.1,
+        "elementwise": 13080.1,
+        "other": 10082.2
+      }
+    },
+    "27": {
+      "name": "grow1024",
+      "gpu_busy_us": 1441255.5,
+      "n_blocks": 115,
+      "class_us": {
+        "full_attention": 633873.5,
+        "dense_matmul": 383428.5,
+        "moe_experts": 244551.6,
+        "recurrent_deltanet": 63963.9,
+        "norm_activation": 47193.4,
+        "memory_layout": 25267.9,
+        "elementwise": 24455.8,
+        "other": 18521.7
+      }
+    },
+    "33": {
+      "name": "decode",
+      "gpu_busy_us": 2003578.8,
+      "n_blocks": 544,
+      "class_us": {
+        "full_attention": 808462.9,
+        "dense_matmul": 562522.0,
+        "norm_activation": 210212.5,
+        "moe_experts": 146375.6,
+        "memory_layout": 142917.5,
+        "other": 58125.8,
+        "elementwise": 54789.1,
+        "recurrent_deltanet": 20172.7
+      }
+    }
+  }
+}

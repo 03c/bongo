@@ -62,6 +62,18 @@ CFG_FLAGS[baseline_perf]=""
 CFG_NOTE[baseline_perf]="shipped baseline with GGML_VK_PERF_LOGGER=1 (per-op Vulkan timings)"
 CFG_PERF[baseline_perf]=1
 
+# Long-context variants: not in the default set because each pays a full 128K
+# cold prime (~16 min). Select explicitly, e.g.
+#   BONGO_PROFILE_CONFIGS=baseline_perf_128k,ncmoe24_128k bench/run-warm-prefix-profile.sh
+CFG_CTX[baseline_perf_128k]="131072"; CFG_PREFIXES[baseline_perf_128k]="128000"
+CFG_FLAGS[baseline_perf_128k]=""
+CFG_NOTE[baseline_perf_128k]="shipped baseline at ~128K with GGML_VK_PERF_LOGGER=1"
+CFG_PERF[baseline_perf_128k]=1
+
+CFG_CTX[ncmoe24_128k]="131072"; CFG_PREFIXES[ncmoe24_128k]="128000"
+CFG_FLAGS[ncmoe24_128k]="--n-cpu-moe 24"
+CFG_NOTE[ncmoe24_128k]="8 more MoE layers' experts on CPU, at ~128K"
+
 CFG_CTX[ncmoe24]="131072"; CFG_PREFIXES[ncmoe24]="16384"
 CFG_FLAGS[ncmoe24]="--n-cpu-moe 24"
 CFG_NOTE[ncmoe24]="8 more MoE layers' experts moved GPU->CPU (placement)"
@@ -84,7 +96,7 @@ CFG_NOTE[ub1024]="physical batch 1024 for a 512-token delta (one large batch)"
 
 CFG_CTX[attn_cpu]="131072"; CFG_PREFIXES[attn_cpu]="16384"
 CFG_FLAGS[attn_cpu]="-ot attn_qkv=CPU,attn_output=CPU,attn_gate=CPU,attn_q=CPU,attn_k=CPU,attn_v=CPU"
-CFG_NOTE[attn_cpu]="full-attention weights/compute forced to CPU (12 layers)"
+CFG_NOTE[attn_cpu]="attention/DeltaNet QKV+output projections on CPU (attn_qkv on the 36 DeltaNet layers; attn_q/k/v/output on the 12 full-attention layers)"
 
 CFG_CTX[ssm_cpu]="131072"; CFG_PREFIXES[ssm_cpu]="16384"
 CFG_FLAGS[ssm_cpu]="-ot ssm_out=CPU,ssm_conv1d=CPU,ssm_alpha=CPU,ssm_beta=CPU"
