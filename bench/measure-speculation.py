@@ -199,8 +199,15 @@ def parse_acceptance(lines):
 # ---------------------------------------------------------------------------
 
 
-def greedy_completion(base_url, model, prompt, max_tokens, timeout, cache_prompt=True):
-    """Deterministic greedy completion for the equivalence gate."""
+def greedy_completion(base_url, model, prompt, max_tokens, timeout, cache_prompt=False):
+    """Deterministic greedy completion for the equivalence gate.
+
+    ``cache_prompt`` defaults to False: an equivalence gate must not reuse a KV
+    prefix that was built by a different decoding mode.  A prefix cached by the
+    spec leg's batched verification carries batched floating-point accumulation,
+    so reusing it makes a later greedy request diverge for reasons that have
+    nothing to do with the verify core's accept-longest-greedy-prefix contract.
+    """
     payload = {
         "model": model,
         "prompt": prompt,
@@ -321,7 +328,8 @@ def run_measurement(args):
         print(f"== context {ctx} (actual prompt {actual} tokens) ==", flush=True)
 
         if not args.skip_equivalence:
-            entry["equiv"] = greedy_completion(base_url, args.model, prompt, args.equivalence_tokens, args.timeout)
+            entry["equiv"] = greedy_completion(base_url, args.model, prompt, args.equivalence_tokens, args.timeout,
+                                               cache_prompt=False)
             eq = entry["equiv"]
             print(f"   equiv status={eq.get('status')} tokens={eq.get('completion_tokens')}", flush=True)
 

@@ -1,7 +1,7 @@
 # Suffix / n-gram speculation (M3.2)
 
-Status: **measurement in progress** — engine path wired, equivalence proven in the reference core;
-live A/B numbers land in `bench/results/2026-09-28-speculation/`.
+Status: **measured — negative, speculation stays off.** Engine path wired, reference core exact, and the
+live A/B on the shipped Vulkan config is in `bench/results/2026-09-28-speculation/` ([BAS-131](/BAS/issues/BAS-131)).
 
 - Issue: [BAS-75](/BAS/issues/BAS-75) (child of [BAS-62](/BAS/issues/BAS-62)).
 - Engine: llama.cpp `b11223` (`4da6337767f973e2b4d0797e5b323d77d8565e4a`), **Vulkan**, IQ2_XS,
@@ -86,10 +86,25 @@ must match.
 
 `bench/measure-speculation.py` records, per context: the greedy equivalence generation, streaming
 decode timings and TTFT with `cache_prompt=true`, and the draft counters (from `timings` or parsed from
-the server's `draft acceptance = ...` log line). Raw files:
-`bench/results/2026-09-28-speculation/{baseline,spec,synth-*}.json`.
+the server's `draft acceptance = ...` log line).
 
-Results are added below once the run completes (see that directory for the raw JSON).
+Measured on the shipped Vulkan config (`b11223`, IQ2_XS, q8 KV, `--n-cpu-moe 16`), two workload
+classes, two reps, 128 output tokens. Full write-up and raw JSON:
+`bench/results/2026-09-28-speculation/README.md`.
+
+| workload | context | baseline tok/s | spec tok/s | ratio | acceptance | tokens/round |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| generic (repetitive) | 4 096 | 14.40 | 17.52 | 1.217x | 0.873 | 72.0 |
+| generic (repetitive) | 131 072 | 8.21 | 8.26 | 1.006x | ~0 (no drafts) | n/a |
+| docs (diverse) | 4 096 | 17.79 | 16.29 | 0.916x | 0.660 | 12.0 |
+| docs (diverse) | 131 072 | 9.23 | 8.82 | 0.955x | 0.167 | 2.0 |
+
+**Negative.** No row reaches the 1.3x gate; low acceptance regresses decode by 4–8%. The 4K
+repeated-corpus echo is the only positive case and still only 1.22x. Cause: decode is band-limited by
+the CPU-resident MoE expert FFN, which a verify batch does not share, so *S* drafts cost about *S*
+token-forwards; and the engine's `ngram-*` drafter has no acceptance-adaptive window, so a
+low-acceptance workload pays for rejected drafts. Greedy equivalence is byte-exact at 4K and diverges
+at 128K under prefix caching (see the results README); speculation is not enabled in `bongo.sh`.
 
 ## 5. Limits
 

@@ -1,0 +1,358 @@
+{
+  "schema": "bongo.speculation-run.v1",
+  "generated_at": "2026-09-29T00:55:37+00:00",
+  "label": "spec",
+  "spec_type": "ngram-map-k4v",
+  "spec_synth": "none",
+  "workload": "generic",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "model": "bongo-iq2_xs",
+  "tier": "iq2_xs",
+  "config": {
+    "contexts": [
+      4096,
+      131072
+    ],
+    "max_tokens": 128,
+    "repeats": 2,
+    "equivalence_tokens": 64,
+    "skip_equivalence": false,
+    "cache_prompt": true
+  },
+  "server": {
+    "build_info": "b11223-4da633776",
+    "default_generation_settings": {
+      "params": {
+        "seed": 4294967295,
+        "temperature": 1.0,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 64,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "adaptive_target": -1.0,
+        "adaptive_decay": 0.8999999761581421,
+        "max_tokens": -1,
+        "n_predict": -1,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "Content-only",
+        "reasoning_format": "none",
+        "reasoning_in_content": false,
+        "generation_prompt": "",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "n_ctx": 131072
+    },
+    "log": "/home/cchild/.bongo/m32b/scratch/speculation-spec-server.log",
+    "note": "engine=llama.cpp b11223 (4da6337767f973e2b4d0797e5b323d77d8565e4a) backend=Vulkan tier=iq2_xs n_cpu_moe=16 ctx=131072 spec_type=ngram-map-k4v synth_len=none flags=--model /home/cchild/.bongo/models/Swift-1.5-Qwen3.8-Flash-Next-GSQ-RCO-GGUF/iq2_xs/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ2_XS-00001-of-00002.gguf --ctx-size 131072 --jinja --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0 --n-gpu-layers 99 --n-cpu-moe 16 --host 127.0.0.1 --port 8080 --parallel 1 --alias bongo-iq2_xs --metrics --device Vulkan1 --spec-type ngram-map-k4v workload=generic"
+  },
+  "warmup": {
+    "status": 200,
+    "wall_ms": 24093.8,
+    "ttft_ms": 24093.7,
+    "prompt_ms": 24090.419,
+    "prompt_tps": 10.585120997687918,
+    "output_tokens": 1,
+    "output_tps": 0.0,
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 255,
+      "prompt_ms": 24090.419,
+      "prompt_per_token_ms": 94.47223137254903,
+      "prompt_per_second": 10.585120997687918,
+      "predicted_n": 1,
+      "predicted_ms": 0.001,
+      "predicted_per_token_ms": 0.0,
+      "predicted_per_second": 0.0
+    },
+    "draft": {
+      "cache_n": 0,
+      "prompt_n": 255,
+      "predicted_n": 1,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "draft_n_verif_steps": null,
+      "draft_ratio": null,
+      "mean_acc_len": null
+    },
+    "text": "\n\n",
+    "error": null
+  },
+  "contexts": [
+    {
+      "context": 4096,
+      "equiv": {
+        "status": 200,
+        "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger",
+        "prompt_tokens": 3846,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 7570.57,
+          "ttft_ms": 181.83,
+          "prompt_ms": 177.41,
+          "prompt_tps": 22.54664336846852,
+          "output_tokens": 128,
+          "output_tps": 17.188783871885903,
+          "timings": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "prompt_ms": 177.41,
+            "prompt_per_token_ms": 44.3525,
+            "prompt_per_second": 22.54664336846852,
+            "predicted_n": 128,
+            "predicted_ms": 7388.539,
+            "predicted_per_token_ms": 58.17747244094488,
+            "predicted_per_second": 17.188783871885903,
+            "draft_n": 95,
+            "draft_n_accepted": 91
+          },
+          "draft": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": 95,
+            "draft_n_accepted": 91,
+            "draft_n_verif_steps": null,
+            "draft_ratio": 0.9578947368421052,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger, comparing it against the previous week. A heron stood motionless at the water's edge, watching the shallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 7288.16,
+          "ttft_ms": 176.93,
+          "prompt_ms": 172.724,
+          "prompt_tps": 23.15833352631945,
+          "output_tokens": 128,
+          "output_tps": 17.859611360794105,
+          "timings": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "prompt_ms": 172.724,
+            "prompt_per_token_ms": 43.181,
+            "prompt_per_second": 23.15833352631945,
+            "predicted_n": 128,
+            "predicted_ms": 7111.017,
+            "predicted_per_token_ms": 55.99225984251969,
+            "predicted_per_second": 17.859611360794105,
+            "draft_n": 93,
+            "draft_n_accepted": 91
+          },
+          "draft": {
+            "cache_n": 4093,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": 93,
+            "draft_n_accepted": 91,
+            "draft_n_verif_steps": null,
+            "draft_ratio": 0.978494623655914,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\n\n</think>\n\nThe turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road curved past the reservoir, where the morning fog had not yet lifted. Engineers logged each pressure reading in a ledger, comparing it against the previous week. A heron stood motionless at the water's edge, watching the shallow channel for movement. The turbine hall hummed at a steady frequency, a sound felt more than heard. Later, the maintenance crew replaced two worn bearings and returned the unit to service.\n\nThe mountain road",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 17.524197616340004,
+          "min": 17.188783871885903,
+          "max": 17.859611360794105
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 179.38,
+          "min": 176.93,
+          "max": 181.83
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 4093.0,
+          "min": 4093,
+          "max": 4093
+        }
+      },
+      "acceptance": {
+        "draft_n": 244,
+        "draft_n_accepted": 213,
+        "draft_ratio": 0.8729508196721312,
+        "mean_acc_len": 19.2,
+        "verif_steps": 3,
+        "tokens_per_round": 72.0
+      },
+      "acceptance_runs": [
+        {
+          "draft_n": 151,
+          "draft_n_accepted": 122,
+          "draft_ratio": 0.8079470198675497,
+          "mean_acc_len": 16.5,
+          "verif_steps": 2,
+          "tokens_per_round": 62.0
+        },
+        {
+          "draft_n": 93,
+          "draft_n_accepted": 91,
+          "draft_ratio": 0.978494623655914,
+          "mean_acc_len": 19.2,
+          "verif_steps": 1,
+          "tokens_per_round": 92.0
+        }
+      ],
+      "prompt_tokens": 4097
+    },
+    {
+      "context": 131072,
+      "equiv": {
+        "status": 200,
+        "text": "\n\n<think>\nThe user has pasted a paragraph repeated many, many times. The text describes a mountain road, reservoir, engineers logging pressure readings, a heron, a turbine hall, and maintenance crew replacing bearings. It's repeated dozens of times.\n\nThe user hasn't asked a specific question. They've just",
+        "prompt_tokens": 124232,
+        "completion_tokens": 64
+      },
+      "decode": [
+        {
+          "status": 200,
+          "wall_ms": 16052.61,
+          "ttft_ms": 502.35,
+          "prompt_ms": 406.509,
+          "prompt_tps": 9.839880543850198,
+          "output_tokens": 128,
+          "output_tps": 8.167087025135336,
+          "timings": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "prompt_ms": 406.509,
+            "prompt_per_token_ms": 101.62725,
+            "prompt_per_second": 9.839880543850198,
+            "predicted_n": 128,
+            "predicted_ms": 15550.22,
+            "predicted_per_token_ms": 122.44267716535433,
+            "predicted_per_second": 8.167087025135336
+          },
+          "draft": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\nThe user has pasted a paragraph repeated many, many times. The text describes a mountain road, reservoir, engineers logging pressure readings, a heron, a turbine hall, and maintenance crew replacing bearings. It's repeated dozens of times.\n\nThe user hasn't asked a specific question. They've just pasted this repetitive text. I should respond helpfully. Since there's no explicit question, I'll acknowledge what they've shared and offer to help. The text appears to be a descriptive passage about a hydroelectric facility, repeated many times.\n\nLet me provide a concise, helpful response acknowledging the content and asking what",
+          "error": null,
+          "repeat": 1
+        },
+        {
+          "status": 200,
+          "wall_ms": 15708.36,
+          "ttft_ms": 494.81,
+          "prompt_ms": 401.717,
+          "prompt_tps": 9.957258468025998,
+          "output_tokens": 128,
+          "output_tps": 8.348293980110947,
+          "timings": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "prompt_ms": 401.717,
+            "prompt_per_token_ms": 100.42925,
+            "prompt_per_second": 9.957258468025998,
+            "predicted_n": 128,
+            "predicted_ms": 15212.689,
+            "predicted_per_token_ms": 119.78495275590551,
+            "predicted_per_second": 8.348293980110947
+          },
+          "draft": {
+            "cache_n": 128321,
+            "prompt_n": 4,
+            "predicted_n": 128,
+            "draft_n": null,
+            "draft_n_accepted": null,
+            "draft_n_verif_steps": null,
+            "draft_ratio": null,
+            "mean_acc_len": null
+          },
+          "text": "\n\n<think>\nThe user has pasted a paragraph repeated many, many times. The text describes a mountain road, reservoir, engineers logging pressure readings, a heron, a turbine hall, and maintenance crew replacing bearings. It's repeated dozens of times.\n\nThe user hasn't asked a specific question. They've just pasted this repetitive text. I should respond helpfully. Since there's no explicit question, I'll acknowledge what they've shared and offer to help. The text appears to be a descriptive passage about a hydroelectric facility, repeated many times.\n\nLet me provide a concise, helpful response acknowledging the content and asking what",
+          "error": null,
+          "repeat": 2
+        }
+      ],
+      "summary": {
+        "output_tps": {
+          "n": 2,
+          "median": 8.257690502623142,
+          "min": 8.167087025135336,
+          "max": 8.348293980110947
+        },
+        "ttft_ms": {
+          "n": 2,
+          "median": 498.58000000000004,
+          "min": 494.81,
+          "max": 502.35
+        },
+        "output_tokens": {
+          "n": 2,
+          "median": 128.0,
+          "min": 128,
+          "max": 128
+        },
+        "cache_n": {
+          "n": 2,
+          "median": 128321.0,
+          "min": 128321,
+          "max": 128321
+        }
+      },
+      "acceptance": null,
+      "acceptance_runs": [],
+      "prompt_tokens": 128325
+    }
+  ]
+}

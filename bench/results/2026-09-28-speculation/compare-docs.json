@@ -1,0 +1,59 @@
+{
+  "schema": "bongo.speculation-compare.v1",
+  "generated_at": "2026-09-29T01:32:53+00:00",
+  "baseline_label": "baseline",
+  "spec_label": "spec",
+  "workload": "docs",
+  "spec_type": "ngram-map-k4v",
+  "contexts": [
+    {
+      "context": 4096,
+      "status": "ok",
+      "equiv_equal": true,
+      "equiv_len": 168,
+      "output_tps_baseline": 17.792774995634545,
+      "output_tps_spec": 16.292105287423,
+      "speedup": 0.9156584788724785,
+      "ttft_baseline_ms": 183.715,
+      "ttft_spec_ms": 180.45,
+      "acceptance": {
+        "draft_n": 50,
+        "draft_n_accepted": 33,
+        "draft_ratio": 0.66,
+        "mean_acc_len": 12.0,
+        "verif_steps": 3,
+        "tokens_per_round": 12.0
+      }
+    },
+    {
+      "context": 131072,
+      "status": "ok",
+      "equiv_equal": false,
+      "equiv_len": 234,
+      "equiv_divergence_index": 8,
+      "equiv_baseline_excerpt": " \u2014 so a 12-token match in a\n  copy-heavy prompt does not make the drafter greedy in a pr",
+      "equiv_spec_excerpt": " \u2014 so a model that copies its\n  source gets a long lookup window and a model that paraph",
+      "output_tps_baseline": 9.233183721603567,
+      "output_tps_spec": 8.820294232510333,
+      "speedup": 0.9552820022277727,
+      "ttft_baseline_ms": 390.5,
+      "ttft_spec_ms": 397.805,
+      "acceptance": {
+        "draft_n": 12,
+        "draft_n_accepted": 2,
+        "draft_ratio": 0.16666666666666666,
+        "mean_acc_len": 2.0,
+        "verif_steps": 2,
+        "tokens_per_round": 2.0
+      }
+    }
+  ],
+  "verdict": {
+    "outputs_identical": false,
+    "speedups_at_acceptance_ge_0.5": {
+      "4096": 0.9156584788724785
+    },
+    "min_speedup_at_acceptance_ge_0.5": 0.9156584788724785,
+    "low_acceptance_regressions": []
+  }
+}
