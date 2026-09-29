@@ -126,6 +126,30 @@ set is the `mmap` opt-out's working set (~10.6 GiB), so the shipped default is c
 RAM; the 256K default loads in 75 s at a 30.65 GiB VRAM peak.
 ([doc](../research/m4.3-shipped-default.md), [raw](../../bench/results/2026-09-29-m4.3-shipped-default/))
 
+### M4.3 / M4.4 result (2026-09-29) — the turn fix is shipped; decode has a measured ceiling
+
+- **M4.3 shipped the M4.2 fix as the default** ([BAS-158](/BAS/issues/BAS-158)): `bongo.sh` now selects the
+  patched engine, passes `--load-mode none`, and sets `GGML_VK_HOST_BUFT_PER_DEVICE=1` +
+  `GGML_VK_ASYNC_USE_TRANSFER_QUEUE=1` with no env knowledge. On the shipped default the 512-token turn is
+  **2716.1 ms at 16K** and **4669.3 ms at 128K** (needle pass, 256K fits at 30.65 GiB / 10.3 GiB MemAvailable,
+  `tests/bongo-sh.test.sh` 50 passed). `--engine stage0` restores the Stage 0 baseline without a rebuild. The
+  128K gate re-run lands at -14.80%, a statistical tie with the 15% internal gate, with the real `<=5 s` target
+  met. `--load-mode none` is also **cheaper in anonymous RAM** than the Stage 0 `mmap` opt-out (VmRSS 2.3-2.5
+  GiB vs 9.5-10.6 GiB), so there is no RAM trade-off.
+- **M4.4 profiled decode and found its ceiling** ([BAS-159](/BAS/issues/BAS-159)): a 4K decode step is
+  **GPU dense matmuls 40.3%**, **flash attention 20.5%**, norms 12.4%, **MoE expert matmul only 10.3%**, and
+  **~34% host**. This **corrects the earlier "decode is MoE-matmul-bound" and "decode uploads experts"
+  readings**: the Vulkan backend offloads `MUL_MAT_ID` only at batch >= 32, so at decode batch 1 the 16
+  host-resident expert layers run **on the CPU**, and the upload probes read `copies=0`.
+- **Placement is the only lever found:** `--n-cpu-moe 12` gives **19.59 tok/s (+15.5%)**, with no turn or needle
+  regression. `10` and `8` fail to load at 131072, so **12 is the placement ceiling**. The GPU-busy floor is
+  ~39 ms/step (**25.5-25.8 tok/s with zero host time**) against a 40 ms target, so **`>=25 tok/s` is not
+  reachable from a host-side lever** and needs a ~25-30% GPU-side cut in flash attention + dense matmuls.
+
+**Updated target status:** the turn targets and 256K are met and shipped. **Decode `>=25 tok/s` is not met;
+the measured ceiling is 19.59 tok/s.** The decode target therefore goes to the CEO for a re-baseline or a
+GPU-side decode milestone; that is a product call, not a technical one.
+
 ## Consequences
 
 - **Positive.** The next milestone targets a term that is 80% of the turn instead of 3.4%. The plan no longer

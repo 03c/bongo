@@ -91,8 +91,10 @@ See [ADR-0003](adr/0003-engine-direction.md). M3 is complete; the measurements a
 
 **Target status.** The turn targets are **met on the shipped default** since M4.3: 512-token turn 2.72 s at
 16K (target <=3 s) and 4.67 s at 128K (target <=5 s), with the M4.2-patched engine and the upload
-levers on by default; 256K is met. **4K decode ~18 tok/s (target >=25) is not met** and is the last open
-target (M4.4). Umbrella [BAS-62](/BAS/issues/BAS-62) stays open on M4.4.
+levers on by default; 256K is met. **4K decode ~19.6 tok/s (target >=25) is not met**: the measured host-side
+ceiling is 19.59 tok/s (placement), and the GPU-busy floor is ~25.5-25.8 tok/s, so the target needs either a
+re-baseline or a GPU-side decode milestone. That call is with the CEO. Umbrella
+[BAS-62](/BAS/issues/BAS-62) stays open on the remaining M4 items.
 
 ## M4 — Host/CPU critical path (open) — decided by [ADR-0005](adr/0005-host-cpu-critical-path.md)
 
@@ -118,8 +120,16 @@ CPU workers 0%).
   (−14.80%)**, cold prefill within 0.05% of M4.2, needle pass, 256K fit 30.65 GiB. Corrects the RAM
   premise: the default's VmRSS is 2.4 GiB (the ~10 GiB set is the `mmap` opt-out's working set).
   ([doc](research/m4.3-shipped-default.md), [raw](../bench/results/2026-09-29-m4.3-shipped-default/))
-- [ ] M4.4 Decode `>=25 tok/s`: profile the GPU decode path (now MoE-matmul-bound) and land a lever, or measure
-  the ceiling for a re-baseline.
+- [x] M4.4 ([BAS-159](/BAS/issues/BAS-159)) Decode profiled: dense matmuls 40.3%, flash attention 20.5%, MoE
+  expert matmul 10.3%, host ~34%. The MoE term is not dominant, and decode does **no** expert upload (batch 1 is
+  below the Vulkan offload threshold of 32, so the host-resident experts run on the CPU). Placement is the only
+  lever found: `--n-cpu-moe 12` gives **19.59 tok/s (+15.5%)**; 10/8 OOM at 131072, so that is the ceiling.
+  `--placement auto` is landed but opt-in. ([doc](research/m4.4-decode-profile.md),
+  [raw](../bench/results/2026-09-29-m4.4-decode/))
+- [ ] M4.5 Make `--placement auto` the default **with an automatic OOM fallback** to the tier placement, so the
+  decode gain ships without sitting on the VRAM load edge.
+- [ ] CEO call: re-baseline decode to ~20 tok/s or fund a GPU-side decode milestone (flash attention + dense
+  matmuls, needing a ~25-30% GPU-side cut).
 - Deferred: Level Zero command-list capture (R1c).
 
 MTP is **not** on this list: the base model's head is not in the published GGUF and llama.cpp `qwen4exp` cannot
